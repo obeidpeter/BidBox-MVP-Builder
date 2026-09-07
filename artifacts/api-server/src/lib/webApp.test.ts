@@ -119,10 +119,10 @@ describe("production web route indexing", () => {
           <title>BidBox fixture</title>
           <meta name="description" content="fixture" />
           <meta name="robots" content="index, follow" />
-          <link rel="canonical" href="https://valo-mvp-builder.replit.app/" />
+          <link rel="canonical" href="https://bidbox-mvp-builder.replit.app/" />
           <meta property="og:title" content="fixture" />
           <meta property="og:description" content="fixture" />
-          <meta property="og:url" content="https://valo-mvp-builder.replit.app/" />
+          <meta property="og:url" content="https://bidbox-mvp-builder.replit.app/" />
           <meta name="twitter:title" content="fixture" />
           <meta name="twitter:description" content="fixture" />
         </head><body><div id="root"></div></body></html>`,
@@ -184,11 +184,11 @@ describe("production web route indexing", () => {
         assert.match(canonicalHtml, /name="robots" content="index, follow"/);
         assert.match(
           canonicalHtml,
-          /rel="canonical" href="https:\/\/valo-mvp-builder\.replit\.app\/product"/,
+          /rel="canonical" href="https:\/\/bidbox-mvp-builder\.replit\.app\/product"/,
         );
         assert.match(
           canonicalHtml,
-          /property="og:url" content="https:\/\/valo-mvp-builder\.replit\.app\/product"/,
+          /property="og:url" content="https:\/\/bidbox-mvp-builder\.replit\.app\/product"/,
         );
 
         const autopsyResponse = await fetchWithHostHeaders(
@@ -203,14 +203,14 @@ describe("production web route indexing", () => {
         );
         assert.match(
           autopsyHtml,
-          /rel="canonical" href="https:\/\/valo-mvp-builder\.replit\.app\/request-bid-autopsy"/,
+          /rel="canonical" href="https:\/\/bidbox-mvp-builder\.replit\.app\/request-bid-autopsy"/,
         );
         assert.match(autopsyHtml, /Do not include tender documents/);
 
         const stagingResponse = await fetchWithHostHeaders(
           `${origin}/product`,
           {
-            Host: "preview.valo-mvp-builder.replit.app",
+            Host: "preview.bidbox-mvp-builder.replit.app",
             "X-Forwarded-Proto": "https",
           },
         );

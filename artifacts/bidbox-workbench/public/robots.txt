@@ -22,4 +22,4 @@ Disallow: /sign-in
 Disallow: /accept-invitation
 Disallow: /sso-callback
 
-Sitemap: https://valo-mvp-builder.replit.app/sitemap.xml
+Sitemap: https://bidbox-mvp-builder.replit.app/sitemap.xml

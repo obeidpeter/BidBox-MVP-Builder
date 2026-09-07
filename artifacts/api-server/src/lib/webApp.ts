@@ -7,7 +7,7 @@ import express, {
   type Response,
 } from "express";
 
-export const PUBLIC_SITE_ORIGIN = "https://valo-mvp-builder.replit.app";
+export const PUBLIC_SITE_ORIGIN = "https://bidbox-mvp-builder.replit.app";
 
 interface PublicPageMetadata {
   title: string;

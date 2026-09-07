@@ -30,11 +30,11 @@ describe("public SEO and privacy boundary", () => {
     expect(isApprovedPublicOrigin(`${APPROVED_PUBLIC_ORIGIN}/product`)).toBe(
       true,
     );
-    expect(isApprovedPublicOrigin("http://valo-mvp-builder.replit.app")).toBe(
+    expect(isApprovedPublicOrigin("http://bidbox-mvp-builder.replit.app")).toBe(
       false,
     );
     expect(
-      isApprovedPublicOrigin("https://preview.valo-mvp-builder.replit.app"),
+      isApprovedPublicOrigin("https://preview.bidbox-mvp-builder.replit.app"),
     ).toBe(false);
     expect(isApprovedPublicOrigin("http://localhost:4173")).toBe(false);
   });

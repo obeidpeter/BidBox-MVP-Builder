@@ -53,7 +53,7 @@ Required activation evidence includes:
 The implementation now applies a deny-by-default indexing boundary:
 
 - `index.html` is `noindex, nofollow` by default and contains no default canonical or `og:url`.
-- Only exact-origin requests for `https://valo-mvp-builder.replit.app` and an implemented public path receive `index, follow`, a canonical URL and `og:url` from the production server.
+- Only exact-origin requests for `https://bidbox-mvp-builder.replit.app` and an implemented public path receive `index, follow`, a canonical URL and `og:url` from the production server.
 - Localhost, Replit preview/staging hosts, authentication routes, workspace routes and unknown paths remain `noindex, nofollow`; noncanonical responses also receive `X-Robots-Tag`.
 - Unknown web paths return HTTP 404 rather than an indexable SPA success page.
 - Public routes receive route-specific title, description, Open Graph/Twitter copy and crawler-readable server HTML.
