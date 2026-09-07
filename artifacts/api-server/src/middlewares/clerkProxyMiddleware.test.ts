@@ -14,8 +14,8 @@ describe("Clerk proxy public-host boundary", () => {
 
   it("derives only exact host values from configured origins", () => {
     assert.deepEqual([...hosts].sort(), [
-      "bids.bidbox.example",
       "bidbox-mvp-builder.replit.app",
+      "bids.bidbox.example",
     ]);
     assert.deepEqual(
       [
