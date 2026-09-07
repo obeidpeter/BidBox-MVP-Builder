@@ -75,7 +75,7 @@ The candidate preserves the TypeScript/PostgreSQL/React/OpenAPI architecture but
 
 ## Security/privacy and rule packs
 
-Current Nigeria sources and effective-dated rule-pack status are recorded in `SECURITY_PRIVACY.md`. Authoritative document hashes, legal review, executable fixtures and signed activation are still required. The supplied Business Plan is v1.1 and Roadmap is v1.0, while the TRD claims alignment to missing Business Plan v1.2 and Roadmap v1.1; that discrepancy remains open. The local source archive has no Git metadata, but a read-only GitHub audit verified that `obeidpeter/Valo-MVP-Builder` is currently public and includes product-planning documents; repository visibility, history/content, secrets and MIT-licensing implications require owner/security/legal review.
+Current Nigeria sources and effective-dated rule-pack status are recorded in `SECURITY_PRIVACY.md`. Authoritative document hashes, legal review, executable fixtures and signed activation are still required. The supplied Business Plan is v1.1 and Roadmap is v1.0, while the TRD claims alignment to missing Business Plan v1.2 and Roadmap v1.1; that discrepancy remains open. The local source archive has no Git metadata, but a read-only GitHub audit verified that `obeidpeter/BidBox-MVP-Builder` (then named `Valo-MVP-Builder`) is currently public and includes product-planning documents; repository visibility, history/content, secrets and MIT-licensing implications require owner/security/legal review.
 
 ## Feature activation
 

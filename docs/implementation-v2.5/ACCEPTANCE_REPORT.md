@@ -114,7 +114,7 @@ Five actual Autopsies/SLA, paid mandates, retainers, conversion, on-time deliver
 
 ## Known limitations and residual risks
 
-- The local working copy is a source archive without Git metadata. A read-only GitHub audit verified that `obeidpeter/Valo-MVP-Builder` is currently public and that product-planning documents are present in repository history/content under the root MIT licence; owner, security and legal review is required.
+- The local working copy is a source archive without Git metadata. A read-only GitHub audit verified that `obeidpeter/BidBox-MVP-Builder` (then named `Valo-MVP-Builder`) is currently public and that product-planning documents are present in repository history/content under the root MIT licence; owner, security and legal review is required.
 - Supplied Business Plan v1.1 and Roadmap v1.0 conflict with TRD claims that Business Plan v1.2 and Roadmap v1.1 are the aligned baselines.
 - Existing money/date/state/schema choices require controlled migration.
 - Paid/regulated providers, data regions, production target and infrastructure budget are undecided or unauthorised.
