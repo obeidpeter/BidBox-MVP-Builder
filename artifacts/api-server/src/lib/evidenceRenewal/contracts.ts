@@ -108,7 +108,7 @@ export interface EvidenceRenewalStagedReplacement {
 }
 
 export interface EvidenceRenewalInternalReminder {
-  channel: "valo_evidence_renewal_register";
+  channel: "bidbox_evidence_renewal_register";
   assignedOwnerUserId: string;
   dueAt: string;
   status: "open" | "resolved";

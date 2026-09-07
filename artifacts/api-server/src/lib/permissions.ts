@@ -1,5 +1,5 @@
 /**
- * Valo's role and permission policy is intentionally a pure module. Routes and
+ * BidBox's role and permission policy is intentionally a pure module. Routes and
  * middleware consume the same matrix, and security tests can exercise every
  * decision without a database or a live identity provider.
  */
@@ -170,7 +170,7 @@ export const ROLE_PERMISSIONS: Readonly<
   client_organisation_owner: [
     ...MANAGE_PORTFOLIO,
     // Client owners retain the matrix's final client-approval authority, but
-    // do not inherit evidence/fatal/Valo-quality approval permissions.
+    // do not inherit evidence/fatal/BidBox-quality approval permissions.
     "report:sign_off",
     "organisation:update",
     "membership:manage",

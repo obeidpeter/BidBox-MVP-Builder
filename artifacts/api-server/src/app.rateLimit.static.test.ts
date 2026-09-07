@@ -7,9 +7,9 @@ const source = readFileSync(
   "utf8",
 ).replace(/\r\n?/gu, "\n");
 
-test("layers a supported rate limiter inside the bounded Valo policy boundary", () => {
+test("layers a supported rate limiter inside the bounded BidBox policy boundary", () => {
   const healthRoutes = source.indexOf('app.use("/api", healthRouter)');
-  const valoLimiter = source.indexOf("createRateLimiter({");
+  const bidboxLimiter = source.indexOf("createRateLimiter({");
   const supportedLimiter = source.indexOf("rateLimit({");
   const publicRoutes = source.indexOf('app.use(\n  "/api/public",');
   const authentication = source.indexOf("clerkMiddleware((req)");
@@ -17,12 +17,12 @@ test("layers a supported rate limiter inside the bounded Valo policy boundary", 
 
   assert.ok(healthRoutes >= 0, "health routes must be mounted");
   assert.ok(
-    valoLimiter > healthRoutes,
-    "Valo limiter must follow health routes",
+    bidboxLimiter > healthRoutes,
+    "BidBox limiter must follow health routes",
   );
   assert.ok(
-    supportedLimiter > valoLimiter,
-    "supported limiter must remain behind the authoritative Valo limiter",
+    supportedLimiter > bidboxLimiter,
+    "supported limiter must remain behind the authoritative BidBox limiter",
   );
   assert.ok(
     publicRoutes > supportedLimiter,
@@ -38,7 +38,7 @@ test("layers a supported rate limiter inside the bounded Valo policy boundary", 
   );
 });
 
-test("keeps the supported layer silent and aligned with Valo bypass semantics", () => {
+test("keeps the supported layer silent and aligned with BidBox bypass semantics", () => {
   const supportedLimiter = source.slice(
     source.indexOf("rateLimit({"),
     source.indexOf('app.use(\n  "/api/public",'),

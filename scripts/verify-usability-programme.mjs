@@ -161,7 +161,7 @@ export function validateUsabilityProgramme(programme) {
     programme && typeof programme === "object" && !Array.isArray(programme),
   );
   assert.equal(programme.schemaVersion, 1);
-  assert.equal(programme.programmeId, "valo-continuous-usability/v1");
+  assert.equal(programme.programmeId, "bidbox-continuous-usability/v1");
   assertNonEmptyText(programme.purpose, "purpose");
   assert.match(
     programme.evidencePolicy,

@@ -51,7 +51,7 @@ describe("explicit platform bootstrap", () => {
         parseBootstrapOrganisationConfig({
           enabled: "true",
           name: "Valo Nigeria",
-          slug: "../valo",
+          slug: "../bidbox",
         }),
       /must identify a valid organisation/,
     );

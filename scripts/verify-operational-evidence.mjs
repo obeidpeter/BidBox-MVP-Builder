@@ -202,13 +202,13 @@ export function verifyBackupEvidenceDocument(document, options) {
     fail("RESTORE_DRILL_STALE");
   }
   return {
-    event: "valo.backup.evidence_verified",
+    event: "bidbox.backup.evidence_verified",
     signals: {
-      "valo.backup.age_hours": ageHours,
-      "valo.backup.last_success_unixtime_seconds": Math.floor(
+      "bidbox.backup.age_hours": ageHours,
+      "bidbox.backup.last_success_unixtime_seconds": Math.floor(
         now.valueOf() / 1_000,
       ),
-      "valo.backup.verification_failures": 0,
+      "bidbox.backup.verification_failures": 0,
     },
   };
 }
@@ -393,12 +393,12 @@ export function verifyAuditAnchorEvidenceDocument(document, options) {
   );
   if (ageSeconds > maxAgeHours * 3_600) fail("ANCHOR_EVIDENCE_STALE");
   return {
-    event: "valo.audit.anchor_evidence_verified",
+    event: "bidbox.audit.anchor_evidence_verified",
     signals: {
-      "valo.audit.anchor_age_seconds": ageSeconds,
-      "valo.audit.anchor_cycle_complete": 1,
-      "valo.audit.anchor_failures": 0,
-      "valo.audit.anchor_last_success_unixtime_seconds": Math.floor(
+      "bidbox.audit.anchor_age_seconds": ageSeconds,
+      "bidbox.audit.anchor_cycle_complete": 1,
+      "bidbox.audit.anchor_failures": 0,
+      "bidbox.audit.anchor_last_success_unixtime_seconds": Math.floor(
         now.valueOf() / 1_000,
       ),
     },
@@ -512,13 +512,13 @@ if (
           error instanceof OperationalEvidenceError
             ? error.message
             : "OPERATIONAL_EVIDENCE_VERIFICATION_FAILED",
-        event: `valo.${kind}.evidence_verification_failed`,
+        event: `bidbox.${kind}.evidence_verification_failed`,
         signals:
           kind === "backup"
-            ? { "valo.backup.verification_failures": 1 }
+            ? { "bidbox.backup.verification_failures": 1 }
             : {
-                "valo.audit.anchor_cycle_complete": 0,
-                "valo.audit.anchor_failures": 1,
+                "bidbox.audit.anchor_cycle_complete": 0,
+                "bidbox.audit.anchor_failures": 1,
               },
       }),
     );

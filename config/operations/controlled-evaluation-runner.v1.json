@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "controlId": "valo-controlled-evaluation-runner/v1",
+  "controlId": "bidbox-controlled-evaluation-runner/v1",
   "deliveryState": "foundation_only",
   "manifestBindingImplemented": true,
   "tenantAndProjectBindingRequired": true,

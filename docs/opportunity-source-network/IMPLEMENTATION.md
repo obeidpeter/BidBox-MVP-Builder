@@ -1,6 +1,6 @@
 # Official Opportunity Source Network
 
-Valo now has a tenant-scoped, named-human pilot register for official opportunity source metadata. It records provenance for review; it does not scrape, execute, qualify, or activate a pursuit automatically.
+BidBox now has a tenant-scoped, named-human pilot register for official opportunity source metadata. It records provenance for review; it does not scrape, execute, qualify, or activate a pursuit automatically.
 
 ## Delivered boundary
 

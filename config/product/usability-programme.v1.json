@@ -1,7 +1,7 @@
 {
   "schemaVersion": 1,
-  "programmeId": "valo-continuous-usability/v1",
-  "purpose": "Continuously test whether authorised Valo users can understand, complete, verify, and recover from high-consequence tender workflows.",
+  "programmeId": "bidbox-continuous-usability/v1",
+  "purpose": "Continuously test whether authorised BidBox users can understand, complete, verify, and recover from high-consequence tender workflows.",
   "evidencePolicy": "Only observed sessions and checked-in artefacts count as evidence; planned studies and synthetic runs must never be reported as user outcomes.",
   "participantRoles": [
     "bid_lead",
@@ -56,7 +56,7 @@
   "tasks": [
     {
       "id": "find_profile_user_id",
-      "title": "Find and copy the Valo User ID",
+      "title": "Find and copy the BidBox User ID",
       "roles": [
         "bid_lead",
         "bid_analyst",
@@ -65,7 +65,7 @@
         "partner"
       ],
       "startingState": "The participant is signed in and needs their identifier for an invitation or support request.",
-      "successOutcome": "The participant reaches Profile, identifies the Valo User ID, and copies it without exposing unrelated account data.",
+      "successOutcome": "The participant reaches Profile, identifies the BidBox User ID, and copies it without exposing unrelated account data.",
       "risk": "standard",
       "surfaces": ["profile", "authenticated_navigation"]
     },

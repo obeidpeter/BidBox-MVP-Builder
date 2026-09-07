@@ -15,7 +15,7 @@ function git(cwd, args) {
 }
 
 test("local formatting fallback includes staged, unstaged, and untracked files", async (t) => {
-  const cwd = await mkdtemp(path.join(os.tmpdir(), "valo-format-check-"));
+  const cwd = await mkdtemp(path.join(os.tmpdir(), "bidbox-format-check-"));
   t.after(() => rm(cwd, { recursive: true, force: true }));
   git(cwd, ["init", "--quiet"]);
   git(cwd, ["config", "user.email", "test@example.invalid"]);

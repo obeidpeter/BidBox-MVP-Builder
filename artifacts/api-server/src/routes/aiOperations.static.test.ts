@@ -8,7 +8,7 @@ const source = readFileSync(
 );
 const consoleSource = readFileSync(
   new URL(
-    "../../../valo-workbench/src/pages/operations-console.tsx",
+    "../../../bidbox-workbench/src/pages/operations-console.tsx",
     import.meta.url,
   ),
   "utf8",

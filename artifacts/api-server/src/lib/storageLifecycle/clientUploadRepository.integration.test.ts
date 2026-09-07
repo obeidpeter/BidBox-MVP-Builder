@@ -1004,7 +1004,7 @@ test("five signer-live source states sweep to exact terminal status and path mat
 });
 
 test("tenant-scoped PostgreSQL access cannot observe a peer upload session", async () => {
-  const roleName = `valo_upload_rls_probe_${randomUUID().replaceAll("-", "")}`;
+  const roleName = `bidbox_upload_rls_probe_${randomUUID().replaceAll("-", "")}`;
   assert.match(roleName, /^[a-z][a-z0-9_]{0,62}$/u);
   const roleIdentifier = `"${roleName}"`;
 

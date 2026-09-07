@@ -11,11 +11,11 @@ describe("CORS origin policy", () => {
     assert.deepEqual(
       [
         ...parseAllowedOrigins(
-          " https://portal.valo.ng/,*,https://partner.valo.ng ",
+          " https://portal.bidbox.ng/,*,https://partner.bidbox.ng ",
           "production",
         ),
       ],
-      ["https://portal.valo.ng", "https://partner.valo.ng"],
+      ["https://portal.bidbox.ng", "https://partner.bidbox.ng"],
     );
   });
 

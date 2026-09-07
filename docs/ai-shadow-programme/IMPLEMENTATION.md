@@ -1,6 +1,6 @@
 # Controlled AI Shadow Programme
 
-Valo now has an internal, tenant-scoped register for **no-output shadow evaluation**. It is an evidence workflow, not a model runner or activation switch.
+BidBox now has an internal, tenant-scoped register for **no-output shadow evaluation**. It is an evidence workflow, not a model runner or activation switch.
 
 ## Delivered boundary
 

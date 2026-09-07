@@ -40,24 +40,24 @@ test("traversal, absolute, doubled and exotic keys fail closed", () => {
 });
 
 test("public search paths overlapping the private dir are rejected", () => {
-  const privateDir = "/valo-bucket/.private";
+  const privateDir = "/bidbox-bucket/.private";
   assert.doesNotThrow(() =>
     assertPublicSearchPathsDisjointFromPrivateDir(
-      ["/valo-bucket/public", "/valo-bucket/assets"],
+      ["/bidbox-bucket/public", "/bidbox-bucket/assets"],
       privateDir,
     ),
   );
   for (const overlapping of [
-    "/valo-bucket/.private",
-    "/valo-bucket/.private/",
-    "/valo-bucket/.private/published",
-    "/valo-bucket",
+    "/bidbox-bucket/.private",
+    "/bidbox-bucket/.private/",
+    "/bidbox-bucket/.private/published",
+    "/bidbox-bucket",
     "/",
   ]) {
     assert.throws(
       () =>
         assertPublicSearchPathsDisjointFromPrivateDir(
-          ["/valo-bucket/public", overlapping],
+          ["/bidbox-bucket/public", overlapping],
           privateDir,
         ),
       /must be disjoint/u,
@@ -69,8 +69,8 @@ test("public search paths overlapping the private dir are rejected", () => {
 test("sibling prefixes sharing a name stem are not false positives", () => {
   assert.doesNotThrow(() =>
     assertPublicSearchPathsDisjointFromPrivateDir(
-      ["/valo-bucket/.private-assets"],
-      "/valo-bucket/.private",
+      ["/bidbox-bucket/.private-assets"],
+      "/bidbox-bucket/.private",
     ),
   );
 });

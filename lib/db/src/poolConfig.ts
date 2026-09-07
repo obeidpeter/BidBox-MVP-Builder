@@ -146,7 +146,7 @@ export function createRuntimePoolConfig(
   }
 
   return {
-    application_name: "valo-api",
+    application_name: "bidbox-api",
     connectionString,
     connectionTimeoutMillis: integerFromEnvironment(
       environment,

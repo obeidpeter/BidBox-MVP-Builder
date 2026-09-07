@@ -18,7 +18,7 @@ Status: design contract. Existing pages are useful implementation inputs, not pr
 | Client owner/admin        | Onboard, govern people/privacy, order, see risk/cost/usage, approve/export                      |
 | Bid manager/contributor   | Intake tender, own requirements/tasks, supply evidence, resolve gaps, edit grounded drafts      |
 | Client approver/auditor   | Independently review change/evidence/sign-off trail without accidental mutation                 |
-| Valo analyst/QA           | Clear high-volume queues, compare sources, adjudicate defects, enforce evidence/fatal gates     |
+| BidBox analyst/QA         | Clear high-volume queues, compare sources, adjudicate defects, enforce evidence/fatal gates     |
 | Operations/platform admin | Resolve provider/job/SLA/billing/security exceptions without standing content access            |
 | Partner admin/analyst     | Manage delegated clients and work, apply allowed branding, co-sign under visible responsibility |
 
@@ -114,7 +114,7 @@ Observed implementation has landing/sign-in, dashboard, clients/client detail, p
 
 ```text
 +--------------------------------------------------------------------------------+
-| Valo | Organisation v | Search | Help | Connection | User/MFA                  |
+| BidBox | Organisation v | Search | Help | Connection | User/MFA                |
 +----------------------+---------------------------------------------------------+
 | My work              | Tender REF / Lot 2                Deadline: 3d 04h      |
 | Engagements          | BLOCKED - 2 fatal defects         Last recompute: 10:42 |
@@ -136,7 +136,7 @@ Observed implementation has landing/sign-in, dashboard, clients/client detail, p
 ## Mobile approval wireframe
 
 ```text
-[Valo] Tender REF / Lot 2
+[BidBox] Tender REF / Lot 2
 BLOCKED: fatal defect open
 Deadline 3d 04h
 
@@ -173,7 +173,7 @@ App shell, breadcrumb, tenant switcher, deadline clock, readiness banner, status
 
 ## Content rules
 
-Use “suggested”, “confirmed by”, “blocked because”, “evidence expires”, and “source page/clause”. Never say “AI verified”, “guaranteed compliant”, “will win”, or “safe” without named deterministic/human basis. Risk is “controllable-defect risk”, not award probability. Money checks explain that Valo did not create the client's rates.
+Use “suggested”, “confirmed by”, “blocked because”, “evidence expires”, and “source page/clause”. Never say “AI verified”, “guaranteed compliant”, “will win”, or “safe” without named deterministic/human basis. Risk is “controllable-defect risk”, not award probability. Money checks explain that BidBox did not create the client's rates.
 
 ## Low-bandwidth design
 

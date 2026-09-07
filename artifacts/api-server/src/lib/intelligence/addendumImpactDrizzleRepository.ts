@@ -1400,7 +1400,7 @@ async function acquireAddendumMutationLocks(
   await transaction.execute(sql`
     SELECT pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(
-        ${`valo.membership-administration:${scope.organisationId}`},
+        ${`bidbox.membership-administration:${scope.organisationId}`},
         0
       )
     )
@@ -1418,7 +1418,7 @@ async function acquireAddendumMutationLocks(
   await transaction.execute(sql`
     SELECT pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(
-        ${`valo.document-snapshot-series:${scope.organisationId}:${projectId}:${sourceId}`},
+        ${`bidbox.document-snapshot-series:${scope.organisationId}:${projectId}:${sourceId}`},
         0
       )
     )

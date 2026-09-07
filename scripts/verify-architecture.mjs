@@ -82,7 +82,7 @@ const DOCUMENT_CONTENT_REQUIREMENTS = Object.freeze({
   "docs/architecture/DYNAMIC_FLOWS.md": ["sequenceDiagram"],
   "docs/architecture/COMPONENT_MAP.md": [
     "artifacts/api-server",
-    "artifacts/valo-workbench",
+    "artifacts/bidbox-workbench",
     "lib/db",
     "lib/api-spec",
   ],
@@ -1175,9 +1175,9 @@ function normalizeInternalBoundaryPolicy(catalogue, modules, metadata) {
   if (moduleById.has("workbench")) {
     assert.ok(
       components.some((component) =>
-        component.roots.includes("artifacts/valo-workbench/src"),
+        component.roots.includes("artifacts/bidbox-workbench/src"),
       ),
-      "internal boundaries must classify artifacts/valo-workbench/src",
+      "internal boundaries must classify artifacts/bidbox-workbench/src",
     );
   }
   return { components, exceptions, exceptionKeys };

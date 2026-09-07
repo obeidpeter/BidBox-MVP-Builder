@@ -67,7 +67,7 @@ async function lockPrivacyMembershipAdministration(
   await transaction.execute(sql`
     SELECT pg_advisory_xact_lock(
       hashtextextended(
-        ${`valo.membership-administration:${organisationId}`},
+        ${`bidbox.membership-administration:${organisationId}`},
         0
       )
     )

@@ -9,7 +9,7 @@ const accepted = {
   reviewedAt: "2026-08-10T10:00:00.000Z",
 };
 const content =
-  "Valo has 12 verified Nigerian engineers available for this pursuit.";
+  "BidBox has 12 verified Nigerian engineers available for this pursuit.";
 const source: SourceDocument = {
   sourceId: "staff-register",
   versionId: "v1",
@@ -156,7 +156,7 @@ test("a final plan review cannot transfer after line review changes", () => {
 test("blocks invented or unverified Nigerian-content claims", () => {
   const result = composeNigerianContentPlan({
     sources: [{ ...source, authority: "unverified" }],
-    facts: [{ ...fact, statement: "Valo has 100 engineers." }],
+    facts: [{ ...fact, statement: "BidBox has 100 engineers." }],
   });
   assert.equal(result.status, "blocked");
   assert.equal(result.lines.length, 0);
@@ -184,7 +184,7 @@ test("rejects impossible percentage commitments", () => {
 
 test("rejects fractional headcounts and unbounded quantified values", () => {
   const fractionalContent =
-    "Valo has 1.5 verified Nigerian personnel available.";
+    "BidBox has 1.5 verified Nigerian personnel available.";
   const fractionalSource = {
     ...source,
     sourceId: "fractional-staff",

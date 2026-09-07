@@ -49,8 +49,12 @@ import {
   matchesProjectRoutePolicyClass,
 } from "../lib/projectRoutePolicy";
 
-export const ORGANISATION_HEADER = "x-valo-organisation-id";
-export const BREAK_GLASS_HEADER = "x-valo-break-glass-session";
+export const ORGANISATION_HEADER = "x-bidbox-organisation-id";
+export const BREAK_GLASS_HEADER = "x-bidbox-break-glass-session";
+// Pre-rename header names, honoured for one release so browser tabs still
+// running the previous bundle keep their tenant selection across the cutover.
+export const LEGACY_ORGANISATION_HEADER = "x-valo-organisation-id";
+export const LEGACY_BREAK_GLASS_HEADER = "x-valo-break-glass-session";
 
 /**
  * Released tender/report/document content stays immutable, while these exact
@@ -211,8 +215,12 @@ export async function attachTenantContext(
 
   try {
     const now = new Date();
-    const requestedOrganisationId = singleHeader(req, ORGANISATION_HEADER);
-    const breakGlassSessionId = singleHeader(req, BREAK_GLASS_HEADER);
+    const requestedOrganisationId =
+      singleHeader(req, ORGANISATION_HEADER) ??
+      singleHeader(req, LEGACY_ORGANISATION_HEADER);
+    const breakGlassSessionId =
+      singleHeader(req, BREAK_GLASS_HEADER) ??
+      singleHeader(req, LEGACY_BREAK_GLASS_HEADER);
 
     if (breakGlassSessionId) {
       if (!requestedOrganisationId) {
@@ -232,6 +240,8 @@ export async function attachTenantContext(
         return;
       }
       (req as AccessRequest).accessContext = context;
+      res.vary("X-BidBox-Organisation-Id");
+      res.vary("X-BidBox-Break-Glass-Session");
       res.vary("X-Valo-Organisation-Id");
       res.vary("X-Valo-Break-Glass-Session");
       next();
@@ -333,7 +343,7 @@ export async function attachTenantContext(
     if (!selected || !targetOrganisationId) {
       if (!requestedOrganisationId && activeMemberships.length > 1) {
         res.status(400).json({
-          error: "Select an organisation with X-Valo-Organisation-Id",
+          error: "Select an organisation with X-BidBox-Organisation-Id",
         });
       } else {
         deny(res);
@@ -384,7 +394,7 @@ export async function attachTenantContext(
       partnerRelationshipId,
       partnerCoSigningRequired,
     };
-    res.vary("X-Valo-Organisation-Id");
+    res.vary("X-BidBox-Organisation-Id");
     next();
   } catch (error) {
     req.log?.error({ err: error }, "tenant context resolution failed");

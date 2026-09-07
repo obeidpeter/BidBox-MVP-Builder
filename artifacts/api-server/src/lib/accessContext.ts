@@ -1,7 +1,7 @@
 import type { users } from "@workspace/db";
 import type { OrganisationRole, Permission } from "./permissions";
 
-/** Server-resolved actor persisted in Valo's local identity boundary. */
+/** Server-resolved actor persisted in BidBox's local identity boundary. */
 export type LocalUser = typeof users.$inferSelect;
 
 /**

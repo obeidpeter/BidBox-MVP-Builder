@@ -67,7 +67,7 @@ function architectureDocuments() {
       "docs/architecture/CONTEXT.md",
       diagram(
         "System context",
-        'flowchart LR\n  Person["Person"] --> Valo["Valo system"]',
+        'flowchart LR\n  Person["Person"] --> BidBox["BidBox system"]',
       ),
     ],
     [
@@ -101,12 +101,12 @@ function architectureDocuments() {
     [
       "docs/architecture/COMPONENT_MAP.md",
       metadata(
-        `# Component map\n\n- artifacts/api-server\n- artifacts/valo-workbench\n- lib/db\n- lib/api-spec`,
+        `# Component map\n\n- artifacts/api-server\n- artifacts/bidbox-workbench\n- lib/db\n- lib/api-spec`,
       ),
     ],
     [
       "docs/architecture/GLOSSARY.md",
-      metadata("# Glossary\n\nValo: platform boundary."),
+      metadata("# Glossary\n\nBidBox: platform boundary."),
     ],
     [
       "docs/architecture/QUALITY_ATTRIBUTES.md",
@@ -388,7 +388,7 @@ paths:
 }
 
 async function withFixture(name, callback) {
-  const root = await mkdtemp(join(tmpdir(), `valo-architecture-${name}-`));
+  const root = await mkdtemp(join(tmpdir(), `bidbox-architecture-${name}-`));
   try {
     await createFixture(root);
     return await callback(root);

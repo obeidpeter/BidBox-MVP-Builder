@@ -689,12 +689,12 @@ async function configureMutation(
   await transaction.execute(sql`SET LOCAL statement_timeout = '15s'`);
   await transaction.execute(sql`
     SELECT pg_advisory_xact_lock(
-      hashtextextended(${`valo.membership-administration:${scope.organisationId}`}, 0)
+      hashtextextended(${`bidbox.membership-administration:${scope.organisationId}`}, 0)
     )
   `);
   await transaction.execute(sql`
     SELECT pg_advisory_xact_lock(
-      hashtextextended(${`valo.tender-context:${scope.organisationId}:${projectId}`}, 0)
+      hashtextextended(${`bidbox.tender-context:${scope.organisationId}:${projectId}`}, 0)
     )
   `);
 }

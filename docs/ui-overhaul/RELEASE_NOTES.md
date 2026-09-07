@@ -4,7 +4,7 @@ Status: implementation candidate. The changes are not a production-complete rele
 
 ## Public experience
 
-- Replaced the placeholder entry route with a complete public Valo site for Nigerian contractors, NipeX/NCDMB suppliers, donor-funded bidders, and consultancy partners.
+- Replaced the placeholder entry route with a complete public BidBox site for Nigerian contractors, NipeX/NCDMB suppliers, donor-funded bidders, and consultancy partners.
 - Added Product, Solutions, How it works, Security, About, Contact, Privacy, Terms, and explicit not-found experiences.
 - Added plain-language process, offering, integrity, security, and customer-fit content without fabricated testimonials, logos, statistics, prices, or award claims.
 - Added an honest contact pathway: validated HTTPS booking destination, validated email fallback, or an explicit unconfigured state. No pretend submission exists.
@@ -34,7 +34,7 @@ Status: implementation candidate. The changes are not a production-complete rele
 
 - Introduced a calm ink/warm-neutral/teal system with semantic severity, workflow, focus, radius, border, spacing, motion, and typography tokens.
 - Normalised undersized text, increased navigation-label contrast, preserved skip links, and converted click-only project rows into real focusable links.
-- Added reusable public shell, Valo mark, platform states, authentication/access shell, task search, and error-boundary components.
+- Added reusable public shell, BidBox mark, platform states, authentication/access shell, task search, and error-boundary components.
 - Verified the public site at five responsive widths with no page-level overflow and retained three evidence screenshots.
 
 ## Performance and deployment composition
@@ -52,5 +52,5 @@ Status: implementation candidate. The changes are not a production-complete rele
 - Observable failed uploads are rolled back through a tenant-authorised server path, but process/browser loss after PUT can leave an unreferenced staging object, and a server stop before database commit can leave an uncommitted promoted object. A durable upload lease and reconciler covering both namespaces is a production-activation gate; signed-URL expiry does not delete either object.
 - Evidence deletion still spans PostgreSQL and object storage. Production activation requires a durable deletion intent/outbox and reconciler so a database rollback cannot leave a live record whose blob was already deleted.
 - The current server authorises project resources at the selected tenant/partner-projected context, not at a general engagement-assignment boundary. Contributor, reviewer, quality-adviser, and partner journeys must not be described as assignment-restricted in production until an authoritative assignment relation is enforced throughout project/resource queries (or the approved scope contract is corrected).
-- The canonical permission implementation now separates portfolio management, contribution/proposal, client review, and Valo quality authority, with a full role-by-controlled-permission regression matrix. The remaining deliberate fail-closed gap is defect decision granularity: one `defect:review` permission still covers non-fatal waiver, risk override, and fatal-quality decisions, so proposer/partner roles cannot execute those decision paths until the workflow gains decision-specific permissions and two-person state.
+- The canonical permission implementation now separates portfolio management, contribution/proposal, client review, and BidBox quality authority, with a full role-by-controlled-permission regression matrix. The remaining deliberate fail-closed gap is defect decision granularity: one `defect:review` permission still covers non-fatal waiver, risk override, and fatal-quality decisions, so proposer/partner roles cannot execute those decision paths until the workflow gains decision-specific permissions and two-person state.
 - Full Clerk end-to-end, two-tenant browser, axe, screen-reader, cross-browser, field performance, and Replit production smoke evidence remain outstanding release gates.

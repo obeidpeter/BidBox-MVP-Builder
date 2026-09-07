@@ -18,56 +18,56 @@ interface PublicPageMetadata {
 
 const PUBLIC_WEB_PAGES = {
   "/": {
-    title: "Bid Autopsy for Nigerian Tenders | Valo",
+    title: "Bid Autopsy for Nigerian Tenders | BidBox",
     description:
-      "Find compliance gaps, evidence gaps, BOQ inconsistencies and responsiveness risks before submission with a human-verified Valo Bid Autopsy.",
+      "Find compliance gaps, evidence gaps, BOQ inconsistencies and responsiveness risks before submission with a human-verified BidBox Bid Autopsy.",
     heading: "Find the defects before submission.",
     summary: [
-      "Valo helps Nigerian federal contractors, NipeX and NCDMB suppliers, donor-funded bidders, bid teams and consultancy partners test a tender package against the published requirements before it reaches the evaluator.",
+      "BidBox helps Nigerian federal contractors, NipeX and NCDMB suppliers, donor-funded bidders, bid teams and consultancy partners test a tender package against the published requirements before it reaches the evaluator.",
       "A scoped Bid Autopsy may include a source-cited requirement matrix, severity-classified defect register, compliance and evidence gaps, deterministic checks on client-supplied BOQ figures, a responsiveness review and a prioritised remediation plan verified by a named human reviewer.",
-      "Valo strengthens the review process. It does not guarantee an award or evaluator acceptance, set commercial pricing, influence evaluators or submit the bid.",
+      "BidBox strengthens the review process. It does not guarantee an award or evaluator acceptance, set commercial pricing, influence evaluators or submit the bid.",
     ],
   },
   "/product": {
-    title: "Product | Valo",
+    title: "Product | BidBox",
     description:
-      "Explore Valo's evidence-led tender workspaces for intake, cited requirements, evidence, BOQ checks, issues, reports and audit.",
+      "Explore BidBox's evidence-led tender workspaces for intake, cited requirements, evidence, BOQ checks, issues, reports and audit.",
     heading: "A controlled workspace for evidence-heavy pursuits.",
   },
   "/solutions": {
-    title: "Solutions | Valo",
+    title: "Solutions | BidBox",
     description:
-      "Valo supports bid, compliance and advisory teams with source-backed tender workflows and controlled human review.",
+      "BidBox supports bid, compliance and advisory teams with source-backed tender workflows and controlled human review.",
     heading: "The same evidence record, shaped for each responsibility.",
   },
   "/how-it-works": {
-    title: "How it works | Valo",
+    title: "How it works | BidBox",
     description:
-      "Follow Valo's controlled path from NDA-gated intake to cited requirements, evidence, review, approval and audit-ready release.",
+      "Follow BidBox's controlled path from NDA-gated intake to cited requirements, evidence, review, approval and audit-ready release.",
     heading: "A review process with explicit gates.",
   },
   "/security": {
-    title: "Security | Valo",
+    title: "Security | BidBox",
     description:
-      "Understand Valo's tenant, input-security, provider-readiness, audit and human-authority controls.",
+      "Understand BidBox's tenant, input-security, provider-readiness, audit and human-authority controls.",
     heading: "Controls that are visible when they matter.",
   },
   "/about": {
-    title: "About | Valo",
+    title: "About | BidBox",
     description:
-      "Valo is building an evidence-led tender operating system for Nigerian and regulated-market bid teams.",
+      "BidBox is building an evidence-led tender operating system for Nigerian and regulated-market bid teams.",
     heading: "Better tender operations begin with a better record.",
   },
   "/contact": {
-    title: "Contact | Valo",
+    title: "Contact | BidBox",
     description:
-      "Request a Valo Bid Autopsy without sending tender documents or sensitive commercial information through the public form.",
+      "Request a BidBox Bid Autopsy without sending tender documents or sensitive commercial information through the public form.",
     heading: "Request a Bid Autopsy.",
   },
   "/request-bid-autopsy": {
-    title: "Request a Bid Autopsy | Valo",
+    title: "Request a Bid Autopsy | BidBox",
     description:
-      "Tell Valo about your bid context without uploading tender documents or sensitive commercial information. The first-contact request is reviewed before any approved document-sharing step.",
+      "Tell BidBox about your bid context without uploading tender documents or sensitive commercial information. The first-contact request is reviewed before any approved document-sharing step.",
     heading: "Request a Bid Autopsy.",
     summary: [
       "Use this first-contact request to share only the minimum information needed to discuss scope. Do not include tender documents, pricing, credentials or other sensitive bid content.",
@@ -75,15 +75,15 @@ const PUBLIC_WEB_PAGES = {
     ],
   },
   "/privacy": {
-    title: "Privacy | Valo",
+    title: "Privacy | BidBox",
     description:
-      "How this Valo web experience handles public enquiries, account identity and tender-workspace information.",
+      "How this BidBox web experience handles public enquiries, account identity and tender-workspace information.",
     heading: "Privacy notice",
   },
   "/terms": {
-    title: "Terms | Valo",
+    title: "Terms | BidBox",
     description:
-      "Plain-language boundaries for using the Valo public site and controlled tender workspace.",
+      "Plain-language boundaries for using the BidBox public site and controlled tender workspace.",
     heading: "Service terms notice",
   },
 } as const satisfies Readonly<Record<string, PublicPageMetadata>>;
@@ -235,11 +235,11 @@ function renderIndexDocument(
   const indexable = publicPage && allowIndexing;
   const metadata = page ?? {
     title: applicationPath
-      ? "Secure workspace | Valo"
-      : "Page not found | Valo",
+      ? "Secure workspace | BidBox"
+      : "Page not found | BidBox",
     description: applicationPath
-      ? "Authorised access to the Valo tender workspace."
-      : "The requested Valo page could not be found.",
+      ? "Authorised access to the BidBox tender workspace."
+      : "The requested BidBox page could not be found.",
     heading: "",
   };
   const canonicalUrl =
@@ -297,7 +297,7 @@ function renderIndexDocument(
       '<div id="root">',
       '<main data-public-prerender="true">',
       '<nav aria-label="Public navigation">',
-      '<a href="/">Valo home</a> ',
+      '<a href="/">BidBox home</a> ',
       '<a href="/product">Product</a> ',
       '<a href="/solutions">Solutions</a> ',
       '<a href="/how-it-works">How it works</a> ',
@@ -311,7 +311,7 @@ function renderIndexDocument(
       `<p>${escapeHtml(metadata.description)}</p>`,
       ...(
         metadata.summary ?? [
-          "Valo supports source-cited requirements, evidence-grounded actions, deterministic checks and named human review. It does not guarantee contract awards or invent credentials, claims or prices.",
+          "BidBox supports source-cited requirements, evidence-grounded actions, deterministic checks and named human review. It does not guarantee contract awards or invent credentials, claims or prices.",
         ]
       ).map((paragraph) => `<p>${escapeHtml(paragraph)}</p>`),
       "</main>",
@@ -327,14 +327,14 @@ export function registerProductionWebApp(
   app: Express,
   publicDirectory = path.resolve(
     import.meta.dirname,
-    "../../valo-workbench/dist/public",
+    "../../bidbox-workbench/dist/public",
   ),
 ): void {
   const indexPath = path.join(publicDirectory, "index.html");
 
   if (!existsSync(indexPath)) {
     throw new Error(
-      "Production workbench artifact is missing. Build @workspace/valo-workbench before starting the API.",
+      "Production workbench artifact is missing. Build @workspace/bidbox-workbench before starting the API.",
     );
   }
   const indexTemplate = readFileSync(indexPath, "utf8");

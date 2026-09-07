@@ -14,11 +14,11 @@ Tie every defect to requirement/source/evidence, taxonomy and remediation. Fatal
 
 ## BOQ
 
-Confirm correct workbook/version/lot/currency and rule-pack/tender overlay. Review formula/display, hidden/merged, words/figures, totals/tax/rounding exceptions. Valo does not create or recommend rates. A waiver records owner, reason, risk and authorised approval; it does not change the original.
+Confirm correct workbook/version/lot/currency and rule-pack/tender overlay. Review formula/display, hidden/merged, words/figures, totals/tax/rounding exceptions. BidBox does not create or recommend rates. A waiver records owner, reason, risk and authorised approval; it does not change the original.
 
 ## Draft/red team/package
 
-Every material factual statement must open its approved evidence provenance; unresolved placeholders block. Review diffs/comments and internal contradictions. Run the complete red-team rubric. Before sign-off, verify transactional readiness, manifest/input hashes, rendered pages, pagination/tables/cross-references, named client/Valo approvals and delivery profile. Sign only the immutable version inspected.
+Every material factual statement must open its approved evidence provenance; unresolved placeholders block. Review diffs/comments and internal contradictions. Run the complete red-team rubric. Before sign-off, verify transactional readiness, manifest/input hashes, rendered pages, pagination/tables/cross-references, named client/BidBox approvals and delivery profile. Sign only the immutable version inspected.
 
 ## Fast keyboard workflow
 

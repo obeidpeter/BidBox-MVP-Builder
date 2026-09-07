@@ -1,4 +1,4 @@
-# Valo Defect Taxonomy — `ng-defects-v1.0.0`
+# BidBox Defect Taxonomy — `ng-defects-v1.0.0`
 
 The versioned defect taxonomy registry required by FR-ANL-01. Every defect in
 the system must map to a type and severity below — the API rejects anything
@@ -10,25 +10,25 @@ the exact classification scheme it used.
 
 ## Types
 
-| Type | Meaning |
-| --- | --- |
-| `omission` | A required document, form, or datum is absent from the bid. |
-| `expiry` | A certificate/artefact is expired or will expire before validity requirements are met. |
-| `arithmetic` | BOQ or pricing arithmetic is internally inconsistent (quantity × rate, sums, words-vs-figures). |
-| `formatting` | Presentation breaches the tender's format instructions (pagination, labelling, binding, signatures). |
-| `responsiveness` | The bid fails to answer what the tender actually asked. |
-| `eligibility` | The bidder does not meet a stated eligibility criterion. |
-| `unsupported_claim` | A claim in the bid lacks verifiable evidence. |
-| `validity` | Bid validity period, bid security validity, or similar durational defect. |
+| Type                | Meaning                                                                                              |
+| ------------------- | ---------------------------------------------------------------------------------------------------- |
+| `omission`          | A required document, form, or datum is absent from the bid.                                          |
+| `expiry`            | A certificate/artefact is expired or will expire before validity requirements are met.               |
+| `arithmetic`        | BOQ or pricing arithmetic is internally inconsistent (quantity × rate, sums, words-vs-figures).      |
+| `formatting`        | Presentation breaches the tender's format instructions (pagination, labelling, binding, signatures). |
+| `responsiveness`    | The bid fails to answer what the tender actually asked.                                              |
+| `eligibility`       | The bidder does not meet a stated eligibility criterion.                                             |
+| `unsupported_claim` | A claim in the bid lacks verifiable evidence.                                                        |
+| `validity`          | Bid validity period, bid security validity, or similar durational defect.                            |
 
 ## Severities
 
-| Severity | Meaning | Effect |
-| --- | --- | --- |
-| `fatal` | Certain disqualification if submitted as-is. | Blocks sign-off (I3); weight 40 in the risk score. |
-| `likely_fatal` | Disqualification probable at evaluator discretion. | Blocks sign-off (I3); weight 25. |
-| `scoring_risk` | Survives compliance but loses evaluation points. | Weight 10. |
-| `cosmetic` | No scoring effect; professional-polish item. | Weight 3. |
+| Severity       | Meaning                                            | Effect                                             |
+| -------------- | -------------------------------------------------- | -------------------------------------------------- |
+| `fatal`        | Certain disqualification if submitted as-is.       | Blocks sign-off (I3); weight 40 in the risk score. |
+| `likely_fatal` | Disqualification probable at evaluator discretion. | Blocks sign-off (I3); weight 25.                   |
+| `scoring_risk` | Survives compliance but loses evaluation points.   | Weight 10.                                         |
+| `cosmetic`     | No scoring effect; professional-polish item.       | Weight 3.                                          |
 
 ## Governed change process
 
@@ -47,6 +47,6 @@ the exact classification scheme it used.
 
 ## Version history
 
-| Version | Date | Change |
-| --- | --- | --- |
+| Version             | Date    | Change                                                                                   |
+| ------------------- | ------- | ---------------------------------------------------------------------------------------- |
 | `ng-defects-v1.0.0` | 2026-07 | Initial registry: 8 types, 4 severities, seeded from the Gate 0 build and BP Appendix A. |

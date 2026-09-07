@@ -3,7 +3,7 @@ import test from "node:test";
 import { AI_PROMPT_REGISTRY, canonicalJson, sha256 } from "./aiPromptRegistry";
 
 process.env.DATABASE_URL ??=
-  "postgresql://test:test@database.test.invalid:5432/valo_test";
+  "postgresql://test:test@database.test.invalid:5432/bidbox_test";
 
 const {
   configuredAiExpectedVersions,
@@ -36,7 +36,7 @@ async function withRegistryStateLock<T>(work: () => Promise<T>): Promise<T> {
   return db.transaction(async (mutex) => {
     await mutex.execute(
       sql`SELECT pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtext('valo_ai_retrieval_registry_state')
+        pg_catalog.hashtext('bidbox_ai_retrieval_registry_state')
       )`,
     );
     return work();

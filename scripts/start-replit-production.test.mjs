@@ -120,7 +120,7 @@ test("preserves bounded gate reasons and redacts operational failures", () => {
   assert.equal(
     formatReplitProductionStartupError(
       new Error(
-        "connect ECONNREFUSED postgresql://owner:secret@database.example/valo",
+        "connect ECONNREFUSED postgresql://owner:secret@database.example/bidbox",
       ),
     ),
     "Replit production startup failed: migration gate or server bootstrap operation failed",

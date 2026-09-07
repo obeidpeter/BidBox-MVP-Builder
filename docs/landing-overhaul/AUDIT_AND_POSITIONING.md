@@ -86,11 +86,11 @@ No public analytics provider, consent policy, retention decision or approved ana
 
 Primary headline: **Find the defects before submission.**
 
-Valo helps Nigerian federal contractors, NipeX and NCDMB suppliers, donor-funded bidders, bid teams and consultancy partners test a bid package against the published tender before it reaches the evaluator. A scoped Bid Autopsy can produce source-cited requirements, evidence and eligibility gaps, severity-classified findings, deterministic checks on client-supplied bill-of-quantities figures, a responsiveness review and prioritised remediation verified by a named human reviewer.
+BidBox helps Nigerian federal contractors, NipeX and NCDMB suppliers, donor-funded bidders, bid teams and consultancy partners test a bid package against the published tender before it reaches the evaluator. A scoped Bid Autopsy can produce source-cited requirements, evidence and eligibility gaps, severity-classified findings, deterministic checks on client-supplied bill-of-quantities figures, a responsiveness review and prioritised remediation verified by a named human reviewer.
 
-Valo is designed for AI-assisted, human-verified review. Model-assisted steps operate only where the engagement's provider, privacy and evaluation gates are approved; human review remains authoritative.
+BidBox is designed for AI-assisted, human-verified review. Model-assisted steps operate only where the engagement's provider, privacy and evaluation gates are approved; human review remains authoritative.
 
-Valo does not guarantee an award or evaluator acceptance, set commercial pricing, influence evaluators, broker relationships, provide legal advice or submit a bid.
+BidBox does not guarantee an award or evaluator acceptance, set commercial pricing, influence evaluators, broker relationships, provide legal advice or submit a bid.
 
 ## Revised page architecture
 

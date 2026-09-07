@@ -8,13 +8,13 @@ import {
 describe("Clerk proxy public-host boundary", () => {
   const origins = new Set([
     "https://valo-mvp-builder.replit.app",
-    "https://bids.valo.example",
+    "https://bids.bidbox.example",
   ]);
   const hosts = clerkProxyHostsFromOrigins(origins);
 
   it("derives only exact host values from configured origins", () => {
     assert.deepEqual([...hosts].sort(), [
-      "bids.valo.example",
+      "bids.bidbox.example",
       "valo-mvp-builder.replit.app",
     ]);
     assert.deepEqual(
@@ -59,8 +59,8 @@ describe("Clerk proxy public-host boundary", () => {
 
   it("uses an allowlisted Host only when no forwarded host exists", () => {
     assert.equal(
-      getClerkProxyHost({ headers: { host: "BIDS.VALO.EXAMPLE" } }, hosts),
-      "bids.valo.example",
+      getClerkProxyHost({ headers: { host: "BIDS.BIDBOX.EXAMPLE" } }, hosts),
+      "bids.bidbox.example",
     );
     assert.equal(
       getClerkProxyHost({ headers: { host: "attacker.example/path" } }, hosts),

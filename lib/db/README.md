@@ -1,6 +1,6 @@
 # Database package
 
-`@workspace/db` owns Valo's PostgreSQL contract: Drizzle schema, ordered SQL migrations, connection-pool configuration, transaction helpers, FORCE RLS policies, database guards/functions, runtime identities, and startup security attestation.
+`@workspace/db` owns BidBox's PostgreSQL contract: Drizzle schema, ordered SQL migrations, connection-pool configuration, transaction helpers, FORCE RLS policies, database guards/functions, runtime identities, and startup security attestation.
 
 ## Entry points and boundaries
 

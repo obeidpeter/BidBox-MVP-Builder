@@ -4,11 +4,11 @@ info:
   title: Api
   version: 2.5.0
   description: |
-    Valo multi-tenant tender platform API.
+    BidBox multi-tenant tender platform API.
 
     Except for health and organisation discovery/bootstrap operations, protected
     tenant operations resolve an organisation access context on the server. The
-    `X-Valo-Organisation-Id` header selects a tenant; it is mandatory when a
+    `X-BidBox-Organisation-Id` header selects a tenant; it is mandatory when a
     caller has more than one active direct membership, when accessing a client
     through an approved partner relationship, and whenever break-glass access is
     used. The header is only a selector: the server independently validates the
@@ -110,7 +110,7 @@ paths:
         "200":
           description: The API process is alive.
           headers:
-            X-Valo-Release-Sha256:
+            X-BidBox-Release-Sha256:
               $ref: "#/components/headers/ReleaseSha256"
           content:
             application/json:
@@ -133,7 +133,7 @@ paths:
           headers:
             Cache-Control:
               $ref: "#/components/headers/PrivateNoStore"
-            X-Valo-Release-Sha256:
+            X-BidBox-Release-Sha256:
               $ref: "#/components/headers/ReleaseSha256"
           content:
             application/json:
@@ -144,7 +144,7 @@ paths:
           headers:
             Cache-Control:
               $ref: "#/components/headers/PrivateNoStore"
-            X-Valo-Release-Sha256:
+            X-BidBox-Release-Sha256:
               $ref: "#/components/headers/ReleaseSha256"
           content:
             application/json:
@@ -230,7 +230,7 @@ paths:
       tags: [Public Intake]
       summary: Request a Bid Autopsy
       description: |
-        Stores one bounded first-contact request in Valo's authorised intake
+        Stores one bounded first-contact request in BidBox's authorised intake
         database. The route requires an exact same-origin browser request, JSON,
         a stable idempotency key and privacy-respecting bot controls. It never
         accepts tender files, commercial schedules or unbounded tender details.
@@ -654,7 +654,7 @@ paths:
       tags: [Break Glass]
       summary: Request short-lived emergency read access
       description: |
-        Requires an active `valo_operations_administrator` grant in a Valo
+        Requires an active `valo_operations_administrator` grant in a BidBox
         organisation. Permissions must be a non-empty subset of the read-only
         emergency allow-list. Creation remains pending and grants no access
         until a distinct restricted platform administrator approves it.
@@ -1041,7 +1041,7 @@ paths:
       summary: Read tenant-scoped AI control-plane status
       description: >-
         Returns sanitised AI kill-switch, release-gate, capability, recent-run
-        and evaluation state only for a direct Valo internal operations
+        and evaluation state only for a direct BidBox internal operations
         membership. Client, partner, auditor, restricted-platform-admin and
         break-glass contexts are denied. Prompt content, document content,
         provider request identifiers, raw errors and secrets are never
@@ -1339,7 +1339,7 @@ paths:
         - $ref: "#/components/parameters/RetentionCompletionIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 2048
+        x-bidbox-request-body-max-bytes: 2048
         content:
           application/json:
             schema:
@@ -1410,7 +1410,7 @@ paths:
         - $ref: "#/components/parameters/RetentionCompletionIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 2048
+        x-bidbox-request-body-max-bytes: 2048
         content:
           application/json:
             schema:
@@ -1481,7 +1481,7 @@ paths:
         - $ref: "#/components/parameters/RetentionCompletionIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 2048
+        x-bidbox-request-body-max-bytes: 2048
         content:
           application/json:
             schema:
@@ -3809,7 +3809,7 @@ paths:
         existing governed work item under target-version compare-and-swap. Each
         tenant, project, draft ID and draft-version tuple may be promoted to the
         target only once, even with a fresh Idempotency-Key. The response is a
-        content-free receipt: no authoritative evidence is created and Valo
+        content-free receipt: no authoritative evidence is created and BidBox
         cannot delete the browser-local encrypted draft.
       parameters:
         - $ref: "#/components/parameters/IdParam"
@@ -3817,7 +3817,7 @@ paths:
         - $ref: "#/components/parameters/FieldDraftPromotionIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 1048576
+        x-bidbox-request-body-max-bytes: 1048576
         content:
           application/json:
             schema:
@@ -3928,7 +3928,7 @@ paths:
               $ref: "#/components/schemas/ExpectedVersionRequest"
       responses:
         "200":
-          description: Manual sharing recorded; no delivery was performed by Valo.
+          description: Manual sharing recorded; no delivery was performed by BidBox.
           content:
             application/json:
               schema:
@@ -4125,7 +4125,7 @@ paths:
       operationId: createOperationsCredentialVerification
       summary: Record a human-performed official-source credential check
       description: >-
-        Records what a named person observed and a receipt hash. Valo does not
+        Records what a named person observed and a receipt hash. BidBox does not
         contact the authority or represent independent issuer verification.
       parameters:
         - $ref: "#/components/parameters/IdParam"
@@ -4807,7 +4807,7 @@ paths:
         closes before the database lease; bounded post-expiry reconciliation is
         still required and is not a provider-level create-only guarantee. Reuse
         of Idempotency-Key is allowed only for the exact tenant, actor, request,
-        slot, intent, version and declared file material. Valo sends no external
+        slot, intent, version and declared file material. BidBox sends no external
         message and exposes no generic client upload portal.
       parameters:
         - $ref: "#/components/parameters/IdParam"
@@ -4816,7 +4816,7 @@ paths:
         - $ref: "#/components/parameters/ClientActionUploadIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 4096
+        x-bidbox-request-body-max-bytes: 4096
         content:
           application/json:
             schema:
@@ -4874,7 +4874,7 @@ paths:
         - $ref: "#/components/parameters/ClientActionUploadIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 4096
+        x-bidbox-request-body-max-bytes: 4096
         content:
           application/json:
             schema:
@@ -5217,7 +5217,7 @@ paths:
         - $ref: "#/components/parameters/OpportunityHandoffIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 16384
+        x-bidbox-request-body-max-bytes: 16384
         content:
           application/json:
             schema:
@@ -5254,7 +5254,7 @@ paths:
       tags: [Evidence Renewals]
       operationId: getEvidenceRenewalSnapshot
       summary: Read the project evidence-renewal register
-      description: Returns a bounded receipt-backed internal renewal register. Internal reminders are register records only; Valo sends no external message and records no external delivery receipt.
+      description: Returns a bounded receipt-backed internal renewal register. Internal reminders are register records only; BidBox sends no external message and records no external delivery receipt.
       parameters:
         - $ref: "#/components/parameters/ProjectIdParam"
       responses:
@@ -5285,7 +5285,7 @@ paths:
         - $ref: "#/components/parameters/ProjectIdParam"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 65536
+        x-bidbox-request-body-max-bytes: 65536
         content:
           application/json:
             schema:
@@ -5353,7 +5353,7 @@ paths:
         - $ref: "#/components/parameters/IfMatchVersion"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 65536
+        x-bidbox-request-body-max-bytes: 65536
         content:
           application/json:
             schema:
@@ -5395,7 +5395,7 @@ paths:
         - $ref: "#/components/parameters/IfMatchVersion"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 65536
+        x-bidbox-request-body-max-bytes: 65536
         content:
           application/json:
             schema:
@@ -6522,7 +6522,7 @@ paths:
         - $ref: "#/components/parameters/DeliveryStudioIdempotencyKey"
       requestBody:
         required: true
-        x-valo-request-body-max-bytes: 4000000
+        x-bidbox-request-body-max-bytes: 4000000
         content:
           application/json:
             schema:
@@ -6927,7 +6927,7 @@ components:
         maxLength: 80
         pattern: "^[a-z][a-z0-9_]{2,79}$"
     OrganisationContextHeader:
-      name: X-Valo-Organisation-Id
+      name: X-BidBox-Organisation-Id
       in: header
       required: false
       description: |
@@ -6942,12 +6942,12 @@ components:
         type: string
         format: uuid
     BreakGlassSessionHeader:
-      name: X-Valo-Break-Glass-Session
+      name: X-BidBox-Break-Glass-Session
       in: header
       required: false
       description: |
         Selects a separately approved emergency session for a tenant request.
-        It is valid only when `X-Valo-Organisation-Id` names the session target,
+        It is valid only when `X-BidBox-Organisation-Id` names the session target,
         the authenticated user is the requester, approval came from a distinct
         user, the session is active and unexpired, and the operation needs one
         of the session's read-only permissions. It never enables write actions.
@@ -7026,7 +7026,7 @@ components:
       required: true
       schema:
         type: string
-        const: X-Valo-Organisation-Id
+        const: X-BidBox-Organisation-Id
   responses:
     BadRequest:
       description: Invalid request
@@ -8699,7 +8699,7 @@ components:
           externalDeliveryReceipt,
         ]
       properties:
-        channel: { type: string, const: valo_evidence_renewal_register }
+        channel: { type: string, const: bidbox_evidence_renewal_register }
         assignedOwnerUserId: { type: string, format: uuid }
         dueAt: { type: string, format: date-time }
         status: { type: string, enum: [open, resolved] }
@@ -8812,7 +8812,7 @@ components:
         externalMessagingConnected: { type: boolean, const: false }
         authorityNote:
           type: string
-          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.
+          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.
     EvidenceRenewalAuthority:
       type: object
       additionalProperties: false
@@ -8850,7 +8850,7 @@ components:
         externalMessageSent: { type: boolean, const: false }
         authorityNote:
           type: string
-          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.
+          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.
     EvidenceRenewalUpdateSuccess:
       type: object
       additionalProperties: false
@@ -8863,7 +8863,7 @@ components:
         externalMessageSent: { type: boolean, const: false }
         authorityNote:
           type: string
-          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.
+          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.
     EvidenceRenewalMutationError:
       type: object
       additionalProperties: false
@@ -8887,7 +8887,7 @@ components:
         externalMessageSent: { type: boolean, const: false }
         authorityNote:
           type: string
-          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.
+          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.
     EvidenceRenewalUnavailableError:
       type: object
       additionalProperties: false
@@ -8897,7 +8897,7 @@ components:
         externalMessageSent: { type: boolean, const: false }
         authorityNote:
           type: string
-          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.
+          const: This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.
     CommunicationTemplateContext:
       oneOf:
         - type: object
@@ -11975,7 +11975,7 @@ components:
           type: integer
           minimum: 1
           maximum: 1000000000000000
-          description: Entered by a named operator; never calculated by Valo.
+          description: Entered by a named operator; never calculated by BidBox.
         validUntil:
           type: string
           format: date

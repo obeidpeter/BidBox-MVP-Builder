@@ -2,7 +2,7 @@ import assert from "node:assert/strict";
 import test from "node:test";
 
 process.env.DATABASE_URL ??=
-  "postgresql://test:test@database.test.invalid:5432/valo_test";
+  "postgresql://test:test@database.test.invalid:5432/bidbox_test";
 
 const {
   claimIntelligenceReview,

@@ -15,7 +15,7 @@ import type {
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_growth_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_growth_test";
 
 const {
   createGrowthSuiteRouter,
@@ -24,7 +24,7 @@ const {
   parseOnboardingProgressMutation,
 } = await import("./growthSuite");
 
-const ORGANISATION_ID = "valo-org";
+const ORGANISATION_ID = "bidbox-org";
 const NOW = new Date("2026-08-11T09:00:00.000Z");
 
 function access(

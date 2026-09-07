@@ -6,7 +6,7 @@ Status: privacy and operations contract for the Bid Autopsy public journey. It d
 
 The first-contact destination is the PostgreSQL `valo_intake.bid_autopsy_requests` queue. It is isolated from organisation-scoped tender tables because a public requester has no tenant or authenticated identity. The route stores only the bounded form fields and operational delivery metadata. It does not accept documents, tender contents, pricing, credentials, filenames, free-text service context, UTMs or analytics payloads.
 
-The queue is a lead destination, not a tenant workspace or engagement record. A named authorised operator must complete the later privacy, NDA, scope and secure-sharing gate before sensitive material enters Valo.
+The queue is a lead destination, not a tenant workspace or engagement record. A named authorised operator must complete the later privacy, NDA, scope and secure-sharing gate before sensitive material enters BidBox.
 
 Production intake has no inferred retention default. The route fails closed until an approved `VALO_PUBLIC_LEAD_RETENTION_DAYS` value is supplied, each accepted row receives an explicit `retention_until`, and the owner-side lead and expired-rate-bucket purge functions remain unavailable to the application runtime. Activation therefore also requires a named operator and approved purge/reconciliation schedule for both lifecycle classes.
 

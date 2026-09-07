@@ -51,12 +51,15 @@ const zodClient = readFileSync(
   "utf8",
 );
 const protectedRoutes = readFileSync(
-  new URL("../../../valo-workbench/src/protected-routes.tsx", import.meta.url),
+  new URL(
+    "../../../bidbox-workbench/src/protected-routes.tsx",
+    import.meta.url,
+  ),
   "utf8",
 );
 const platformAccess = readFileSync(
   new URL(
-    "../../../valo-workbench/src/lib/platform-access.ts",
+    "../../../bidbox-workbench/src/lib/platform-access.ts",
     import.meta.url,
   ),
   "utf8",

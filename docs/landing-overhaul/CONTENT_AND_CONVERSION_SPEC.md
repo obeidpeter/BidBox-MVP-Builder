@@ -6,7 +6,7 @@ Status: implemented public-content contract. It does not authorise a new factual
 
 | Question                        | Answer the page must make clear                                                                                                         |
 | ------------------------------- | --------------------------------------------------------------------------------------------------------------------------------------- |
-| Who is Valo for?                | Nigerian federal contractors, NipeX/NCDMB suppliers, donor-funded bidders, bid/commercial teams and consultancy partners                |
+| Who is BidBox for?              | Nigerian federal contractors, NipeX/NCDMB suppliers, donor-funded bidders, bid/commercial teams and consultancy partners                |
 | What problem does it address?   | Preventable compliance, evidence, arithmetic, responsiveness and package-control defects before submission                              |
 | What is the offer?              | A scoped, human-verified Bid Autopsy against the published tender and supplied package                                                  |
 | What does the customer receive? | Agreed source-cited requirements, findings, severity, gaps, deterministic BOQ checks and prioritised remediation with scope limitations |
@@ -23,7 +23,7 @@ Hero secondary link: **See What the Autopsy Checks**
 
 Trust boundary:
 
-> Valo strengthens the review process; it does not guarantee an award or evaluator acceptance. Model-assisted steps operate only where provider, privacy and evaluation gates are approved; human review remains authoritative.
+> BidBox strengthens the review process; it does not guarantee an award or evaluator acceptance. Model-assisted steps operate only where provider, privacy and evaluation gates are approved; human review remains authoritative.
 
 Offer definition:
 
@@ -31,7 +31,7 @@ Offer definition:
 
 Service progression:
 
-> Start with the diagnosis. Continue where Valo can add measurable value.
+> Start with the diagnosis. Continue where BidBox can add measurable value.
 
 ## CTA map
 

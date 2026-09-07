@@ -8,7 +8,7 @@ const source = readFileSync(
 );
 
 test("project reviewer authority is direct, current and lock-stable", () => {
-  assert.match(source, /valo\.membership-administration:/u);
+  assert.match(source, /bidbox\.membership-administration:/u);
   assert.match(source, /clock_timestamp\(\)/u);
   assert.match(
     source,

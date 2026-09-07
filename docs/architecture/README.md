@@ -1,4 +1,4 @@
-# Valo living architecture guidebook
+# BidBox living architecture guidebook
 
 **Current:** This guidebook describes the source-controlled platform reviewed on 2026-08-31.
 
@@ -12,7 +12,7 @@ Last reviewed: **2026-08-31**
 
 ## Purpose
 
-This directory is the shortest reliable path from Valo’s product intent to its current code and runtime boundaries. It complements the controlled [Nigeria v2.5 dossier](../implementation-v2.5/README.md); it does not replace product requirements, accepted ADRs, security policy, OpenAPI, migration sources, or retained release evidence.
+This directory is the shortest reliable path from BidBox’s product intent to its current code and runtime boundaries. It complements the controlled [Nigeria v2.5 dossier](../implementation-v2.5/README.md); it does not replace product requirements, accepted ADRs, security policy, OpenAPI, migration sources, or retained release evidence.
 
 The guidebook has four rules:
 
@@ -36,7 +36,7 @@ When a row has mixed maturity, the text beside the label is authoritative. “Co
 
 | View                                             | Question answered                                                                                |
 | ------------------------------------------------ | ------------------------------------------------------------------------------------------------ |
-| [System context](CONTEXT.md)                     | Who uses Valo, which external systems touch it, and where authority stops?                       |
+| [System context](CONTEXT.md)                     | Who uses BidBox, which external systems touch it, and where authority stops?                     |
 | [Current containers](CONTAINERS.md)              | Which runtime/data containers exist now, and which target containers remain inactive?            |
 | [Selected components](COMPONENTS.md)             | How do the API and Workbench enforce their main boundaries?                                      |
 | [Deployment and trust boundaries](DEPLOYMENT.md) | How is the configured Replit runtime built, started, promoted, and verified?                     |
@@ -44,13 +44,13 @@ When a row has mixed maturity, the text beside the label is authoritative. “Co
 | [Component-to-code map](COMPONENT_MAP.md)        | Where is each responsibility implemented and what may it depend on?                              |
 | [Quality attributes](QUALITY_ATTRIBUTES.md)      | Which measurable scenarios shape architecture and where is the evidence?                         |
 | [Architecture risk register](RISK_REGISTER.md)   | Which material architectural gaps remain open and who owns the next decision?                    |
-| [Glossary](GLOSSARY.md)                          | What do Valo-specific terms mean?                                                                |
+| [Glossary](GLOSSARY.md)                          | What do BidBox-specific terms mean?                                                              |
 
 ## Current architecture in one minute
 
-- Valo is a TypeScript/pnpm modular monorepo. The production build combines a React Workbench and an Express API.
+- BidBox is a TypeScript/pnpm modular monorepo. The production build combines a React Workbench and an Express API.
 - The configured production topology is one Replit Autoscale Node deployment. The Express process serves `/api` and the built Workbench assets; the SPA then runs in the user’s browser.
-- Clerk supplies session identity. Valo resolves the local user, selected organisation, access source, roles, and permissions server-side.
+- Clerk supplies session identity. BidBox resolves the local user, selected organisation, access source, roles, and permissions server-side.
 - PostgreSQL is the system of record. Tenant requests run in a transaction with a transaction-local organisation context and FORCE RLS as defence in depth.
 - Private object storage holds uploaded and generated artefacts. Database metadata and governed hashes bind those artefacts to tenant records.
 - OpenAPI is the transport contract. Generated React Query and Zod packages are reproducibility-checked.

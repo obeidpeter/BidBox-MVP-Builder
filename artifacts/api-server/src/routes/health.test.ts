@@ -5,7 +5,7 @@ import express from "express";
 import { RuntimeReadiness } from "../lib/runtimeLifecycle";
 
 process.env.DATABASE_URL ??=
-  "postgresql://test:test@127.0.0.1:1/valo_health_test";
+  "postgresql://test:test@127.0.0.1:1/bidbox_health_test";
 process.env.NODE_ENV = "test";
 
 const { createHealthRouter } = await import("./health");
@@ -63,7 +63,7 @@ describe("readiness boundary", () => {
     assert.equal(getResponse.status, 200);
     assert.equal(getResponse.headers.get("cache-control"), "private, no-store");
     assert.equal(
-      getResponse.headers.get("x-valo-release-sha256"),
+      getResponse.headers.get("x-bidbox-release-sha256"),
       releaseSha256,
     );
     assert.deepEqual(await getResponse.json(), readyBody);
@@ -89,8 +89,8 @@ describe("readiness boundary", () => {
       fetch(`${origin}/api/healthz`),
       fetch(`${origin}/api/readyz`),
     ]);
-    assert.equal(liveness.headers.has("x-valo-release-sha256"), false);
-    assert.equal(readiness.headers.has("x-valo-release-sha256"), false);
+    assert.equal(liveness.headers.has("x-bidbox-release-sha256"), false);
+    assert.equal(readiness.headers.has("x-bidbox-release-sha256"), false);
   });
 
   it("does not touch the database while starting or draining", async () => {

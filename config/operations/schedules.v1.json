@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "manifestId": "valo-production-schedules/v1",
+  "manifestId": "bidbox-production-schedules/v1",
   "status": "source_declared_platform_installation_not_evidenced",
   "timezone": "UTC",
   "jobs": [
@@ -13,8 +13,8 @@
       "entrypointStatus": "implemented",
       "platformScheduleStatus": "not_installed",
       "activation": "blocked",
-      "fullCycleSignal": "valo.storage.deletion_last_full_cycle_unixtime_seconds",
-      "lastSuccessSignal": "valo.storage.deletion_last_success_unixtime_seconds",
+      "fullCycleSignal": "bidbox.storage.deletion_last_full_cycle_unixtime_seconds",
+      "lastSuccessSignal": "bidbox.storage.deletion_last_success_unixtime_seconds",
       "prerequisites": [
         "provider_in_flight_put_maximum_verified",
         "terminal_queue_retention_implemented",
@@ -32,8 +32,8 @@
       "entrypointStatus": "implemented",
       "platformScheduleStatus": "not_installed",
       "activation": "ready_for_platform_install",
-      "fullCycleSignal": "valo.retention.scan_last_full_cycle_unixtime_seconds",
-      "lastSuccessSignal": "valo.retention.scan_last_success_unixtime_seconds",
+      "fullCycleSignal": "bidbox.retention.scan_last_full_cycle_unixtime_seconds",
+      "lastSuccessSignal": "bidbox.retention.scan_last_success_unixtime_seconds",
       "prerequisites": [
         "approved_retention_default_configured",
         "dedicated_scheduler_identity",
@@ -56,7 +56,7 @@
       "platformScheduleStatus": "not_installed",
       "activation": "blocked",
       "fullCycleSignal": null,
-      "lastSuccessSignal": "valo.intake.purge_last_success_unixtime_seconds",
+      "lastSuccessSignal": "bidbox.intake.purge_last_success_unixtime_seconds",
       "prerequisites": [
         "dedicated_nonsuperuser_maintenance_identity",
         "explicit_function_execute_grants",
@@ -74,8 +74,8 @@
       "entrypointStatus": "implemented",
       "platformScheduleStatus": "not_installed",
       "activation": "ready_for_platform_install",
-      "fullCycleSignal": "valo.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
-      "lastSuccessSignal": "valo.authenticated_rate_limit.purge_last_success_unixtime_seconds",
+      "fullCycleSignal": "bidbox.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
+      "lastSuccessSignal": "bidbox.authenticated_rate_limit.purge_last_success_unixtime_seconds",
       "prerequisites": [
         "exact_database_owner_identity",
         "forced_rls_global_purge_authority_attested",
@@ -99,8 +99,8 @@
       "entrypointStatus": "validator_implemented_anchor_provider_disconnected",
       "platformScheduleStatus": "not_installed",
       "activation": "blocked",
-      "fullCycleSignal": "valo.audit.anchor_cycle_complete",
-      "lastSuccessSignal": "valo.audit.anchor_last_success_unixtime_seconds",
+      "fullCycleSignal": "bidbox.audit.anchor_cycle_complete",
+      "lastSuccessSignal": "bidbox.audit.anchor_last_success_unixtime_seconds",
       "prerequisites": [
         "approved_immutable_anchor_provider",
         "provider_receipt_signature_verifier",
@@ -122,7 +122,7 @@
       "platformScheduleStatus": "not_installed",
       "activation": "blocked",
       "fullCycleSignal": null,
-      "lastSuccessSignal": "valo.backup.last_success_unixtime_seconds",
+      "lastSuccessSignal": "bidbox.backup.last_success_unixtime_seconds",
       "prerequisites": [
         "approved_encrypted_database_backup_provider",
         "approved_object_inventory_backup_provider",

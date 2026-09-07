@@ -323,7 +323,7 @@ function assertScopedRows<T extends { organisationId: string }>(
 
 function setPrivateResponseHeaders(res: Response): void {
   res.setHeader("Cache-Control", "private, no-store");
-  res.vary("X-Valo-Organisation-Id");
+  res.vary("X-BidBox-Organisation-Id");
 }
 
 function sendRepositoryError(res: Response, error: unknown): boolean {

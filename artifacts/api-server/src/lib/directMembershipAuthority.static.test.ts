@@ -7,7 +7,7 @@ test("current direct authority shares the membership writer lock before time and
     new URL("./directMembershipAuthority.ts", import.meta.url),
     "utf8",
   );
-  const lockAt = source.indexOf("valo.membership-administration:");
+  const lockAt = source.indexOf("bidbox.membership-administration:");
   const clockAt = source.indexOf("clock_timestamp()", lockAt);
   const membershipAt = source.indexOf(
     ".from(organisationMemberships)",
@@ -29,8 +29,8 @@ test("membership writer and authority resolver use one exact lock namespace", as
     ),
     readFile(new URL("../routes/organisations.ts", import.meta.url), "utf8"),
   ]);
-  const namespace = "valo.membership-administration:${organisationId}";
-  assert.match(authority, /valo\.membership-administration:/u);
+  const namespace = "bidbox.membership-administration:${organisationId}";
+  assert.match(authority, /bidbox\.membership-administration:/u);
   assert.ok(organisations.includes(namespace));
 });
 
@@ -43,7 +43,7 @@ test("current partner authority locks its exact source before using one database
     "export async function resolveCurrentAccessAuthority",
   );
   const membershipLock = source.indexOf(
-    "valo.membership-administration:${context.membershipOrganisationId}",
+    "bidbox.membership-administration:${context.membershipOrganisationId}",
     resolver,
   );
   const relationshipRead = source.indexOf(

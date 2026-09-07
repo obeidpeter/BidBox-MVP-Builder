@@ -7,15 +7,15 @@ Status: application integration complete. API, direct-membership Workbench acces
 - API route factory: `createClaimsDeskRouter` and default `claimsDeskRouter` from `artifacts/api-server/src/routes/claimsDesk.ts`.
 - Production repository: `PostgresClaimsDeskRepository` and `postgresClaimsDeskRepository` from `artifacts/api-server/src/lib/claimsDesk/repository.ts`.
 - Shared backend modules: `artifacts/api-server/src/lib/claimsDesk/{contracts,service,repository,activation}.ts`.
-- Workbench page default export: `artifacts/valo-workbench/src/pages/claims-desk.tsx`.
-- Workbench component barrel: `artifacts/valo-workbench/src/components/claims-desk/index.ts`.
+- Workbench page default export: `artifacts/bidbox-workbench/src/pages/claims-desk.tsx`.
+- Workbench component barrel: `artifacts/bidbox-workbench/src/components/claims-desk/index.ts`.
 
 The API factory defaults to the real tenant-RLS Postgres repository. Repository injection exists only for deterministic route tests; production has no memory fallback.
 
 ## Completed shared integration
 
 1. `artifacts/api-server/src/routes/index.ts` mounts `createClaimsDeskRouter()` after tenant context, tenant database, and resource-boundary guards.
-2. `artifacts/valo-workbench/src/protected-routes.tsx` lazy-loads `/claims-desk` behind the dedicated `claims_desk` platform area.
+2. `artifacts/bidbox-workbench/src/protected-routes.tsx` lazy-loads `/claims-desk` behind the dedicated `claims_desk` platform area.
 3. Navigation and route access require direct membership plus `project:read`; the page requires `project:update` before rendering mutation controls and provides tenant-keyed project selection.
 4. The consolidated OpenAPI publishes the Claims Desk operations and generated React/Zod clients. The page still validates runtime payloads before rendering them.
 

@@ -127,7 +127,7 @@ Owners cannot disable RLS. Application database roles are not table owners and d
 ## Migration strategy from observed schema
 
 1. **Expand:** add organisations, memberships/grants, tenant columns nullable, mapping tables, versions and audit fields.
-2. **Backfill:** create one organisation per existing client plus a Valo operating organisation; map projects/documents/requirements/evidence/defects/BOQs/reports/audit rows. Produce counts and orphan report.
+2. **Backfill:** create one organisation per existing client plus a BidBox operating organisation; map projects/documents/requirements/evidence/defects/BOQs/reports/audit rows. Produce counts and orphan report.
 3. **Dual enforce:** API resolves tenant and filters every query; add RLS in report-only/audit mode in a disposable clone.
 4. **Validate:** no null tenant, no cross-tenant FK, row-count/hash reconciliation, negative access suite and representative export comparison.
 5. **Constrain:** set tenant columns not null, enable and force RLS, move application to non-owner role.

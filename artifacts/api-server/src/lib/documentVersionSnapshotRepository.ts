@@ -124,7 +124,7 @@ async function requireCurrentAuthority(
   await transaction.execute(sql`
     SELECT pg_advisory_xact_lock(
       hashtextextended(
-        ${`valo.membership-administration:${actor.organisationId}`},
+        ${`bidbox.membership-administration:${actor.organisationId}`},
         0
       )
     )
@@ -394,7 +394,7 @@ export function documentSnapshotSeriesLockKey(
   projectId: string,
   sourceId: string,
 ): string {
-  return `valo.document-snapshot-series:${organisationId}:${projectId}:${sourceId}`;
+  return `bidbox.document-snapshot-series:${organisationId}:${projectId}:${sourceId}`;
 }
 
 async function lockDocumentSnapshotSeries(

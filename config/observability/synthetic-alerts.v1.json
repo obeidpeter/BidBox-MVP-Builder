@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "suiteId": "valo-alert-synthetic-contract/v1",
+  "suiteId": "bidbox-alert-synthetic-contract/v1",
   "status": "fixtures_ready_adapter_execution_and_delivery_receipts_required",
   "cases": [
     {
@@ -11,103 +11,103 @@
     },
     {
       "alertId": "processing_job_failure_rate",
-      "signal": "valo.processing_jobs.failure_ratio",
+      "signal": "bidbox.processing_jobs.failure_ratio",
       "value": 1,
       "supportingSignals": {}
     },
     {
       "alertId": "extraction_quality_regression",
-      "signal": "valo.extraction.mandatory_recall",
+      "signal": "bidbox.extraction.mandatory_recall",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "tenant_access_denials_spike",
-      "signal": "valo.security.tenant_denials",
+      "signal": "bidbox.security.tenant_denials",
       "value": 1000000,
       "supportingSignals": {}
     },
     {
       "alertId": "sla_breach",
-      "signal": "valo.engagement.sla_breaches",
+      "signal": "bidbox.engagement.sla_breaches",
       "value": 1,
       "supportingSignals": {}
     },
     {
       "alertId": "notification_delivery_failure",
-      "signal": "valo.notifications.final_failure_count",
+      "signal": "bidbox.notifications.final_failure_count",
       "value": 1,
       "supportingSignals": {}
     },
     {
       "alertId": "storage_deletion_dead_letter",
-      "signal": "valo.storage.deletion_dead_letter_transitions",
+      "signal": "bidbox.storage.deletion_dead_letter_transitions",
       "value": 1,
       "supportingSignals": {}
     },
     {
       "alertId": "storage_deletion_backlog",
-      "signal": "valo.storage.deletion_oldest_sampled_age_seconds",
+      "signal": "bidbox.storage.deletion_oldest_sampled_age_seconds",
       "value": 86400,
       "supportingSignals": {
-        "valo.storage.deletion_sample_complete": 1
+        "bidbox.storage.deletion_sample_complete": 1
       }
     },
     {
       "alertId": "storage_deletion_worker_stale",
-      "signal": "valo.storage.deletion_last_success_unixtime_seconds",
+      "signal": "bidbox.storage.deletion_last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "storage_deletion_full_cycle_stale",
-      "signal": "valo.storage.deletion_last_full_cycle_unixtime_seconds",
+      "signal": "bidbox.storage.deletion_last_full_cycle_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "retention_scan_stale",
-      "signal": "valo.retention.scan_last_success_unixtime_seconds",
+      "signal": "bidbox.retention.scan_last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "retention_scan_full_cycle_stale",
-      "signal": "valo.retention.scan_last_full_cycle_unixtime_seconds",
+      "signal": "bidbox.retention.scan_last_full_cycle_unixtime_seconds",
       "value": 0,
       "supportingSignals": {
-        "valo.retention.cycle_complete": 0
+        "bidbox.retention.cycle_complete": 0
       }
     },
     {
       "alertId": "public_intake_purge_stale",
-      "signal": "valo.intake.purge_last_success_unixtime_seconds",
+      "signal": "bidbox.intake.purge_last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "authenticated_rate_limit_purge_failure",
-      "signal": "valo.authenticated_rate_limit.purge_run_success",
+      "signal": "bidbox.authenticated_rate_limit.purge_run_success",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "authenticated_rate_limit_purge_stale",
-      "signal": "valo.authenticated_rate_limit.purge_last_success_unixtime_seconds",
+      "signal": "bidbox.authenticated_rate_limit.purge_last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "authenticated_rate_limit_purge_full_cycle_stale",
-      "signal": "valo.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
+      "signal": "bidbox.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
       "value": 0,
       "supportingSignals": {
-        "valo.authenticated_rate_limit.purge_cycle_complete": 0
+        "bidbox.authenticated_rate_limit.purge_cycle_complete": 0
       }
     },
     {
       "alertId": "unit_cost_budget",
-      "signal": "valo.ai.cost_per_completed_package",
+      "signal": "bidbox.ai.cost_per_completed_package",
       "value": 1000000,
       "supportingSignals": {}
     },
@@ -119,33 +119,33 @@
     },
     {
       "alertId": "backup_freshness",
-      "signal": "valo.backup.age_hours",
+      "signal": "bidbox.backup.age_hours",
       "value": 10000,
       "supportingSignals": {}
     },
     {
       "alertId": "backup_evidence_verifier_stale",
-      "signal": "valo.backup.last_success_unixtime_seconds",
+      "signal": "bidbox.backup.last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {}
     },
     {
       "alertId": "audit_anchor_failure",
-      "signal": "valo.audit.anchor_failures",
+      "signal": "bidbox.audit.anchor_failures",
       "value": 1,
       "supportingSignals": {}
     },
     {
       "alertId": "audit_anchor_full_cycle_stale",
-      "signal": "valo.audit.anchor_last_success_unixtime_seconds",
+      "signal": "bidbox.audit.anchor_last_success_unixtime_seconds",
       "value": 0,
       "supportingSignals": {
-        "valo.audit.anchor_cycle_complete": 0
+        "bidbox.audit.anchor_cycle_complete": 0
       }
     },
     {
       "alertId": "break_glass_use",
-      "signal": "valo.security.break_glass_activated",
+      "signal": "bidbox.security.break_glass_activated",
       "value": 1,
       "supportingSignals": {}
     }

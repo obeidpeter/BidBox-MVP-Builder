@@ -32,8 +32,8 @@
     },
     {
       "id": "workbench",
-      "package": "@workspace/valo-workbench",
-      "roots": ["artifacts/valo-workbench"],
+      "package": "@workspace/bidbox-workbench",
+      "roots": ["artifacts/bidbox-workbench"],
       "kind": "deployable_browser_application",
       "status": "production_build_configured",
       "owner": "Product experience",
@@ -41,8 +41,8 @@
       "responsibility": "React user experience and presentation-only access gating over generated API clients.",
       "mayDependOn": ["api-client-react"],
       "evidence": [
-        "artifacts/valo-workbench/package.json",
-        "artifacts/valo-workbench/src/authenticated-gateway.tsx"
+        "artifacts/bidbox-workbench/package.json",
+        "artifacts/bidbox-workbench/src/authenticated-gateway.tsx"
       ]
     },
     {
@@ -214,7 +214,7 @@
     {
       "id": "workbench-source",
       "module": "workbench",
-      "roots": ["artifacts/valo-workbench/src"],
+      "roots": ["artifacts/bidbox-workbench/src"],
       "status": "active_browser_boundary",
       "responsibility": "Browser presentation and generated-client consumption; no API-server or database implementation imports.",
       "mayDependOn": []
@@ -266,7 +266,7 @@
         "reviewBy": "2026-10-31"
       },
       {
-        "path": "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "maxLines": 4200,
         "owner": "Product experience",
         "reason": "Delivery Studio UI is a recognized component-extraction hotspot under active product iteration.",

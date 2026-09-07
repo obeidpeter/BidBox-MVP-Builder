@@ -1,6 +1,6 @@
 # Encrypted Field Companion
 
-The field companion is a small browser-local draft workspace for a signed-in operator whose connection drops while Valo is already open. It is not an offline copy of Valo and it does not create authoritative evidence.
+The field companion is a small browser-local draft workspace for a signed-in operator whose connection drops while BidBox is already open. It is not an offline copy of BidBox and it does not create authoritative evidence.
 
 ## Delivered boundary
 
@@ -11,10 +11,10 @@ The field companion is a small browser-local draft workspace for a signed-in ope
 - A cross-tab Web Lock serialises reads, revisions, deletions, and device wipe; revisions use an optimistic version.
 - Plaintext, checklist, event, and per-tenant counts are bounded before storage.
 - Every draft has a non-extendable seven-day expiry. Expired ciphertext is deleted before a partition is listed or a draft is saved.
-- An explicit wipe deletes only the current signed-in user’s local encryption key and actor-bound Valo field drafts across organisations. The application route does not enumerate, open, or remove another recorded actor partition.
+- An explicit wipe deletes only the current signed-in user’s local encryption key and actor-bound BidBox field drafts across organisations. The application route does not enumerate, open, or remove another recorded actor partition.
 - The page clears rendered state on actor or organisation change and decrypts only against the exact active user-and-organisation pair; either mismatch fails closed.
 - The version-2 storage upgrade discards legacy organisation-only drafts because they cannot be assigned safely to a historical actor.
-- After reconnecting, a named operator with current direct `project:update` authority may explicitly choose one compatible existing governed work item and a bounded subset of `title`, `note`, and `checklist` fields. Valo does not choose or create a target.
+- After reconnecting, a named operator with current direct `project:update` authority may explicitly choose one compatible existing governed work item and a bounded subset of `title`, `note`, and `checklist` fields. BidBox does not choose or create a target.
 - The client reloads the exact target, presents a field-by-field diff, and reloads it again before submission. A changed target version produces a new diff that must be confirmed again.
 - The server rechecks current direct authority inside the compare-and-swap transaction and requires an exact organisation, project, actor, draft, and target binding. Done, cancelled, approved, stale, or over-capacity targets fail closed.
 - Each write is bound to one idempotency key and expected target version. Its receipt contains identifiers, selected field names, versions, timestamps, and integrity hashes only; it contains no copied field content and cannot claim evidence creation or local deletion.

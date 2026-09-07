@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryId": "valo-product-capabilities/second-wave-v1",
+  "registryId": "bidbox-product-capabilities/second-wave-v1",
   "authority": "checked_in_source_runtime_gates_and_external_evidence_are_authoritative",
   "capabilities": [
     {
@@ -23,7 +23,7 @@
         "artifacts/api-server/src/routes/index.ts",
         "artifacts/api-server/src/routes/retentionCompletion.ts",
         "lib/api-spec/openapi.yaml",
-        "artifacts/valo-workbench/src/pages/settings.tsx",
+        "artifacts/bidbox-workbench/src/pages/settings.tsx",
         "docs/second-wave/IMPLEMENTATION.md"
       ],
       "sourceAssertions": [

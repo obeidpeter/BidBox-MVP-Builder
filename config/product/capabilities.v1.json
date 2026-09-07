@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryId": "valo-product-capabilities/v1",
+  "registryId": "bidbox-product-capabilities/v1",
   "authority": "checked_in_source_and_runtime_gates_are_authoritative",
   "capabilities": [
     {
@@ -14,21 +14,21 @@
       "namedHumanAuthority": true,
       "authorityBoundary": "The queue is a read-only projection; it never approves readiness, signs work, releases a package, or submits a pursuit.",
       "evidence": [
-        "artifacts/valo-workbench/src/pages/dashboard.tsx",
-        "artifacts/valo-workbench/src/components/pursuit-control-tower.tsx",
-        "artifacts/valo-workbench/src/lib/pursuit-control-tower.ts"
+        "artifacts/bidbox-workbench/src/pages/dashboard.tsx",
+        "artifacts/bidbox-workbench/src/components/pursuit-control-tower.tsx",
+        "artifacts/bidbox-workbench/src/lib/pursuit-control-tower.ts"
       ],
       "sourceAssertions": [
         {
-          "path": "artifacts/valo-workbench/src/pages/dashboard.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/dashboard.tsx",
           "includes": "<PursuitControlTower"
         },
         {
-          "path": "artifacts/valo-workbench/src/components/pursuit-control-tower.tsx",
+          "path": "artifacts/bidbox-workbench/src/components/pursuit-control-tower.tsx",
           "includes": "export function PursuitControlTower"
         },
         {
-          "path": "artifacts/valo-workbench/src/lib/pursuit-control-tower.ts",
+          "path": "artifacts/bidbox-workbench/src/lib/pursuit-control-tower.ts",
           "includes": "export function buildPursuitControlTower"
         }
       ]
@@ -48,9 +48,9 @@
         "artifacts/api-server/src/routes/tenderContext.ts",
         "artifacts/api-server/src/lib/intelligence/tenderContextDrizzleRepository.ts",
         "artifacts/api-server/src/routes/index.ts",
-        "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
-        "artifacts/valo-workbench/src/protected-routes.tsx",
-        "artifacts/valo-workbench/src/pages/project-details.tsx"
+        "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
+        "artifacts/bidbox-workbench/src/protected-routes.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-details.tsx"
       ],
       "sourceAssertions": [
         {
@@ -74,15 +74,15 @@
           "includes": "router.use(tenderContextRouter);"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
           "includes": "export default function TenderContextRoute()"
         },
         {
-          "path": "artifacts/valo-workbench/src/protected-routes.tsx",
+          "path": "artifacts/bidbox-workbench/src/protected-routes.tsx",
           "includes": "<Route path=\"/projects/:id/tender-context\">"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-details.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-details.tsx",
           "includes": "`/projects/${id}/tender-context`"
         }
       ]
@@ -103,9 +103,9 @@
         "artifacts/api-server/src/lib/intelligence/tenderContext.ts",
         "artifacts/api-server/src/lib/intelligence/tenderContextContracts.ts",
         "artifacts/api-server/src/routes/index.ts",
-        "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
-        "artifacts/valo-workbench/src/protected-routes.tsx",
-        "artifacts/valo-workbench/src/pages/project-details.tsx"
+        "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
+        "artifacts/bidbox-workbench/src/protected-routes.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-details.tsx"
       ],
       "sourceAssertions": [
         {
@@ -125,15 +125,15 @@
           "includes": "router.use(tenderContextRouter);"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
           "includes": "createTenderEligibilityPassport"
         },
         {
-          "path": "artifacts/valo-workbench/src/protected-routes.tsx",
+          "path": "artifacts/bidbox-workbench/src/protected-routes.tsx",
           "includes": "<Route path=\"/projects/:id/tender-context\">"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-details.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-details.tsx",
           "includes": "Open Tender Context &amp; Eligibility Passport"
         }
       ]
@@ -152,9 +152,9 @@
         "artifacts/api-server/src/routes/addendumImpact.ts",
         "artifacts/api-server/src/lib/intelligence/addendumImpactService.ts",
         "artifacts/api-server/src/routes/index.ts",
-        "artifacts/valo-workbench/src/components/intelligence/addendum-impact-centre.tsx",
-        "artifacts/valo-workbench/src/components/intelligence/addendum-impact-contract.ts",
-        "artifacts/valo-workbench/src/pages/intelligence-centre-route.tsx"
+        "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-centre.tsx",
+        "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-contract.ts",
+        "artifacts/bidbox-workbench/src/pages/intelligence-centre-route.tsx"
       ],
       "sourceAssertions": [
         {
@@ -170,11 +170,11 @@
           "includes": "router.use(addendumImpactRouter);"
         },
         {
-          "path": "artifacts/valo-workbench/src/components/intelligence/addendum-impact-contract.ts",
+          "path": "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-contract.ts",
           "includes": "REOPEN AFFECTED WORK"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/intelligence-centre-route.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/intelligence-centre-route.tsx",
           "includes": "<AddendumImpactCentre projectId={selectedProjectId} />"
         }
       ]

@@ -18,7 +18,7 @@ import {
 } from "./contracts";
 
 export const EVIDENCE_RENEWAL_AUTHORITY_NOTE =
-  "This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.";
+  "This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.";
 
 export const ZERO_SHA256 = "0".repeat(64);
 import {

@@ -14,7 +14,7 @@ Superseded by: None
 
 ## Context
 
-The observed model uses clients/projects and broad member roles. Valo requires client, partner and Valo organisations, delegated scopes, time-limited access and defence in depth across all data surfaces.
+The observed model uses clients/projects and broad member roles. BidBox requires client, partner and BidBox organisations, delegated scopes, time-limited access and defence in depth across all data surfaces.
 
 ## Decision
 

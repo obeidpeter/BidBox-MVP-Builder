@@ -10,7 +10,7 @@ import {
 import { createClientUploadLeaseEnvelope } from "./contracts";
 
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_client_upload_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_client_upload_test";
 
 const { clientUploadLeaseId } = await import("./clientUploadRepository");
 

@@ -109,7 +109,7 @@
       "id": "AD-004",
       "category": "constraint",
       "title": "Incremental modular monolith within current capacity",
-      "statement": "Valo evolves the existing TypeScript, React, PostgreSQL and OpenAPI monorepo and adds deployables only when measured isolation, scale or ownership pressure justifies their operational cost.",
+      "statement": "BidBox evolves the existing TypeScript, React, PostgreSQL and OpenAPI monorepo and adds deployables only when measured isolation, scale or ownership pressure justifies their operational cost.",
       "owner": "Platform architecture",
       "priority": "must",
       "status": "active",
@@ -318,14 +318,14 @@
       "id": "AD-012",
       "category": "quality_attribute",
       "title": "Accessible and interruption-tolerant critical journeys",
-      "statement": "Critical Valo journeys expose authority, status, errors and recovery in perceivable, operable and understandable forms across keyboard, screen reader, narrow viewport and low-bandwidth use.",
+      "statement": "Critical BidBox journeys expose authority, status, errors and recovery in perceivable, operable and understandable forms across keyboard, screen reader, narrow viewport and low-bandwidth use.",
       "owner": "Product experience and accessibility",
       "priority": "must",
       "status": "active",
       "evidence": [
         "config/product/usability-programme.v1.json",
         "docs/usability/CONTINUOUS_USABILITY_PROGRAMME.md",
-        "artifacts/valo-workbench/src/public-accessibility.test.tsx"
+        "artifacts/bidbox-workbench/src/public-accessibility.test.tsx"
       ],
       "decisionRefs": ["ADR-0001", "ADR-0014"],
       "acceptanceMeasures": [

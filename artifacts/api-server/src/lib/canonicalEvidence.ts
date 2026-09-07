@@ -48,7 +48,7 @@ export async function lockCanonicalEvidenceDigest(
   await db.execute(sql`
     SELECT pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(
-        ${`valo:canonical-evidence:${organisationId}:${sha256}`},
+        ${`bidbox:canonical-evidence:${organisationId}:${sha256}`},
         0
       )
     )

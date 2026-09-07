@@ -879,7 +879,7 @@ export interface DrizzleGrowthSuiteRepositoryOptions {
   now?: () => Date;
   id?: () => string;
   /**
-   * The one approved internal Valo organisation that owns the global
+   * The one approved internal BidBox organisation that owns the global
    * pre-account intake queue. Absence or mismatch keeps durable lead
    * operations unavailable.
    */

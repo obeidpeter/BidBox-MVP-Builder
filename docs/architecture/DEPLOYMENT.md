@@ -26,7 +26,7 @@ flowchart TB
 
   subgraph Replit["Replit runtime boundary"]
     Router["Replit HTTPS router / Autoscale"]
-    subgraph Instance["Valo Node instance (replica count is provider state)"]
+    subgraph Instance["BidBox Node instance (replica count is provider state)"]
       Launcher["start-replit-production.mjs"]
       Migration["Bounded migration/journal/target gate"]
       Schedules["Optional allowlisted in-process schedules"]

@@ -613,7 +613,7 @@ function projectPredicate(projectId: string | null | undefined) {
 }
 
 function admissionLockKey(organisationId: string, capability: string): string {
-  return `valo-worker:${organisationId}:${capability}`;
+  return `bidbox-worker:${organisationId}:${capability}`;
 }
 
 export class DrizzleDurableWorkerRepository implements DurableWorkerRepository {

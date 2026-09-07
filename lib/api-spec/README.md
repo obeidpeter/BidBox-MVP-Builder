@@ -1,6 +1,6 @@
 # API specification
 
-`@workspace/api-spec` owns Valo's HTTP transport contract. [`openapi.yaml`](openapi.yaml) is the source for the generated React Query client in `lib/api-client-react` and generated Zod validators in `lib/api-zod`.
+`@workspace/api-spec` owns BidBox's HTTP transport contract. [`openapi.yaml`](openapi.yaml) is the source for the generated React Query client in `lib/api-client-react` and generated Zod validators in `lib/api-zod`.
 
 ## Boundary and generation rules
 

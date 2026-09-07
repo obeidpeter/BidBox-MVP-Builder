@@ -10,7 +10,7 @@ import type { AddendumImpactRouterOptions } from "./addendumImpact";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_addendum_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_addendum_test";
 
 const { createAddendumImpactRouter } = await import("./addendumImpact");
 
@@ -129,7 +129,10 @@ describe("addendum impact route factory", () => {
     );
     assert.equal(response.status, 404);
     assert.equal(response.headers.get("cache-control"), "private, no-store");
-    assert.match(response.headers.get("vary") ?? "", /X-Valo-Organisation-Id/u);
+    assert.match(
+      response.headers.get("vary") ?? "",
+      /X-BidBox-Organisation-Id/u,
+    );
     assert.equal(loadCalls, 1);
   });
 

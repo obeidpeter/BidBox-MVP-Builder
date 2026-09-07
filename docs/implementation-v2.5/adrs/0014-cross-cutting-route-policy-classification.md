@@ -14,7 +14,7 @@ Superseded by: None
 
 ## Context
 
-Valo has health probes, an identity proxy, public intake, authenticated tenant-free control-plane routes, tenant-plane routes and an intentionally unmounted workload surface. Mount order supplies security properties that are easy to bypass accidentally when a router is added in the wrong place. High-risk operations need stricter rules than their class default.
+BidBox has health probes, an identity proxy, public intake, authenticated tenant-free control-plane routes, tenant-plane routes and an intentionally unmounted workload surface. Mount order supplies security properties that are easy to bypass accidentally when a router is added in the wrong place. High-risk operations need stricter rules than their class default.
 
 ## Decision
 

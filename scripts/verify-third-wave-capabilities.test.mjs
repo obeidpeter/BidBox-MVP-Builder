@@ -132,7 +132,7 @@ test("rejects registry expansion and self-declared evidence", () => {
 });
 
 test("verifies all checked-in third-wave evidence and guard assertions", async () => {
-  const root = await mkdtemp(join(tmpdir(), "valo-third-wave-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-third-wave-"));
   try {
     const valid = registry();
     await copyEvidenceTree(root, valid);
@@ -167,14 +167,14 @@ test("verifies all checked-in third-wave evidence and guard assertions", async (
 });
 
 test("fails closed when an exact evidence file is missing", async () => {
-  const root = await mkdtemp(join(tmpdir(), "valo-third-wave-missing-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-third-wave-missing-"));
   try {
     const valid = registry();
     await copyEvidenceTree(root, valid);
     await rm(
       resolve(
         root,
-        "artifacts/valo-workbench/src/pages/portfolio-intelligence.tsx",
+        "artifacts/bidbox-workbench/src/pages/portfolio-intelligence.tsx",
       ),
     );
     await assert.rejects(

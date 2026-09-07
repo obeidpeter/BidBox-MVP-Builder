@@ -51,5 +51,5 @@ test("scheduled runner owns a durable lease and persists its cursor", () => {
     runner,
     /RETURNING pg_catalog\.clock_timestamp\(\) AS "completedAt"/u,
   );
-  assert.match(runner, /valo\.retention\.missing_conclusion_anchors/u);
+  assert.match(runner, /bidbox\.retention\.missing_conclusion_anchors/u);
 });

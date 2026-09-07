@@ -17,7 +17,7 @@ function validPolicy() {
     schemaVersion: 1,
     status: "desired_state_requires_github_application",
     branch: "main",
-    owner: "@valo-owner",
+    owner: "@bidbox-owner",
     pullRequest: {
       required: true,
       requiredApprovingReviewCount: 1,
@@ -96,13 +96,13 @@ describe("repository governance policy", () => {
   it("requires fallback and critical CODEOWNERS coverage", () => {
     const policy = validPolicy();
     const complete = [
-      "* @valo-owner",
-      "/.github/ @valo-owner",
-      "/scripts/ @valo-owner",
-      "/lib/db/ @valo-owner",
-      "/lib/api-spec/ @valo-owner",
-      "/artifacts/api-server/.replit-artifact/ @valo-owner",
-      "/.replit @valo-owner",
+      "* @bidbox-owner",
+      "/.github/ @bidbox-owner",
+      "/scripts/ @bidbox-owner",
+      "/lib/db/ @bidbox-owner",
+      "/lib/api-spec/ @bidbox-owner",
+      "/artifacts/api-server/.replit-artifact/ @bidbox-owner",
+      "/.replit @bidbox-owner",
     ].join("\n");
     assert.doesNotThrow(() => validateCodeowners(complete, policy));
     assert.throws(
@@ -221,7 +221,7 @@ describe("repository governance policy", () => {
   });
 
   it("rejects any protected workflow byte change before YAML aliases can expand", async () => {
-    const root = await mkdtemp(join(tmpdir(), "valo-governance-"));
+    const root = await mkdtemp(join(tmpdir(), "bidbox-governance-"));
     try {
       await mkdir(join(root, ".github", "workflows"), { recursive: true });
       await writeFile(
@@ -231,13 +231,13 @@ describe("repository governance policy", () => {
       await writeFile(
         join(root, ".github", "CODEOWNERS"),
         [
-          "* @valo-owner",
-          "/.github/ @valo-owner",
-          "/scripts/ @valo-owner",
-          "/lib/db/ @valo-owner",
-          "/lib/api-spec/ @valo-owner",
-          "/artifacts/api-server/.replit-artifact/ @valo-owner",
-          "/.replit @valo-owner",
+          "* @bidbox-owner",
+          "/.github/ @bidbox-owner",
+          "/scripts/ @bidbox-owner",
+          "/lib/db/ @bidbox-owner",
+          "/lib/api-spec/ @bidbox-owner",
+          "/artifacts/api-server/.replit-artifact/ @bidbox-owner",
+          "/.replit @bidbox-owner",
         ].join("\n"),
       );
       const workflows = [
@@ -274,7 +274,7 @@ describe("repository governance policy", () => {
   it("enforces least privilege and secret-to-environment binding", () => {
     const sourceChecks = `if: github.ref == 'refs/heads/main'\ntest "$(git rev-parse HEAD)" = "$SOURCE_SHA"\ntest -z "$(git status --porcelain=v1 --untracked-files=no)"\ngit merge-base --is-ancestor "$SOURCE_SHA" origin/main\n`;
     const candidate = `permissions:\n  contents: read\n\n${sourceChecks}node ./scripts/release-provenance.mjs tool --expected-source-commit "$SOURCE_SHA"\nsteps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          persist-credentials: false\n      - uses: pnpm/action-setup@b906affcce14559ad1aafd4ab0e942779e9f58b1\n      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020\n      - uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610\n        with:\n          upload-artifact: false\n          upload-release-assets: false\n          dependency-snapshot: false\n      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n`;
-    const deployment = `permissions:\n  actions: read\n  contents: read\n\njobs:\n  verify:\n    environment: \${{ inputs.environment }}\n    ${sourceChecks}node ./scripts/release-provenance.mjs tool --expected-source-commit "$SOURCE_SHA"\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          persist-credentials: false\n      - env:\n          CANDIDATE_RUN_ID: \${{ inputs.candidate_run_id }}\n          EXPECTED_REPOSITORY: \${{ github.repository }}\n          EXPECTED_REPOSITORY_ID: \${{ github.repository_id }}\n          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}\n        run: node tool attest-github-run --candidate-run-id "$CANDIDATE_RUN_ID" --expected-repository "$EXPECTED_REPOSITORY" --expected-repository-id "$EXPECTED_REPOSITORY_ID" --expected-workflow-name "Release candidate" --expected-workflow-path ".github/workflows/release-candidate.yml" --expected-source-commit "$SOURCE_SHA" --output "$RUNNER_TEMP/valo-candidate-run-attestation.json"\n      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093\n        with:\n          name: valo-release-\${{ inputs.source_sha }}\n          path: \${{ runner.temp }}/valo-release-candidate\n          run-id: \${{ inputs.candidate_run_id }}\n          github-token: \${{ secrets.GITHUB_TOKEN }}\n      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020\n      - run: node tool --root "$RUNNER_TEMP/valo-release-candidate" --expected-source-commit "$SOURCE_SHA" --run-attestation "$RUNNER_TEMP/valo-candidate-run-attestation.json"\n      - env:\n          DEPLOYMENT_URL: \${{ vars.VALO_DEPLOYMENT_ORIGIN }}\n          VALO_READINESS_AUTHORIZATION: \${{ secrets.VALO_READINESS_AUTHORIZATION }}\n        run: node tool --root "$RUNNER_TEMP/valo-release-candidate" --expected-source-commit "$SOURCE_SHA" --run-attestation "$RUNNER_TEMP/valo-candidate-run-attestation.json"\n      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n`;
+    const deployment = `permissions:\n  actions: read\n  contents: read\n\njobs:\n  verify:\n    environment: \${{ inputs.environment }}\n    ${sourceChecks}node ./scripts/release-provenance.mjs tool --expected-source-commit "$SOURCE_SHA"\n    steps:\n      - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262\n        with:\n          persist-credentials: false\n      - env:\n          CANDIDATE_RUN_ID: \${{ inputs.candidate_run_id }}\n          EXPECTED_REPOSITORY: \${{ github.repository }}\n          EXPECTED_REPOSITORY_ID: \${{ github.repository_id }}\n          GITHUB_TOKEN: \${{ secrets.GITHUB_TOKEN }}\n        run: node tool attest-github-run --candidate-run-id "$CANDIDATE_RUN_ID" --expected-repository "$EXPECTED_REPOSITORY" --expected-repository-id "$EXPECTED_REPOSITORY_ID" --expected-workflow-name "Release candidate" --expected-workflow-path ".github/workflows/release-candidate.yml" --expected-source-commit "$SOURCE_SHA" --output "$RUNNER_TEMP/bidbox-candidate-run-attestation.json"\n      - uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093\n        with:\n          name: bidbox-release-\${{ inputs.source_sha }}\n          path: \${{ runner.temp }}/bidbox-release-candidate\n          run-id: \${{ inputs.candidate_run_id }}\n          github-token: \${{ secrets.GITHUB_TOKEN }}\n      - uses: actions/setup-node@49933ea5288caeca8642d1e84afbd3f7d6820020\n      - run: node tool --root "$RUNNER_TEMP/bidbox-release-candidate" --expected-source-commit "$SOURCE_SHA" --run-attestation "$RUNNER_TEMP/bidbox-candidate-run-attestation.json"\n      - env:\n          DEPLOYMENT_URL: \${{ vars.VALO_DEPLOYMENT_ORIGIN }}\n          VALO_READINESS_AUTHORIZATION: \${{ secrets.VALO_READINESS_AUTHORIZATION }}\n        run: node tool --root "$RUNNER_TEMP/bidbox-release-candidate" --expected-source-commit "$SOURCE_SHA" --run-attestation "$RUNNER_TEMP/bidbox-candidate-run-attestation.json"\n      - uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02\n`;
     assert.doesNotThrow(() =>
       validateReleaseWorkflowSecurity(candidate, deployment),
     );
@@ -359,7 +359,7 @@ describe("repository governance policy", () => {
         validateReleaseWorkflowSecurity(
           candidate,
           deployment.replace(
-            "path: ${{ runner.temp }}/valo-release-candidate",
+            "path: ${{ runner.temp }}/bidbox-release-candidate",
             "path: .",
           ),
         ),

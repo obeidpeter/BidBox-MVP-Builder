@@ -1,6 +1,6 @@
 # API server
 
-`@workspace/api-server` is Valo's Express composition root and server-side application. It owns HTTP middleware order, Clerk-to-local-user resolution, tenant and database boundaries, domain routes, provider/storage adapters, and production lifecycle signals.
+`@workspace/api-server` is BidBox's Express composition root and server-side application. It owns HTTP middleware order, Clerk-to-local-user resolution, tenant and database boundaries, domain routes, provider/storage adapters, and production lifecycle signals.
 
 ## Entry points and boundaries
 

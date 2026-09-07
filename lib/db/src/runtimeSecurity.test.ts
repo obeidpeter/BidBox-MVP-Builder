@@ -670,9 +670,9 @@ describe("production database selection", () => {
     assert.equal(
       selectDatabaseConnectionString({
         NODE_ENV: "test",
-        DATABASE_URL: "postgresql://owner:secret@example.test/valo",
+        DATABASE_URL: "postgresql://owner:secret@example.test/bidbox",
       }),
-      "postgresql://owner:secret@example.test/valo",
+      "postgresql://owner:secret@example.test/bidbox",
     );
   });
 
@@ -681,7 +681,7 @@ describe("production database selection", () => {
       () =>
         selectDatabaseConnectionString({
           NODE_ENV: "production",
-          DATABASE_URL: "postgresql://owner:secret@example.test/valo",
+          DATABASE_URL: "postgresql://owner:secret@example.test/bidbox",
         }),
       /VALO_RUNTIME_DATABASE_URL is required/,
     );
@@ -692,9 +692,9 @@ describe("production database selection", () => {
       () =>
         selectDatabaseConnectionString({
           REPLIT_DEPLOYMENT: "1",
-          DATABASE_URL: "postgresql://owner:secret@example.test/valo",
+          DATABASE_URL: "postgresql://owner:secret@example.test/bidbox",
           VALO_RUNTIME_DATABASE_URL:
-            "postgresql://valo_app_runtime:runtime@example.test/valo",
+            "postgresql://valo_app_runtime:runtime@example.test/bidbox",
         }),
       /require NODE_ENV=production/,
     );
@@ -704,9 +704,9 @@ describe("production database selection", () => {
     const environment = {
       NODE_ENV: "production",
       REPLIT_DEPLOYMENT: "1",
-      DATABASE_URL: "postgresql://owner:secret@example.test/valo",
+      DATABASE_URL: "postgresql://owner:secret@example.test/bidbox",
       VALO_RUNTIME_DATABASE_URL:
-        "postgresql://valo_app_runtime:runtime@example.test/valo",
+        "postgresql://valo_app_runtime:runtime@example.test/bidbox",
     };
     assert.equal(isProductionRuntime(environment), true);
     assert.equal(
@@ -722,7 +722,7 @@ describe("production database selection", () => {
           NODE_ENV: "production",
           DATABASE_URL: "not a postgres URL with secret-owner-value",
           VALO_RUNTIME_DATABASE_URL:
-            "postgresql://valo_app_runtime:runtime@example.test/valo",
+            "postgresql://valo_app_runtime:runtime@example.test/bidbox",
         }),
       (error: unknown) =>
         error instanceof Error &&
@@ -736,7 +736,7 @@ describe("production database selection", () => {
       () =>
         selectDatabaseConnectionString({
           NODE_ENV: "production",
-          DATABASE_URL: "postgresql://owner:secret@example.test/valo",
+          DATABASE_URL: "postgresql://owner:secret@example.test/bidbox",
           VALO_RUNTIME_DATABASE_URL:
             "postgresql://valo_app_runtime:runtime@example.test/other",
         }),
@@ -750,9 +750,9 @@ describe("production database selection", () => {
         selectDatabaseConnectionString({
           NODE_ENV: "production",
           DATABASE_URL:
-            "postgresql://owner:secret@example.test/valo?sslmode=require&channel_binding=require",
+            "postgresql://owner:secret@example.test/bidbox?sslmode=require&channel_binding=require",
           VALO_RUNTIME_DATABASE_URL:
-            "postgresql://valo_app_runtime:runtime@example.test/valo?sslmode=disable&channel_binding=require",
+            "postgresql://valo_app_runtime:runtime@example.test/bidbox?sslmode=disable&channel_binding=require",
         }),
       /must preserve the managed target and TLS parameters/,
     );
@@ -764,9 +764,9 @@ describe("production database selection", () => {
         selectDatabaseConnectionString({
           NODE_ENV: "production",
           DATABASE_URL:
-            "postgresql://owner:secret@example.test/valo?sslmode=require&user=owner",
+            "postgresql://owner:secret@example.test/bidbox?sslmode=require&user=owner",
           VALO_RUNTIME_DATABASE_URL:
-            "postgresql://valo_app_runtime:runtime@example.test/valo?sslmode=require&user=owner",
+            "postgresql://valo_app_runtime:runtime@example.test/bidbox?sslmode=require&user=owner",
         }),
       /credentials must be carried only in URL userinfo/,
     );
@@ -1168,7 +1168,7 @@ describe("production delivery guard function attestation", () => {
       () =>
         assertDeliveryGuardFunctionAttestation([
           ...proofs,
-          { ...proofs[0], function_name: "valo_extra_guard" },
+          { ...proofs[0], function_name: "bidbox_extra_guard" },
         ]),
       /delivery guard functions are semantically drifted/,
     );

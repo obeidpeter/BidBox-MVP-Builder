@@ -1,13 +1,13 @@
-# Valo Nigeria v2.5 candidate
+# BidBox Nigeria v2.5 candidate
 
-Valo is an internal bid-compliance workbench for tender intake, reviewer-confirmed requirements, evidence and defect review, exact-kobo BOQ checks, submission-readiness gates, and signed report/package export. The v2.5 candidate adds organisation tenancy, scoped permissions, PostgreSQL row-level-security (RLS) foundations, role-specific UI surfaces, and commercial feature gates. It remains a pre-production candidate; source presence and a successful Replit preview are not production acceptance.
+BidBox is an internal bid-compliance workbench for tender intake, reviewer-confirmed requirements, evidence and defect review, exact-kobo BOQ checks, submission-readiness gates, and signed report/package export. The v2.5 candidate adds organisation tenancy, scoped permissions, PostgreSQL row-level-security (RLS) foundations, role-specific UI surfaces, and commercial feature gates. It remains a pre-production candidate; source presence and a successful Replit preview are not production acceptance.
 
 ## Runtime and Replit workflows
 
 - Supported runtime: Node.js 22 through 24 and pnpm 10.34.0. Replit selects Node.js 24 in `.replit`; CI validates Node.js 22.
 - Replit's **Project** workflow runs the API on port 5000 and the Vite workbench on port 3000, proxying `/api` to the API.
 - API liveness is `GET /api/healthz`. It proves only that the process can answer; it does not prove database, storage, identity-provider, model-provider, RLS, or migration readiness.
-- Production publishing runs the `.replit` build command with `PORT=3000 BASE_PATH=/ NODE_ENV=production pnpm run build`, then the effective API artifact and legacy `.replit` run path both invoke `scripts/start-replit-production.mjs` with Replit's assigned `PORT`. The wrapper completes the bounded migration gate before it imports the compiled API in the same Node process. Both checked-in run paths pin the current `https://valo-mvp-builder.replit.app` origin and one-hop Replit proxy posture; update the exact allowlist before activating any approved custom domain. In production the API serves `artifacts/valo-workbench/dist/public`, including SPA deep-link fallback; only the ten implemented public paths are indexable and every authentication, workspace, or unknown fallback response carries `X-Robots-Tag: noindex, nofollow`.
+- Production publishing runs the `.replit` build command with `PORT=3000 BASE_PATH=/ NODE_ENV=production pnpm run build`, then the effective API artifact and legacy `.replit` run path both invoke `scripts/start-replit-production.mjs` with Replit's assigned `PORT`. The wrapper completes the bounded migration gate before it imports the compiled API in the same Node process. Both checked-in run paths pin the current `https://valo-mvp-builder.replit.app` origin and one-hop Replit proxy posture; update the exact allowlist before activating any approved custom domain. In production the API serves `artifacts/bidbox-workbench/dist/public`, including SPA deep-link fallback; only the ten implemented public paths are indexable and every authentication, workspace, or unknown fallback response carries `X-Robots-Tag: noindex, nofollow`.
 
 Useful local/Replit checks:
 
@@ -19,7 +19,7 @@ pnpm run typecheck
 pnpm --filter @workspace/db migration:check
 pnpm --filter @workspace/db migration:bridge:legacy:check
 pnpm --filter @workspace/api-server test
-pnpm --filter @workspace/valo-workbench test
+pnpm --filter @workspace/bidbox-workbench test
 pnpm --filter @workspace/api-server prove:doctrine:offline
 pnpm --filter @workspace/api-server prove:injection:offline
 pnpm --filter @workspace/api-server eval:harness:offline
@@ -46,7 +46,7 @@ deployment records, or build logs. At minimum, configure and verify:
 - `CLERK_PUBLISHABLE_KEY`, `CLERK_SECRET_KEY`, and build-time `VITE_CLERK_PUBLISHABLE_KEY`. The production frontend always uses the same-origin `/api/__clerk` proxy so its CSP and credential boundary remain fixed. `VITE_CLERK_PROXY_URL` is development-only.
 - `CORS_ALLOWED_ORIGINS` as an exact comma-separated allowlist of deployed web origins; `*` is deliberately rejected. The autoscale deployment requires `TRUST_PROXY=1` behind Replit's single trusted proxy hop; public intake stays unavailable in production without that explicit setting.
 - `VALO_PUBLIC_LEAD_DESTINATION=database` selects the bounded public Bid Autopsy request destination after migrations `0003`-`0006` are applied. It does not activate intake by itself. Production also requires a server-only `PUBLIC_LEAD_RATE_LIMIT_HMAC_SECRET` of at least 32 bytes and an explicitly approved integer `VALO_PUBLIC_LEAD_RETENTION_DAYS` from 1 through 3650; there is deliberately no retention default. Keep the HMAC secret in Replit Secrets. Review `PUBLIC_LEAD_RATE_LIMIT_WINDOW_MS` and `PUBLIC_LEAD_RATE_LIMIT_MAX` for the target. Autoscale replicas consume one database-backed fixed-window bucket keyed only by an HMAC of the canonical client address; raw addresses and the secret are never stored.
-- `VALO_GROWTH_OPERATIONS_ORGANISATION_ID` must identify the one approved active internal Valo organisation before the global pre-account queue is exposed to authenticated lead operators. Missing, malformed or mismatched configuration keeps durable lead operations unavailable; never infer this ownership boundary from the selected tenant alone.
+- `VALO_GROWTH_OPERATIONS_ORGANISATION_ID` must identify the one approved active internal BidBox organisation before the global pre-account queue is exposed to authenticated lead operators. Missing, malformed or mismatched configuration keeps durable lead operations unavailable; never infer this ownership boundary from the selected tenant alone.
 - `AI_INTEGRATIONS_OPENAI_API_KEY` and `AI_INTEGRATIONS_OPENAI_BASE_URL` where the model adapter is used. `OPENAI_ADAPTER_PRODUCTION_APPROVED=true` is an explicit approval attestation, not a substitute for provider-health and live proof evidence.
 - Production model workflows default off and require all of the following before any client content reaches a provider: `VALO_AI_GLOBAL_ENABLED=true`; the capability-specific `VALO_AI_*_ENABLED=true`; the matching tenant `ai_*` feature flag; an approved model/configuration/evaluation; an explicit NGN budget and rate-card envelope; approved processing region and retention policy; provider no-training, DPA and governance evidence; and a private, absolute `VALO_AI_RELEASE_EVIDENCE_PATH`. The release bundle is recomputed against the exact model, `ai-foundation-v1` prompt pack, schema-set hash, retrieval version and index version. `VALO_AI_KILL_SWITCH=true` overrides every other setting. See `docs/ai-overhaul/DEPLOYMENT_ACCEPTANCE.md`; do not infer approval values for the currently undecided provider, residency or budget decisions.
 - Replit Object Storage configuration, including `PRIVATE_OBJECT_DIR` and any intentional `PUBLIC_OBJECT_SEARCH_PATHS`. Tender and bid content belongs in private tenant-prefixed paths.
@@ -56,7 +56,7 @@ deployment records, or build logs. At minimum, configure and verify:
 
 ## Tenancy and migration contract
 
-- Protected domain requests require an authenticated local user and one explicit organisation context. Clients send `X-Valo-Organisation-Id` when more than one active organisation is available.
+- Protected domain requests require an authenticated local user and one explicit organisation context. Clients send `X-BidBox-Organisation-Id` when more than one active organisation is available.
 - Direct membership, approved partner relationships, and separately approved break-glass sessions resolve to a bounded permission set. There is no platform-role tenant bypass.
 - Tenant data access runs inside one database transaction. The application sets `app.current_organisation_id` transaction-locally, and `lib/db/migrations/0001_tenant_rls.sql` enables and forces RLS on tenant-resource tables.
 - The application database role must not be a PostgreSQL superuser or have `BYPASSRLS`. Use an approved migration identity for DDL and a least-privilege runtime identity for the application.
@@ -275,7 +275,7 @@ This candidate is not production-accepted. In particular, live FORCE-RLS/migrati
 - `lib/api-spec/openapi.yaml` — API contract; codegen writes the React client and Zod packages.
 - `artifacts/api-server/src/routes/` — API routers; tenancy and security boundaries live under `src/middlewares/`.
 - `artifacts/api-server/src/lib/` — deterministic controls, audit/provenance, feature/provider policies, document/report assembly, and proof harnesses.
-- `artifacts/valo-workbench/` — React workbench and role/feature-aware surfaces.
+- `artifacts/bidbox-workbench/` — React workbench and role/feature-aware surfaces.
 - `config/rules/nigeria/` — versioned Nigeria rule-pack registration; legal approval and signed activation are still required.
 - `.agents/memory/` — non-obvious doctrine and build decisions; read before changing risk, sign-off, audit, intake, BOQ, tenancy, or model behavior.
 

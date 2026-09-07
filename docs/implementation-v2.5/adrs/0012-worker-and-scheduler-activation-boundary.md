@@ -14,7 +14,7 @@ Superseded by: None
 
 ## Context
 
-Valo has persistent job, run and transactional-outbox primitives, plus source entrypoints for maintenance work. Existence of these components does not prove a workload identity, dispatcher, platform schedule, provider receipt, paging route or safe multi-replica execution. Human Clerk sessions are not worker identities.
+BidBox has persistent job, run and transactional-outbox primitives, plus source entrypoints for maintenance work. Existence of these components does not prove a workload identity, dispatcher, platform schedule, provider receipt, paging route or safe multi-replica execution. Human Clerk sessions are not worker identities.
 
 ## Decision
 
@@ -27,7 +27,7 @@ Valo has persistent job, run and transactional-outbox primitives, plus source en
 
 ## Consequences
 
-Valo can develop and test durable semantics without exposing a privileged human-callable worker API or overstating production operation. Scheduling remains deliberately conservative. Operational latency may remain manual until the identity, monitoring and installation evidence is supplied.
+BidBox can develop and test durable semantics without exposing a privileged human-callable worker API or overstating production operation. Scheduling remains deliberately conservative. Operational latency may remain manual until the identity, monitoring and installation evidence is supplied.
 
 ## Rejected
 

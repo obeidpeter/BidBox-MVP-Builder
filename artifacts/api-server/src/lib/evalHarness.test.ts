@@ -511,7 +511,7 @@ describe("manifest-backed corpus contract", () => {
 
   test("the positive contract branch is reachable for an in-memory unit fixture", () => {
     // This object only exercises validator logic. It is not exported, retained,
-    // or represented as an authorised Valo evaluation corpus.
+    // or represented as an authorised BidBox evaluation corpus.
     const tenders = Array.from({ length: 25 }, (_, index) =>
       tender({ id: `authorised-${index}` }),
     );

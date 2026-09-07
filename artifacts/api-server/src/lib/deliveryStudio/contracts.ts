@@ -100,14 +100,14 @@ export interface DeliveryStudioRehearsalManifestFile {
 export function deliveryStudioRehearsalManifestTitle(
   packageVersionId: string,
 ): string {
-  return `Valo Delivery Studio package manifest ${packageVersionId}`;
+  return `BidBox Delivery Studio package manifest ${packageVersionId}`;
 }
 
 export function deliveryStudioRehearsalManifestOrigin(
   packageId: string,
   packageVersionId: string,
 ): string {
-  return `valo://delivery-studio/packages/${packageId}/versions/${packageVersionId}/manifest`;
+  return `bidbox://delivery-studio/packages/${packageId}/versions/${packageVersionId}/manifest`;
 }
 
 /**
@@ -120,7 +120,7 @@ export function buildDeliveryStudioRehearsalManifestText(input: {
   readonly files: readonly DeliveryStudioRehearsalManifestFile[];
 }): string {
   const lines = [
-    "Valo Delivery Studio package manifest",
+    "BidBox Delivery Studio package manifest",
     `Package ID: ${input.packageId}`,
     `Package version ID: ${input.packageVersionId}`,
   ];

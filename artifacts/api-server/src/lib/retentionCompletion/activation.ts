@@ -4,7 +4,7 @@ import { resolve } from "node:path";
 export const RETENTION_COMPLETION_ACTIVATION_ENV =
   "VALO_RETENTION_COMPLETION_ENABLED" as const;
 export const RETENTION_COMPLETION_ACTIVATION_MANIFEST_ID =
-  "valo-retention-completion-activation/v1" as const;
+  "bidbox-retention-completion-activation/v1" as const;
 export const RETENTION_COMPLETION_WORKFLOW =
   "durable_two_phase_detach_reconcile_certify" as const;
 

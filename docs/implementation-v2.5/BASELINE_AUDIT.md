@@ -24,7 +24,7 @@ Overall baseline classification: **Partial / pre-production**.
 
 | Surface             | Observed evidence                                                                                              | Assessment                                                                   |
 | ------------------- | -------------------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------- |
-| Web application     | `artifacts/valo-workbench`, React/Vite, routes for dashboard, clients, projects, SBD and settings              | Retain; internal staff-first UX, incomplete role-specific portals            |
+| Web application     | `artifacts/bidbox-workbench`, React/Vite, routes for dashboard, clients, projects, SBD and settings            | Retain; internal staff-first UX, incomplete role-specific portals            |
 | API                 | `artifacts/api-server`, Express, authenticated route modules for core Autopsy functions                        | Retain and modularise; authorisation and tenancy need redesign               |
 | Persistence         | `lib/db`, Drizzle/PostgreSQL, about 19 domain tables in one schema file                                        | Real persistence exists; no migration artefacts or RLS observed              |
 | API contract        | `lib/api-spec/openapi.yaml`, generated Zod/client packages                                                     | Retain; expand and add contract-drift gate                                   |

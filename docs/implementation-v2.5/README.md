@@ -1,10 +1,10 @@
-# Valo Nigeria v2.5 implementation dossier
+# BidBox Nigeria v2.5 implementation dossier
 
 Status: **implementation in progress; not accepted for production**
 Baseline date: 2026-08-08
 Scope: Nigeria releases v0.1 through v2.5; GCC localisation is explicitly out of scope.
 
-This directory is the controlled specification and handover set for upgrading Valo from the observed repository baseline. It separates intended behaviour, observed implementation, and verified evidence. A requirement is not complete merely because it appears in a document, route, schema, or interface.
+This directory is the controlled specification and handover set for upgrading BidBox from the observed repository baseline. It separates intended behaviour, observed implementation, and verified evidence. A requirement is not complete merely because it appears in a document, route, schema, or interface.
 
 ## Evidence vocabulary
 

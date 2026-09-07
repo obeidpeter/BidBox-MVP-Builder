@@ -112,7 +112,7 @@ async function main(): Promise<number> {
   const fullCycleComplete = successful && durableFullCycleComplete;
   console.log(
     JSON.stringify({
-      event: "valo.storage.deletion_reconciliation",
+      event: "bidbox.storage.deletion_reconciliation",
       cancelled: result.cancelled,
       completed: result.completed,
       completedLeaseCleanupQueued: result.completedLeaseCleanupQueued,
@@ -140,20 +140,20 @@ async function main(): Promise<number> {
       uploadLeasesConsidered: result.uploadLeasesConsidered,
       uploadLeasesExpired: result.uploadLeasesExpired,
       signals: {
-        "valo.storage.deletion_dead_letter_transitions": result.deadLetter,
-        "valo.storage.deletion_oldest_sampled_age_seconds":
+        "bidbox.storage.deletion_dead_letter_transitions": result.deadLetter,
+        "bidbox.storage.deletion_oldest_sampled_age_seconds":
           result.oldestPendingAgeSeconds,
-        "valo.storage.deletion_sample_complete": fullCycleComplete ? 1 : 0,
-        "valo.storage.deletion_run_success": successful ? 1 : 0,
+        "bidbox.storage.deletion_sample_complete": fullCycleComplete ? 1 : 0,
+        "bidbox.storage.deletion_run_success": successful ? 1 : 0,
         ...(successful
           ? {
-              "valo.storage.deletion_last_success_unixtime_seconds":
+              "bidbox.storage.deletion_last_success_unixtime_seconds":
                 completedAtUnixSeconds,
             }
           : {}),
         ...(fullCycleComplete
           ? {
-              "valo.storage.deletion_last_full_cycle_unixtime_seconds":
+              "bidbox.storage.deletion_last_full_cycle_unixtime_seconds":
                 completedAtUnixSeconds,
             }
           : {}),
@@ -172,8 +172,8 @@ main()
     console.error(
       JSON.stringify({
         error: "STORAGE_DELETION_RECONCILIATION_FAILED",
-        event: "valo.storage.deletion_reconciliation_failed",
-        signals: { "valo.storage.deletion_run_success": 0 },
+        event: "bidbox.storage.deletion_reconciliation_failed",
+        signals: { "bidbox.storage.deletion_run_success": 0 },
       }),
     );
     await pool.end().catch(() => {});

@@ -1,4 +1,4 @@
-# Valo AI architecture
+# BidBox AI architecture
 
 Status: **bounded gateway/runtime is implemented in source; target data and
 operations planes are incomplete; production AI is disabled**.
@@ -19,13 +19,13 @@ the model—establish authoritative workflow state.
 
 ```mermaid
 flowchart TB
-  subgraph Client["Valo workbench"]
+  subgraph Client["BidBox workbench"]
     U["Authenticated user"]
     Review["Source disclosure + human review"]
     OpsUI["Operations console"]
   end
 
-  subgraph API["Valo API trust boundary"]
+  subgraph API["BidBox API trust boundary"]
     Auth["Session, active organisation, RBAC"]
     Route["Bounded feature route + project lock"]
     Runtime["Project AI runtime"]

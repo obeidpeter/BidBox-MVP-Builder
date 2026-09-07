@@ -36,7 +36,13 @@ let _requestContextGetter: RequestContextGetter | null = null;
  * Pass `null` to clear the base URL.
  */
 export function setBaseUrl(url: string | null): void {
-  _baseUrl = url ? url.replace(/\/+$/, "") : null;
+  if (!url) {
+    _baseUrl = null;
+    return;
+  }
+  let end = url.length;
+  while (end > 0 && url[end - 1] === "/") end -= 1;
+  _baseUrl = url.slice(0, end);
 }
 
 /**
@@ -410,12 +416,12 @@ export async function customFetch<T = unknown>(
   if (
     attachRequestContext &&
     _requestContextGetter &&
-    !headers.has("x-valo-organisation-id")
+    !headers.has("x-bidbox-organisation-id")
   ) {
     const context = await _requestContextGetter();
     const organisationId = context?.organisationId?.trim();
     if (organisationId) {
-      headers.set("x-valo-organisation-id", organisationId);
+      headers.set("x-bidbox-organisation-id", organisationId);
     }
   }
 

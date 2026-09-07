@@ -1,0 +1,33 @@
+{
+  "name": "BidBox",
+  "short_name": "BidBox",
+  "description": "Tender review and bid preparation with linked evidence, clear approvals and recorded actions.",
+  "id": "/app",
+  "start_url": "/app",
+  "scope": "/",
+  "display": "standalone",
+  "background_color": "#f7f5f0",
+  "theme_color": "#0d1b2f",
+  "categories": ["business", "productivity"],
+  "shortcuts": [
+    {
+      "name": "Pursuits",
+      "short_name": "Pursuits",
+      "description": "Open your secure pursuit workspace.",
+      "url": "/projects"
+    },
+    {
+      "name": "Operations",
+      "short_name": "Operations",
+      "description": "Open reviews and AI service status.",
+      "url": "/operations"
+    }
+  ],
+  "icons": [
+    {
+      "src": "/favicon.svg",
+      "sizes": "any",
+      "type": "image/svg+xml"
+    }
+  ]
+}

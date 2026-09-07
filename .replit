@@ -22,7 +22,7 @@ isValidation = true
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "pnpm --filter @workspace/valo-workbench run test"
+args = "pnpm --filter @workspace/bidbox-workbench run test"
 
 [[workflows.workflow]]
 name = "API"
@@ -40,7 +40,7 @@ author = "agent"
 
 [[workflows.workflow.tasks]]
 task = "shell.exec"
-args = "PORT=3000 BASE_PATH=/ API_PROXY_TARGET=http://127.0.0.1:5000 pnpm --filter @workspace/valo-workbench run dev"
+args = "PORT=3000 BASE_PATH=/ API_PROXY_TARGET=http://127.0.0.1:5000 pnpm --filter @workspace/bidbox-workbench run dev"
 
 [[workflows.workflow]]
 name = "Project"

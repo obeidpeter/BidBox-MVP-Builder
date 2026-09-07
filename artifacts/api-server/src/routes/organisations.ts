@@ -71,7 +71,7 @@ async function lockOrganisationMembershipAdministration(
   await tx.execute(sql`SET LOCAL lock_timeout = '3s'`);
   await tx.execute(sql`
     SELECT pg_advisory_xact_lock(
-      hashtextextended(${`valo.membership-administration:${organisationId}`}, 0)
+      hashtextextended(${`bidbox.membership-administration:${organisationId}`}, 0)
     )
   `);
   await tx.execute(sql`

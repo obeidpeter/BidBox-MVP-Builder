@@ -1,6 +1,6 @@
-# Valo
+# BidBox
 
-Valo is a tenant-isolated tender delivery and assurance platform. This repository contains the React Workbench, Express API, PostgreSQL schema and security controls, OpenAPI-generated clients, operational controls, and controlled documentation.
+BidBox is a tenant-isolated tender delivery and assurance platform. This repository contains the React Workbench, Express API, PostgreSQL schema and security controls, OpenAPI-generated clients, operational controls, and controlled documentation.
 
 ## Start here
 
@@ -13,16 +13,16 @@ The words **current**, **target**, **deployed**, and **verified** have distinct 
 
 ## Workspace map
 
-| Area                                                             | Responsibility                                                                      |
-| ---------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
-| [`artifacts/api-server`](artifacts/api-server/README.md)         | HTTP composition, identity/tenant enforcement, domain routes, and runtime adapters. |
-| [`artifacts/valo-workbench`](artifacts/valo-workbench/README.md) | Public, access, and signed-in browser experience.                                   |
-| [`lib/db`](lib/db/README.md)                                     | Schema, migrations, RLS, runtime security attestation, and database maintenance.    |
-| [`lib/api-spec`](lib/api-spec/README.md)                         | OpenAPI authority and reproducible client/validator generation.                     |
-| `lib/api-client-react`, `lib/api-zod`                            | Generated contract outputs; change them through `lib/api-spec`.                     |
-| `config`                                                         | Reviewed release, operations, provider, usability, and architecture catalogues.     |
-| `scripts`                                                        | CI fitness checks, startup gates, release provenance, and operational verification. |
-| `docs`                                                           | Controlled dossier, capability notes, runbooks, and the architecture guidebook.     |
+| Area                                                                 | Responsibility                                                                      |
+| -------------------------------------------------------------------- | ----------------------------------------------------------------------------------- |
+| [`artifacts/api-server`](artifacts/api-server/README.md)             | HTTP composition, identity/tenant enforcement, domain routes, and runtime adapters. |
+| [`artifacts/bidbox-workbench`](artifacts/bidbox-workbench/README.md) | Public, access, and signed-in browser experience.                                   |
+| [`lib/db`](lib/db/README.md)                                         | Schema, migrations, RLS, runtime security attestation, and database maintenance.    |
+| [`lib/api-spec`](lib/api-spec/README.md)                             | OpenAPI authority and reproducible client/validator generation.                     |
+| `lib/api-client-react`, `lib/api-zod`                                | Generated contract outputs; change them through `lib/api-spec`.                     |
+| `config`                                                             | Reviewed release, operations, provider, usability, and architecture catalogues.     |
+| `scripts`                                                            | CI fitness checks, startup gates, release provenance, and operational verification. |
+| `docs`                                                               | Controlled dossier, capability notes, runbooks, and the architecture guidebook.     |
 
 ## Prerequisites
 
@@ -48,7 +48,7 @@ For local development, provide the same values in your shell plus the documented
 
 ```sh
 pnpm --filter @workspace/api-server run dev
-pnpm --filter @workspace/valo-workbench run dev
+pnpm --filter @workspace/bidbox-workbench run dev
 ```
 
 On Windows, set environment variables in PowerShell before invoking the API build/start commands; the package's `dev` shortcut uses POSIX environment syntax. Secrets belong in the deployment or local secret store, never in source.

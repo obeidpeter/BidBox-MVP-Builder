@@ -17,7 +17,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/deliveryStudio/service.ts",
       "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
       "artifacts/api-server/src/routes/deliveryStudio.ts",
-      "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
       "lib/api-spec/openapi.yaml",
       "docs/third-wave/IMPLEMENTATION.md",
     ]),
@@ -36,7 +36,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       ],
       ["artifacts/api-server/src/routes/deliveryStudio.ts", "delivery-studio"],
       [
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "Response Studio",
       ],
       ["lib/api-spec/openapi.yaml", "delivery-studio"],
@@ -57,7 +57,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/deliveryStudio/service.ts",
       "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
       "artifacts/api-server/src/routes/deliveryStudio.ts",
-      "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
       "lib/api-spec/openapi.yaml",
       "docs/third-wave/IMPLEMENTATION.md",
     ]),
@@ -80,7 +80,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       ],
       ["artifacts/api-server/src/routes/deliveryStudio.ts", "delivery-studio"],
       [
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "Red-team review",
       ],
       [
@@ -101,7 +101,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/deliveryStudio/service.ts",
       "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
       "artifacts/api-server/src/routes/deliveryStudio.ts",
-      "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
       "lib/api-spec/openapi.yaml",
       "docs/third-wave/IMPLEMENTATION.md",
     ]),
@@ -120,7 +120,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       ],
       ["artifacts/api-server/src/routes/deliveryStudio.ts", "delivery-studio"],
       [
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "Package assembly",
       ],
       [
@@ -140,7 +140,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/deliveryStudio/service.ts",
       "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
       "artifacts/api-server/src/routes/deliveryStudio.ts",
-      "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
       "lib/api-spec/openapi.yaml",
       "docs/third-wave/IMPLEMENTATION.md",
     ]),
@@ -159,7 +159,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       ],
       ["artifacts/api-server/src/routes/deliveryStudio.ts", "delivery-studio"],
       [
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "Submission rehearsal",
       ],
       [
@@ -178,7 +178,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/deliveryStudio/service.ts",
       "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
       "artifacts/api-server/src/routes/deliveryStudio.ts",
-      "artifacts/valo-workbench/src/pages/portfolio-intelligence.tsx",
+      "artifacts/bidbox-workbench/src/pages/portfolio-intelligence.tsx",
       "lib/api-spec/openapi.yaml",
       "docs/third-wave/IMPLEMENTATION.md",
     ]),
@@ -200,7 +200,7 @@ export const REQUIRED_THIRD_WAVE_CONTRACTS = Object.freeze({
         "portfolio-intelligence",
       ],
       [
-        "artifacts/valo-workbench/src/pages/portfolio-intelligence.tsx",
+        "artifacts/bidbox-workbench/src/pages/portfolio-intelligence.tsx",
         "Portfolio intelligence",
       ],
       ["lib/api-spec/openapi.yaml", "portfolio-intelligence"],
@@ -308,7 +308,7 @@ export function validateThirdWaveCapabilityRegistry(registry) {
     fail("registry must use the exact closed contract");
   }
   if (registry.schemaVersion !== 1) fail("schemaVersion must be 1");
-  if (registry.registryId !== "valo-product-capabilities/third-wave-v1") {
+  if (registry.registryId !== "bidbox-product-capabilities/third-wave-v1") {
     fail("registryId must identify the frozen third-wave registry");
   }
   if (

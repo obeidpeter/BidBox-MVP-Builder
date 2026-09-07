@@ -82,7 +82,7 @@ test("requires the exact first-wave scope and frozen integration evidence", () =
 });
 
 test("verifies central mounts, UI discovery and the unmounted worker boundary", async () => {
-  const root = await mkdtemp(join(tmpdir(), "valo-capability-test-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-capability-test-"));
   try {
     const valid = registry();
     await copyEvidenceTree(root, valid);
@@ -93,7 +93,7 @@ test("verifies central mounts, UI discovery and the unmounted worker boundary", 
 
     const tenderUiPath = resolve(
       root,
-      "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
+      "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
     );
     const tenderUi = await readFile(tenderUiPath, "utf8");
     await writeFile(

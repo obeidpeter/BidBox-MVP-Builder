@@ -43,7 +43,7 @@ afterEach(async () => {
 });
 
 async function fixture() {
-  const root = await mkdtemp(join(tmpdir(), "valo-release-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-release-"));
   temporaryDirectories.push(root);
   await mkdir(join(root, "artifacts", "api", "nested"), { recursive: true });
   await mkdir(join(root, "artifacts", "web"), { recursive: true });
@@ -335,7 +335,7 @@ describe("deployed readiness evidence", () => {
   }) {
     const server = createServer((request, response) => {
       response.setHeader("Content-Type", "application/json");
-      response.setHeader("X-Valo-Release-Sha256", releaseSha256);
+      response.setHeader("X-BidBox-Release-Sha256", releaseSha256);
       if (request.url === "/api/healthz") {
         response.end(JSON.stringify({ status: "ok" }));
         return;

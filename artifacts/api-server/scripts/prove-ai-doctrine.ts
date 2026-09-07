@@ -1,5 +1,5 @@
 /**
- * Doctrine proof harness for the Valo Bid Autopsy Workbench.
+ * Doctrine proof harness for the BidBox Bid Autopsy Workbench.
  *
  * Proves, end-to-end, the three doctrine guarantees for the LLM-backed flows:
  *   1. Every AI suggestion cites a real source (document + page/clause) and

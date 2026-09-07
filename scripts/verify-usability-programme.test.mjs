@@ -176,7 +176,7 @@ test("records missing release research without treating it as approval", () => {
   const missingEvidence = JSON.parse(
     JSON.stringify({
       schemaVersion: 1,
-      programmeId: "valo-continuous-usability/v1",
+      programmeId: "bidbox-continuous-usability/v1",
       evidenceId: "usability-evidence-pending",
       coverageStatus: "missing",
       evidenceWindow: { from: null, through: null },

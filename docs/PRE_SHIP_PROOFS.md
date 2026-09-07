@@ -7,7 +7,7 @@ provider, establish data residency, approve a budget, or prove production model
 quality.
 
 Possessing a model API key is not provider approval. Production AI remains
-disabled until Valo records the provider/privacy decision, rate card and budget,
+disabled until BidBox records the provider/privacy decision, rate card and budget,
 an authorized representative corpus, an independently adjudicated live
 production-profile evaluation, and staged-rollout evidence.
 
@@ -68,4 +68,4 @@ verifiers to the repository.
 
 The 85% target remains available only for the named Gate-0 non-production
 profile and historical regression comparison. It must never be cited as the
-Valo production acceptance threshold.
+BidBox production acceptance threshold.

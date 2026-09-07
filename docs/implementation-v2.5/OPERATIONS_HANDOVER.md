@@ -4,7 +4,7 @@ Status: maintained operational entry point. Last reviewed 2026-08-31. See the [r
 
 ## Repository surfaces
 
-- Web: `artifacts/valo-workbench`
+- Web: `artifacts/bidbox-workbench`
 - API/runtime: `artifacts/api-server`
 - Durable-worker foundation: `artifacts/api-server/src/lib/durableWorkerFoundation.ts` (external workload activation remains gated)
 - Schema and source-controlled migrations: `lib/db`

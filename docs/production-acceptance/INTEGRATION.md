@@ -67,7 +67,7 @@ Responses are `private, no-store`. Both record and snapshot responses explicitly
 
 ## Frontend exports
 
-`artifacts/valo-workbench/src/components/production-acceptance/index.ts` exports the strict runtime adapter, evidence form, console, and their public types. `artifacts/valo-workbench/src/pages/production-acceptance.tsx` has the default page export.
+`artifacts/bidbox-workbench/src/components/production-acceptance/index.ts` exports the strict runtime adapter, evidence form, console, and their public types. `artifacts/bidbox-workbench/src/pages/production-acceptance.tsx` has the default page export.
 
 The page is mounted at `/production-acceptance`, uses the authenticated
 organisation-aware fetch client, keys the evidence and authority queries by

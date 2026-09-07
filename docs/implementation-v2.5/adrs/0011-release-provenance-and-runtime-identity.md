@@ -14,7 +14,7 @@ Superseded by: None
 
 ## Context
 
-Valo needs to bind an reviewed merged source object, built outputs, SBOM, deployment target and observable runtime identity without claiming evidence the hosting platform cannot supply. Replit currently rebuilds from a source snapshot rather than promoting the GitHub-built artifact bytes.
+BidBox needs to bind an reviewed merged source object, built outputs, SBOM, deployment target and observable runtime identity without claiming evidence the hosting platform cannot supply. Replit currently rebuilds from a source snapshot rather than promoting the GitHub-built artifact bytes.
 
 ## Decision
 

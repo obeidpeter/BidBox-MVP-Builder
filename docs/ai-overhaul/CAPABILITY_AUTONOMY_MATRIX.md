@@ -10,7 +10,7 @@ Status: **current source policy; production activation not approved**.
 | 1     | AI preview with no persistence                                    | Available for future low-risk previews |
 | 2     | Reversible, visibly AI-generated draft persisted for human review | All five current capabilities          |
 | 3     | Bounded action after explicit human approval                      | Not authorised                         |
-| 4     | Autonomous consequential action                                   | Prohibited for Valo's current scope    |
+| 4     | Autonomous consequential action                                   | Prohibited for BidBox's current scope  |
 
 Level 2 does not mean “usually reviewed.” It means the model is technically
 unable to establish authoritative state. The reviewer named in the policy is a

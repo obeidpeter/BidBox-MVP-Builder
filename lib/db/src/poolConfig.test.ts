@@ -6,14 +6,14 @@ import {
   createSingleFlightReadinessProbe,
 } from "./poolConfig";
 
-const connectionString = "postgresql://runtime:secret@db.example/valo";
+const connectionString = "postgresql://runtime:secret@db.example/bidbox";
 
 describe("runtime database pool configuration", () => {
   it("applies conservative connection, query and session budgets", () => {
     const config = createRuntimePoolConfig(connectionString, {});
 
     assert.deepEqual(config, {
-      application_name: "valo-api",
+      application_name: "bidbox-api",
       connectionString,
       connectionTimeoutMillis: 5_000,
       idleTimeoutMillis: 30_000,

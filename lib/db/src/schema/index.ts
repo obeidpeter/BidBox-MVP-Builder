@@ -31,9 +31,9 @@ const optimisticVersion = () => integer("version").notNull().default(1);
  * schema. They exist before an organisation or authenticated identity does and
  * are reachable only through the bounded public-intake route.
  */
-export const valoIntake = pgSchema("valo_intake");
+export const bidboxIntake = pgSchema("valo_intake");
 
-export const bidAutopsyRequests = valoIntake.table(
+export const bidAutopsyRequests = bidboxIntake.table(
   "bid_autopsy_requests",
   {
     id: uuid("id").primaryKey().defaultRandom(),
@@ -74,7 +74,7 @@ export const bidAutopsyRequests = valoIntake.table(
  * enter the database. Expired buckets are removed by the bounded consume
  * function and the application runtime receives no direct table privileges.
  */
-export const bidAutopsyRateLimits = valoIntake.table(
+export const bidAutopsyRateLimits = bidboxIntake.table(
   "bid_autopsy_rate_limits",
   {
     clientKeyHash: text("client_key_hash").primaryKey(),

@@ -1,4 +1,4 @@
-# Valo continuous usability programme
+# BidBox continuous usability programme
 
 This programme turns usability and interaction-design quality into release evidence. It does not claim that a planned study happened: only observed sessions, expert-review records, and checked-in findings count as evidence.
 

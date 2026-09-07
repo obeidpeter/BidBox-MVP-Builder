@@ -28,7 +28,7 @@ export const DOCX_MIME =
 export { ENGINE_VERSION };
 
 export const PROCESS_WARRANTY =
-  "Valo does not warrant contract award, evaluator behaviour, or acceptance of the package. Valo warrants the reviewed process applied to the materials provided: requirement extraction, deterministic verification, and named human review.";
+  "BidBox does not warrant contract award, evaluator behaviour, or acceptance of the package. BidBox warrants the reviewed process applied to the materials provided: requirement extraction, deterministic verification, and named human review.";
 
 const NAVY = "1E3A5F";
 const GREY = "666666";
@@ -120,7 +120,7 @@ export interface ReportData {
 }
 
 const DEFAULT_TEMPLATE = {
-  firmName: "VALO",
+  firmName: "BidBox",
   confidentialityLegend:
     "CONFIDENTIAL — Prepared for internal review. Not for external distribution.",
 };
@@ -688,7 +688,7 @@ export async function buildReportDocx(data: ReportData): Promise<Buffer> {
   );
 
   const doc = new Document({
-    creator: "Valo Bid Autopsy Workbench",
+    creator: "BidBox Bid Autopsy Workbench",
     title: `Bid Autopsy Report — ${project.tenderTitle}`,
     sections: [
       {

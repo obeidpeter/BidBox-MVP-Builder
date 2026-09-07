@@ -14,7 +14,7 @@ import { RetentionCompletionService } from "../lib/retentionCompletion/service";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_retention_completion_route_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_retention_completion_route_test";
 
 const { createRetentionCompletionRouter } =
   await import("./retentionCompletion");
