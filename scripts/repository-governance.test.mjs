@@ -6,11 +6,47 @@ import {
   validateCodeowners,
   validateReleaseWorkflowSecurity,
   validateRequiredWorkflowActions,
+  validateUsabilityReleaseDecisionWorkflow,
   verifyRepositoryGovernance,
 } from "./verify-repository-governance.mjs";
 import { mkdtemp, mkdir, readFile, rm, writeFile } from "node:fs/promises";
 import { tmpdir } from "node:os";
 import { join } from "node:path";
+
+it("keeps a usability waiver opt-in, source-bound, and in immutable candidate evidence", async () => {
+  const candidate = (
+    await readFile(
+      new URL("../.github/workflows/release-candidate.yml", import.meta.url),
+      "utf8",
+    )
+  ).replaceAll("\r\n", "\n");
+  assert.doesNotThrow(() =>
+    validateUsabilityReleaseDecisionWorkflow(candidate),
+  );
+  for (const [original, changed] of [
+    ["default: false", "default: true"],
+    [
+      "inputs.waive_missing_usability_evidence",
+      "vars.WAIVE_MISSING_USABILITY_EVIDENCE",
+    ],
+    ["inputs.usability_waiver_reason", "vars.USABILITY_WAIVER_REASON"],
+    ["run: node ./scripts/usability-release-decision.mjs", "run: echo skipped"],
+    [
+      "--artifact usability-decision=release-evidence/usability",
+      "--artifact omitted=release-evidence/other",
+    ],
+    [
+      "            release-evidence/usability/decision.json",
+      "            release-evidence/other.json",
+    ],
+  ]) {
+    assert.throws(() =>
+      validateUsabilityReleaseDecisionWorkflow(
+        candidate.replace(original, changed),
+      ),
+    );
+  }
+});
 
 function validPolicy() {
   return {

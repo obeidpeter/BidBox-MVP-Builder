@@ -50,6 +50,16 @@ retention window expires. The repository intentionally ignores
 `release-evidence/`; never commit a live deployment record or private provider
 metadata.
 
+Each candidate also contains `release-evidence/usability/decision.json`, included
+as the digest-bound `usability-decision` artifact. The normal decision applies all
+usability evidence gates. For an explicitly authorised release only, dispatch
+with `waive_missing_usability_evidence=true` and a bounded
+`usability_waiver_reason`. This default-off option accepts only the existing valid
+`missing` evidence state and records the source, GitHub run/attempt/actors, reason,
+and accepted risk without altering research evidence. Complete but failed or
+malformed evidence remains blocked, as do all other release checks. See the
+[usability programme](../usability/CONTINUOUS_USABILITY_PROGRAMME.md#explicit-missing-evidence-waiver).
+
 Every third-party action in both release workflows is pinned to the reviewed
 40-character upstream commit. A version comment is descriptive only; the tag is
 never used for execution. The Anchore step disables its own artifact upload,
@@ -219,8 +229,9 @@ remove its stale `VALO_RELEASE_SHA256` declaration through the target's
 environment configuration. Health remains available while release verification
 fails closed. Restore the declaration only from a successful candidate for the
 source being deployed; never copy the previous deployment's digest. Missing
-observed usability evidence remains a release blocker and cannot be replaced
-by a successful source build or automated tests.
+observed usability evidence remains a release blocker unless an explicit
+per-release missing-evidence waiver is recorded as above. A successful source
+build or automated tests cannot replace it or imply that a waiver was granted.
 
 Do not retry around a changed source, digest mismatch, redirect, malformed or
 oversized response, missing identity header, non-200 readiness, database check
