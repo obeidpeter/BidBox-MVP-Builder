@@ -215,7 +215,7 @@ async function waitForAuditEventCount(
 }
 
 const membershipAdministrationLockKey = () =>
-  `bidbox.membership-administration:${organisationId}`;
+  `valo.membership-administration:${organisationId}`;
 
 async function waitingAdvisoryLockCount(): Promise<number> {
   const result = await pool.query<{ count: number }>(

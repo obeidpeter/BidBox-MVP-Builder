@@ -63,11 +63,11 @@ test("report sign-off revalidates current direct grant inside the final transact
 test("sign-off authority and every supported membership mutation share one organisation lock", () => {
   assert.match(
     authoritySource,
-    /bidbox\.membership-administration:\$\{context\.organisationId\}/u,
+    /valo\.membership-administration:\$\{context\.organisationId\}/u,
   );
   assert.match(
     membershipWriterSource,
-    /bidbox\.membership-administration:\$\{organisationId\}/u,
+    /valo\.membership-administration:\$\{organisationId\}/u,
   );
 
   const grantStart = membershipWriterSource.indexOf(
@@ -194,11 +194,11 @@ test("sign-off and export resolve and lock their project before handler membersh
   );
   assert.match(
     directAuthorityResolver,
-    /bidbox\.membership-administration:\$\{context\.organisationId\}/u,
+    /valo\.membership-administration:\$\{context\.organisationId\}/u,
   );
   assert.match(
     accessAuthorityResolver,
-    /bidbox\.membership-administration:\$\{context\.membershipOrganisationId\}/u,
+    /valo\.membership-administration:\$\{context\.membershipOrganisationId\}/u,
   );
   assert.doesNotMatch(tenancySource, /defersProjectLockToFinalTransaction/u);
 });

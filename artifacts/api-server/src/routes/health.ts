@@ -3,6 +3,7 @@ import { HealthCheckResponse } from "@workspace/api-zod";
 import { checkRuntimeDatabaseReadiness } from "@workspace/db";
 import { operationsDeliveryStatus } from "../lib/observability";
 import { runtimeReadiness } from "../lib/runtimeLifecycle";
+import { runtimeSourceCommit } from "../lib/runtimeSourceIdentity";
 
 export interface HealthRouterDependencies {
   checkDatabase: (timeoutMillis: number) => Promise<boolean>;
@@ -12,6 +13,7 @@ export interface HealthRouterDependencies {
   };
   isAccepting: () => boolean;
   releaseSha256?: () => string | null;
+  sourceCommitSha?: () => string | null;
   readinessTimeoutMillis?: number;
 }
 
@@ -20,10 +22,15 @@ import { SHA256_HEX_PATTERN as RELEASE_SHA256 } from "../lib/identifierPatterns"
 function publishReleaseIdentity(
   res: { setHeader(name: string, value: string): unknown },
   releaseSha256: (() => string | null) | undefined,
+  sourceCommitSha: (() => string | null) | undefined,
 ): void {
   const value = releaseSha256?.();
   if (value && RELEASE_SHA256.test(value)) {
     res.setHeader("X-BidBox-Release-Sha256", value);
+  }
+  const source = sourceCommitSha?.();
+  if (source && /^(?:[0-9a-f]{40}|[0-9a-f]{64})$/u.test(source)) {
+    res.setHeader("X-BidBox-Source-Commit", source);
   }
 }
 
@@ -52,14 +59,22 @@ export function createHealthRouter(
   const readinessTimeoutMillis = dependencies.readinessTimeoutMillis ?? 1_500;
 
   router.get("/healthz", (_req, res) => {
-    publishReleaseIdentity(res, dependencies.releaseSha256);
+    publishReleaseIdentity(
+      res,
+      dependencies.releaseSha256,
+      dependencies.sourceCommitSha,
+    );
     const data = HealthCheckResponse.parse({ status: "ok" });
     res.json(data);
   });
 
   router.get("/readyz", async (_req, res) => {
     res.setHeader("Cache-Control", "private, no-store");
-    publishReleaseIdentity(res, dependencies.releaseSha256);
+    publishReleaseIdentity(
+      res,
+      dependencies.releaseSha256,
+      dependencies.sourceCommitSha,
+    );
     const delivery = dependencies.delivery();
     if (!dependencies.isAccepting()) {
       res.status(503).json({
@@ -99,4 +114,5 @@ export default createHealthRouter({
   delivery: operationsDeliveryStatus,
   isAccepting: () => runtimeReadiness.isReady(),
   releaseSha256: () => process.env.VALO_RELEASE_SHA256?.trim() || null,
+  sourceCommitSha: runtimeSourceCommit,
 });

@@ -8,10 +8,7 @@ const source = readFileSync(
 );
 
 test("write transaction shares the membership writer lock and rechecks database-time authority", () => {
-  assert.match(
-    source,
-    /bidbox\.membership-administration:\$\{organisationId\}/u,
-  );
+  assert.match(source, /valo\.membership-administration:\$\{organisationId\}/u);
   assert.match(source, /pg_catalog\.clock_timestamp\(\)/u);
   assert.match(
     source,

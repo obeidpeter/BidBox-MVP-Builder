@@ -48,7 +48,7 @@ describe("organisation membership route policy integration", () => {
   });
 
   test("serialises membership writers without requiring forbidden grant updates", () => {
-    assert.match(source, /pg_advisory_xact_lock/);
+    assert.match(source, /await lockCompatibleAdvisoryKey\(/);
     assert.match(source, /organisation_memberships[\s\S]*FOR UPDATE/);
     assert.doesNotMatch(source, /FOR UPDATE OF grant_row/);
     const lockCalls =

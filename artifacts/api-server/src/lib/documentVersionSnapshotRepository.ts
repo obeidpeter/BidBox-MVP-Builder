@@ -1,3 +1,7 @@
+import {
+  lockCompatibleAdvisoryKey,
+  type StableAdvisoryLockKey,
+} from "./compatibleAdvisoryLock";
 import { Buffer } from "node:buffer";
 import { createHash, randomUUID } from "node:crypto";
 import {
@@ -121,14 +125,10 @@ async function requireCurrentAuthority(
   actor: SnapshotActor,
   required: readonly Permission[],
 ) {
-  await transaction.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(
-        ${`bidbox.membership-administration:${actor.organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.membership-administration:${actor.organisationId}`,
+  );
   const nowResult = await transaction.execute(
     sql`SELECT clock_timestamp() AS now`,
   );
@@ -393,8 +393,8 @@ export function documentSnapshotSeriesLockKey(
   organisationId: string,
   projectId: string,
   sourceId: string,
-): string {
-  return `bidbox.document-snapshot-series:${organisationId}:${projectId}:${sourceId}`;
+): StableAdvisoryLockKey {
+  return `valo.document-snapshot-series:${organisationId}:${projectId}:${sourceId}`;
 }
 
 async function lockDocumentSnapshotSeries(
@@ -403,14 +403,10 @@ async function lockDocumentSnapshotSeries(
   projectId: string,
   sourceId: string,
 ): Promise<void> {
-  await transaction.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(
-        ${documentSnapshotSeriesLockKey(organisationId, projectId, sourceId)},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    documentSnapshotSeriesLockKey(organisationId, projectId, sourceId),
+  );
 }
 
 async function isCurrentCompanyEvidence(

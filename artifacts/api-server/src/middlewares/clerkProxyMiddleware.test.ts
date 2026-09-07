@@ -67,4 +67,33 @@ describe("Clerk proxy public-host boundary", () => {
       undefined,
     );
   });
+
+  it("keeps both rename origins usable for identity without accepting lookalikes", () => {
+    const transitionHosts = clerkProxyHostsFromOrigins(
+      new Set([
+        "https://bidbox-mvp-builder.replit.app",
+        "https://valo-mvp-builder.replit.app",
+      ]),
+    );
+    for (const host of transitionHosts) {
+      assert.equal(
+        getClerkProxyHost({ headers: { host } }, transitionHosts),
+        host,
+      );
+      assert.equal(
+        getClerkProxyHost(
+          { headers: { "x-forwarded-host": `${host}, internal.proxy` } },
+          transitionHosts,
+        ),
+        host,
+      );
+      assert.equal(
+        getClerkProxyHost(
+          { headers: { host: `${host}.attacker.invalid` } },
+          transitionHosts,
+        ),
+        undefined,
+      );
+    }
+  });
 });

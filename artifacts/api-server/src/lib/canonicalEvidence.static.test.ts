@@ -12,10 +12,10 @@ test("canonical evidence uses bounded DB-side current-version filtering", async 
     /NOT EXISTS \([\s\S]*later_version\.version_number > current_version\.version_number/u,
   );
   assert.match(source, /LIMIT \$\{limit \+ 1\}/u);
-  assert.match(source, /pg_advisory_xact_lock/u);
+  assert.match(source, /await lockCompatibleAdvisoryKey\(/u);
   assert.match(
     source,
-    /bidbox:canonical-evidence:\$\{organisationId\}:\$\{sha256\}/u,
+    /valo:canonical-evidence:\$\{organisationId\}:\$\{sha256\}/u,
   );
   assert.doesNotMatch(source, /limit \* 4|limit \* 16/u);
   assert.doesNotMatch(source, /count\(\*\) OVER/u);

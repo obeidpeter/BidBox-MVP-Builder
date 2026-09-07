@@ -1,12 +1,17 @@
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
-import { describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import {
   ENCRYPTED_FIELD_COMPANION_STATUS,
   isEncryptedFieldDraft,
   isEncryptedFieldDraftExpired,
   isEncryptedFieldDraftForScope,
+  wipeEncryptedFieldCompanion,
 } from "./encrypted-offline-field";
+
+afterEach(() => {
+  vi.unstubAllGlobals();
+});
 
 const draft = {
   schema: "valo.encrypted-field-draft/v1",
@@ -34,6 +39,63 @@ const source = readFileSync(
 );
 
 describe("encrypted field draft contract", () => {
+  it.each(["valo-encrypted-field-store-v1", "bidbox-encrypted-field-store-v1"])(
+    "waits for an existing tab holding %s before opening the shared store",
+    async (existingLockName) => {
+      const pendingLocks = new Map<string, Promise<unknown>>();
+      const request = vi.fn(
+        <T>(
+          name: string,
+          _options: LockOptions,
+          operation: () => Promise<T>,
+        ): Promise<T> => {
+          const previous = pendingLocks.get(name) ?? Promise.resolve();
+          const current = previous.then(operation);
+          pendingLocks.set(
+            name,
+            current.catch(() => undefined),
+          );
+          return current;
+        },
+      );
+      vi.stubGlobal("navigator", { locks: { request } });
+      vi.stubGlobal("crypto", { subtle: {} });
+      const openError = new Error("Stop after observing the database open.");
+      const open = vi.fn(() => {
+        throw openError;
+      });
+      vi.stubGlobal("indexedDB", { open });
+
+      let releaseExistingTab!: () => void;
+      const existingOperation = new Promise<void>((resolve) => {
+        releaseExistingTab = resolve;
+      });
+      const existingTab = request(
+        existingLockName,
+        { mode: "exclusive" },
+        () => existingOperation,
+      );
+      const wipeOutcome = wipeEncryptedFieldCompanion(draft.actorUserId).catch(
+        (error: unknown) => error,
+      );
+
+      // Drain the lock acquisition microtasks while the old tab still owns its lock.
+      await Promise.resolve();
+      await Promise.resolve();
+      await Promise.resolve();
+      expect(open).not.toHaveBeenCalled();
+
+      releaseExistingTab();
+      await existingTab;
+      expect(await wipeOutcome).toBe(openError);
+      expect(open).toHaveBeenCalledWith("valo-encrypted-field-v1", 2);
+      expect(request.mock.calls.slice(1).map(([name]) => name)).toEqual([
+        "valo-encrypted-field-store-v1",
+        "bidbox-encrypted-field-store-v1",
+      ]);
+    },
+  );
+
   it("accepts only bounded draft-only records", () => {
     expect(isEncryptedFieldDraft(draft)).toBe(true);
     expect(isEncryptedFieldDraft({ ...draft, serverSubmitted: true })).toBe(

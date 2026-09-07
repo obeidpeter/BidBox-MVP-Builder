@@ -755,9 +755,16 @@ async function withExclusiveDeviceLock<T>(
 ): Promise<T> {
   if (!globalThis.navigator?.locks) fail("unavailable");
   return navigator.locks.request(
-    "bidbox-encrypted-field-store-v1",
+    // Keep this order: pre-rename and already-deployed BidBox tabs use different
+    // locks for the same IndexedDB. Taking both coordinates with either bundle.
+    "valo-encrypted-field-store-v1",
     { mode: "exclusive" },
-    operation,
+    () =>
+      navigator.locks.request(
+        "bidbox-encrypted-field-store-v1",
+        { mode: "exclusive" },
+        operation,
+      ),
   );
 }
 

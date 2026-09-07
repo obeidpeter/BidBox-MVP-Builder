@@ -4,6 +4,11 @@ import { fileURLToPath } from "node:url";
 import { build as esbuild } from "esbuild";
 import esbuildPluginPino from "esbuild-plugin-pino";
 import { rm } from "node:fs/promises";
+import {
+  resolveBuildSourceCommit,
+  resolveBuildSourceIdentity,
+} from "./build-source-identity.mjs";
+import { verifyCommittedBuildInputs } from "./build-source-verification.mjs";
 
 // Plugins (e.g. 'esbuild-plugin-pino') may use `require` to resolve dependencies
 globalThis.require = createRequire(import.meta.url);
@@ -11,10 +16,13 @@ globalThis.require = createRequire(import.meta.url);
 const artifactDir = path.dirname(fileURLToPath(import.meta.url));
 
 async function buildAll() {
+  const root = path.resolve(artifactDir, "../..");
+  const sourceCommitSha = await resolveBuildSourceIdentity({ root });
   const distDir = path.resolve(artifactDir, "dist");
   await rm(distDir, { recursive: true, force: true });
 
-  await esbuild({
+  const result = await esbuild({
+    absWorkingDir: artifactDir,
     entryPoints: [path.resolve(artifactDir, "src/index.ts")],
     platform: "node",
     bundle: true,
@@ -22,6 +30,10 @@ async function buildAll() {
     outdir: distDir,
     outExtension: { ".js": ".mjs" },
     logLevel: "info",
+    metafile: true,
+    define: {
+      __BIDBOX_BUILD_SOURCE_COMMIT__: JSON.stringify(sourceCommitSha),
+    },
     // Some packages may not be bundleable, so we externalize them, we can add more here as needed.
     // Some of the packages below may not be imported or installed, but we're adding them in case they are in the future.
     // Examples of unbundleable packages:
@@ -118,6 +130,39 @@ globalThis.__dirname = __bannerPath.dirname(globalThis.__filename);
     `,
     },
   });
+  if (sourceCommitSha !== null) {
+    await verifyCommittedBuildInputs({
+      root,
+      sourceCommitSha,
+      metafile: result.metafile,
+      absWorkingDir: artifactDir,
+      extraInputs: [
+        ".gitattributes",
+        "package.json",
+        "pnpm-lock.yaml",
+        "pnpm-workspace.yaml",
+        "tsconfig.json",
+        "tsconfig.base.json",
+        "artifacts/api-server/package.json",
+        "artifacts/api-server/tsconfig.json",
+        "artifacts/api-server/build.mjs",
+        "artifacts/api-server/build-source-identity.mjs",
+        "artifacts/api-server/build-source-verification.mjs",
+        "lib/db/package.json",
+        "lib/db/tsconfig.json",
+        "lib/api-zod/package.json",
+        "lib/api-zod/tsconfig.json",
+        "lib/integrations-openai-ai-server/package.json",
+        "lib/integrations-openai-ai-server/tsconfig.json",
+      ],
+    });
+  }
+  if (
+    sourceCommitSha !== null &&
+    (await resolveBuildSourceCommit({ root })) !== sourceCommitSha
+  ) {
+    throw new Error("Build source changed while generating the API artifact");
+  }
 }
 
 buildAll().catch((err) => {

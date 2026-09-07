@@ -330,12 +330,54 @@ describe("GitHub candidate run provenance", () => {
 describe("deployed readiness evidence", () => {
   async function serve({
     releaseSha256,
+    sourceCommitSha = SOURCE_COMMIT,
+    readinessSourceCommitSha = sourceCommitSha,
+    corsOrigin,
+    readinessCorsOrigin = corsOrigin,
+    corsCredentials = "true",
+    identityStatus = 200,
+    identityBody = {
+      auth_config: { object: "auth_config" },
+      display_config: { object: "display_config" },
+    },
+    identityRedirect = false,
+    onRequest = () => {},
     readinessStatus = "ready",
     oversizedReadiness = false,
   }) {
+    let fixtureOrigin;
     const server = createServer((request, response) => {
+      onRequest(request);
       response.setHeader("Content-Type", "application/json");
+      const allowedOrigin =
+        request.url === "/api/readyz" ? readinessCorsOrigin : corsOrigin;
+      if (allowedOrigin !== null) {
+        response.setHeader(
+          "Access-Control-Allow-Origin",
+          allowedOrigin ?? fixtureOrigin,
+        );
+      }
+      if (corsCredentials !== null) {
+        response.setHeader("Access-Control-Allow-Credentials", corsCredentials);
+      }
       response.setHeader("X-BidBox-Release-Sha256", releaseSha256);
+      const source =
+        request.url === "/api/readyz"
+          ? readinessSourceCommitSha
+          : sourceCommitSha;
+      if (source !== null) {
+        response.setHeader("X-BidBox-Source-Commit", source);
+      }
+      if (request.url === "/api/__clerk/v1/environment") {
+        if (identityRedirect) {
+          response.writeHead(302, { Location: "/redirected-identity" });
+          response.end();
+          return;
+        }
+        response.statusCode = identityStatus;
+        response.end(JSON.stringify(identityBody));
+        return;
+      }
       if (request.url === "/api/healthz") {
         response.end(JSON.stringify({ status: "ok" }));
         return;
@@ -366,8 +408,27 @@ describe("deployed readiness evidence", () => {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
     assert(address && typeof address !== "string");
-    return `http://127.0.0.1:${address.port}`;
+    fixtureOrigin = `http://127.0.0.1:${address.port}`;
+    return fixtureOrigin;
   }
+
+  it("keeps fixture CORS fixed to its listener regardless of request Origin", async () => {
+    const { manifest } = await fixture();
+    const deploymentUrl = await serve({
+      releaseSha256: manifest.releaseSha256,
+    });
+    const response = await fetch(`${deploymentUrl}/api/readyz`, {
+      headers: { Origin: "https://untrusted.example.invalid" },
+    });
+    assert.equal(
+      response.headers.get("access-control-allow-origin"),
+      deploymentUrl,
+    );
+    assert.equal(
+      response.headers.get("access-control-allow-credentials"),
+      "true",
+    );
+  });
 
   it("binds successful liveness and readiness to the candidate digest", async () => {
     const { manifest } = await fixture();
@@ -389,7 +450,16 @@ describe("deployed readiness evidence", () => {
       "environment_declared",
     );
     assert.equal(record.release.liveArtifactDigestVerified, false);
+    assert.equal(
+      record.release.runtimeSourceEvidence,
+      "build_time_git_verified",
+    );
     assert.equal(record.probes.readiness.status, 200);
+    assert.equal(record.probes.authentication.status, 200);
+    assert.deepEqual(Object.keys(record.probes.authentication).sort(), [
+      "durationMillis",
+      "status",
+    ]);
     assert.deepEqual(record.probes.readiness.checks, {
       lifecycle: "ready",
       database: "ready",
@@ -411,6 +481,134 @@ describe("deployed readiness evidence", () => {
         }),
       /identity mismatch/u,
     );
+  });
+
+  it("rejects a reused release digest when either runtime source differs or is absent", async () => {
+    const { manifest } = await fixture();
+    for (const headers of [
+      { sourceCommitSha: "c".repeat(40) },
+      { sourceCommitSha: null },
+      { readinessSourceCommitSha: "c".repeat(40) },
+      { readinessSourceCommitSha: null },
+    ]) {
+      const deploymentUrl = await serve({
+        releaseSha256: manifest.releaseSha256,
+        ...headers,
+      });
+      await assert.rejects(
+        () =>
+          verifyDeploymentReadiness({
+            manifest,
+            deploymentId: "deployment-stale-digest",
+            deploymentUrl,
+            environment: "production",
+            allowHttp: true,
+            recordedAt: GENERATED_AT,
+          }),
+        /Deployment build source mismatch/u,
+      );
+    }
+  });
+
+  it("rejects missing, wildcard, wrong-origin, and noncredentialed CORS responses", async () => {
+    const { manifest } = await fixture();
+    for (const headers of [
+      { corsOrigin: null },
+      { corsOrigin: "*" },
+      { corsOrigin: "https://another.example.invalid" },
+      { readinessCorsOrigin: null },
+      { readinessCorsOrigin: "https://another.example.invalid" },
+      { corsCredentials: null },
+      { corsCredentials: "false" },
+    ]) {
+      const deploymentUrl = await serve({
+        releaseSha256: manifest.releaseSha256,
+        ...headers,
+      });
+      await assert.rejects(
+        () =>
+          verifyDeploymentReadiness({
+            manifest,
+            deploymentId: "deployment-cors-drift",
+            deploymentUrl,
+            environment: "production",
+            allowHttp: true,
+          }),
+        /CORS/u,
+      );
+    }
+  });
+
+  it("requires a functioning public identity bootstrap without forwarding edge authorization", async () => {
+    const { manifest } = await fixture();
+    const requests = [];
+    const deploymentUrl = await serve({
+      releaseSha256: manifest.releaseSha256,
+      identityBody: {
+        response: {
+          auth_config: { object: "auth_config", future_setting: true },
+          display_config: { object: "display_config" },
+          unrelated_upstream_addition: {},
+        },
+      },
+      onRequest: (request) => {
+        requests.push({
+          path: request.url,
+          authorization: request.headers.authorization,
+          cookie: request.headers.cookie,
+          origin: request.headers.origin,
+        });
+      },
+    });
+    await verifyDeploymentReadiness({
+      manifest,
+      deploymentId: "deployment-private-edge",
+      deploymentUrl,
+      environment: "production",
+      authorization: "Bearer private-edge-fixture",
+      allowHttp: true,
+    });
+    assert.equal(requests[0].authorization, "Bearer private-edge-fixture");
+    assert.equal(requests[1].authorization, "Bearer private-edge-fixture");
+    assert.equal(requests[0].origin, deploymentUrl);
+    assert.equal(requests[1].origin, deploymentUrl);
+    assert.deepEqual(requests[2], {
+      path: "/api/__clerk/v1/environment",
+      authorization: undefined,
+      cookie: undefined,
+      origin: deploymentUrl,
+    });
+  });
+
+  it("rejects a broken, redirected, oversized, or invalid identity bootstrap", async () => {
+    const { manifest } = await fixture();
+    for (const options of [
+      { identityStatus: 421 },
+      { identityRedirect: true },
+      { identityBody: null },
+      { identityBody: [] },
+      { identityBody: {} },
+      { identityBody: { errors: [{ code: "identity_proxy_host_rejected" }] } },
+      { identityBody: { auth_config: { object: "auth_config" } } },
+      { identityBody: { padding: "x".repeat(129 * 1024) } },
+    ]) {
+      const requests = [];
+      const deploymentUrl = await serve({
+        releaseSha256: manifest.releaseSha256,
+        onRequest: (request) => requests.push(request.url),
+        ...options,
+      });
+      await assert.rejects(() =>
+        verifyDeploymentReadiness({
+          manifest,
+          deploymentId: "deployment-identity-drift",
+          deploymentUrl,
+          environment: "production",
+          allowHttp: true,
+        }),
+      );
+      assert.equal(requests.includes("/redirected-identity"), false);
+    }
   });
 
   it("stops reading an oversized deployment response", async () => {

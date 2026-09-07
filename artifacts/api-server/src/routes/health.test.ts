@@ -27,6 +27,7 @@ async function serve(input: {
   checkDatabase: (timeoutMillis: number) => Promise<boolean>;
   isAccepting: () => boolean;
   releaseSha256?: () => string | null;
+  sourceCommitSha?: () => string | null;
   readinessTimeoutMillis?: number;
 }): Promise<string> {
   const app = express();
@@ -54,10 +55,12 @@ const readyBody = {
 describe("readiness boundary", () => {
   it("returns the frozen unauthenticated GET and HEAD contract", async () => {
     const releaseSha256 = "a".repeat(64);
+    const sourceCommitSha = "b".repeat(40);
     const origin = await serve({
       checkDatabase: async () => true,
       isAccepting: () => true,
       releaseSha256: () => releaseSha256,
+      sourceCommitSha: () => sourceCommitSha,
     });
     const getResponse = await fetch(`${origin}/api/readyz`);
     assert.equal(getResponse.status, 200);
@@ -67,6 +70,10 @@ describe("readiness boundary", () => {
       releaseSha256,
     );
     assert.deepEqual(await getResponse.json(), readyBody);
+    assert.equal(
+      getResponse.headers.get("x-bidbox-source-commit"),
+      sourceCommitSha,
+    );
 
     const headResponse = await fetch(`${origin}/api/readyz`, {
       method: "HEAD",
@@ -77,6 +84,15 @@ describe("readiness boundary", () => {
       "private, no-store",
     );
     assert.equal(await headResponse.text(), "");
+    assert.equal(
+      headResponse.headers.get("x-bidbox-source-commit"),
+      sourceCommitSha,
+    );
+    const liveness = await fetch(`${origin}/api/healthz`);
+    assert.equal(
+      liveness.headers.get("x-bidbox-source-commit"),
+      sourceCommitSha,
+    );
   });
 
   it("never publishes malformed release identity input", async () => {
@@ -84,6 +100,7 @@ describe("readiness boundary", () => {
       checkDatabase: async () => true,
       isAccepting: () => true,
       releaseSha256: () => "not-a-release-digest",
+      sourceCommitSha: () => "not-a-git-object",
     });
     const [liveness, readiness] = await Promise.all([
       fetch(`${origin}/api/healthz`),
@@ -91,6 +108,8 @@ describe("readiness boundary", () => {
     ]);
     assert.equal(liveness.headers.has("x-bidbox-release-sha256"), false);
     assert.equal(readiness.headers.has("x-bidbox-release-sha256"), false);
+    assert.equal(liveness.headers.has("x-bidbox-source-commit"), false);
+    assert.equal(readiness.headers.has("x-bidbox-source-commit"), false);
   });
 
   it("does not touch the database while starting or draining", async () => {

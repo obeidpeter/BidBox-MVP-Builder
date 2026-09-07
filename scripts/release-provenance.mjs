@@ -17,6 +17,7 @@ const GITHUB_REPOSITORY =
 const GITHUB_WORKFLOW_PATH = /^\.github\/workflows\/[a-z0-9-]+\.ya?ml$/u;
 const POSITIVE_DECIMAL = /^[1-9][0-9]*$/u;
 const MAX_PROBE_BODY_BYTES = 16 * 1024;
+const MAX_IDENTITY_PROBE_BODY_BYTES = 128 * 1024;
 const MAX_GITHUB_API_BODY_BYTES = 512 * 1024;
 
 function compareStrings(left, right) {
@@ -862,8 +863,15 @@ export async function fetchGitHubCandidateRunAttestation({
   });
 }
 
-async function probeJson({ url, releaseSha256, timeoutMillis, authorization }) {
-  const headers = { Accept: "application/json" };
+async function probeJson({
+  url,
+  releaseSha256,
+  sourceCommitSha,
+  timeoutMillis,
+  authorization,
+}) {
+  const origin = new URL(url).origin;
+  const headers = { Accept: "application/json", Origin: origin };
   if (authorization) headers.Authorization = authorization;
   return fetchBoundedJson({
     url,
@@ -878,12 +886,76 @@ async function probeJson({ url, releaseSha256, timeoutMillis, authorization }) {
     },
     assertResponse: (response) => {
       assert.equal(
+        response.headers.get("access-control-allow-origin"),
+        origin,
+        "Deployment CORS origin mismatch",
+      );
+      assert.equal(
+        response.headers.get("access-control-allow-credentials"),
+        "true",
+        "Deployment credentialed CORS is unavailable",
+      );
+      assert.equal(
         response.headers.get("x-bidbox-release-sha256"),
         releaseSha256,
         "Deployment release identity mismatch",
       );
+      assert.equal(
+        response.headers.get("x-bidbox-source-commit"),
+        sourceCommitSha,
+        "Deployment build source mismatch: build the exact merged candidate source",
+      );
     },
   });
+}
+
+async function probeIdentityProxy({ origin, timeoutMillis }) {
+  // Never forward the optional private-edge Authorization value through the
+  // identity proxy, which relays request headers to Clerk. This is the public
+  // bootstrap used before sign-in and must work without session credentials.
+  const result = await fetchBoundedJson({
+    url: `${origin}/api/__clerk/v1/environment`,
+    headers: { Accept: "application/json", Origin: origin },
+    timeoutMillis,
+    maxBytes: MAX_IDENTITY_PROBE_BODY_BYTES,
+    label: {
+      requestFailed: "Deployment identity proxy probe failed",
+      expectedJson: "Deployment identity proxy must return JSON",
+      responseBody: "Deployment identity proxy",
+      malformedJson: "Deployment identity proxy returned malformed JSON",
+    },
+  });
+  const isRecord = (value) =>
+    value !== null && typeof value === "object" && !Array.isArray(value);
+  assert.ok(
+    isRecord(result.body),
+    "Deployment identity environment is invalid",
+  );
+  const environment = result.body.response ?? result.body;
+  assert.ok(
+    isRecord(environment),
+    "Deployment identity environment is invalid",
+  );
+  assert.ok(
+    !Object.hasOwn(result.body, "errors") &&
+      !Object.hasOwn(result.body, "error") &&
+      !Object.hasOwn(environment, "errors") &&
+      !Object.hasOwn(environment, "error"),
+    "Deployment identity environment contains an error",
+  );
+  // These two discriminators are present in the Clerk Frontend API environment
+  // contract; accept additional settings without persisting any of their data.
+  assert.equal(
+    environment.auth_config?.object,
+    "auth_config",
+    "Deployment identity authentication configuration is missing",
+  );
+  assert.equal(
+    environment.display_config?.object,
+    "display_config",
+    "Deployment identity display configuration is missing",
+  );
+  return { status: result.status, durationMillis: result.durationMillis };
 }
 
 export async function verifyDeploymentReadiness({
@@ -919,6 +991,7 @@ export async function verifyDeploymentReadiness({
   const health = await probeJson({
     url: `${origin}/api/healthz`,
     releaseSha256: manifest.releaseSha256,
+    sourceCommitSha: manifest.source.commitSha,
     timeoutMillis,
     authorization,
   });
@@ -928,6 +1001,7 @@ export async function verifyDeploymentReadiness({
   const readiness = await probeJson({
     url: `${origin}/api/readyz`,
     releaseSha256: manifest.releaseSha256,
+    sourceCommitSha: manifest.source.commitSha,
     timeoutMillis,
     authorization,
   });
@@ -958,6 +1032,7 @@ export async function verifyDeploymentReadiness({
       `Invalid ${channel} delivery state`,
     );
   }
+  const authentication = await probeIdentityProxy({ origin, timeoutMillis });
   return {
     schemaVersion: 1,
     kind: "valo.deployment-verification",
@@ -968,10 +1043,12 @@ export async function verifyDeploymentReadiness({
       releaseSha256: manifest.releaseSha256,
       sourceCommitSha: manifest.source.commitSha,
       runtimeIdentityEvidence: "environment_declared",
+      runtimeSourceEvidence: "build_time_git_verified",
       liveArtifactDigestVerified: false,
     },
     probes: {
       health: { status: health.status, durationMillis: health.durationMillis },
+      authentication,
       readiness: {
         status: readiness.status,
         durationMillis: readiness.durationMillis,

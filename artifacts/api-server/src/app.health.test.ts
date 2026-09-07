@@ -16,7 +16,14 @@ process.env.CLERK_PUBLISHABLE_KEY = `pk_test_${Buffer.from(
 ).toString("base64url")}`;
 process.env.CLERK_SECRET_KEY = ["sk", "test", "liveness-boundary"].join("_");
 process.env.CLERK_TELEMETRY_DISABLED = "1";
-process.env.CORS_ALLOWED_ORIGINS = "https://bidbox.example";
+const transitionOrigins = [
+  "https://bidbox-mvp-builder.replit.app",
+  "https://valo-mvp-builder.replit.app",
+];
+process.env.CORS_ALLOWED_ORIGINS = [
+  "https://bidbox.example",
+  ...transitionOrigins,
+].join(",");
 process.env.DATABASE_URL = "postgresql://test:test@127.0.0.1:1/bidbox_app_test";
 process.env.NODE_ENV = "test";
 
@@ -82,6 +89,35 @@ describe("application liveness boundary", () => {
     });
     assert.equal(response.status, 200);
     assert.deepEqual(await response.json(), { status: "ok" });
+  });
+
+  it("accepts browser requests from both deployment origins during the rename", async () => {
+    for (const browserOrigin of transitionOrigins) {
+      const response = await fetch(`${origin}/api/healthz`, {
+        headers: { Origin: browserOrigin },
+      });
+      assert.equal(response.status, 200);
+      assert.equal(
+        response.headers.get("access-control-allow-origin"),
+        browserOrigin,
+      );
+      assert.equal(
+        response.headers.get("access-control-allow-credentials"),
+        "true",
+      );
+      assert.deepEqual(await response.json(), { status: "ok" });
+    }
+  });
+
+  it("does not promote similarly named hosts into the browser allowlist", async () => {
+    for (const browserOrigin of transitionOrigins) {
+      const response = await fetch(`${origin}/api/healthz`, {
+        headers: { Origin: `${browserOrigin}.attacker.invalid` },
+      });
+      assert.equal(response.status, 403);
+      assert.equal(response.headers.get("access-control-allow-origin"), null);
+      await response.body?.cancel();
+    }
   });
 
   it("keeps readiness separate from dependency-free liveness while starting", async () => {
