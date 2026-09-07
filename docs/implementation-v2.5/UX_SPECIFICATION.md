@@ -114,7 +114,7 @@ Observed implementation has landing/sign-in, dashboard, clients/client detail, p
 
 ```text
 +--------------------------------------------------------------------------------+
-| BidBox | Organisation v | Search | Help | Connection | User/MFA                  |
+| BidBox | Organisation v | Search | Help | Connection | User/MFA                |
 +----------------------+---------------------------------------------------------+
 | My work              | Tender REF / Lot 2                Deadline: 3d 04h      |
 | Engagements          | BLOCKED - 2 fatal defects         Last recompute: 10:42 |

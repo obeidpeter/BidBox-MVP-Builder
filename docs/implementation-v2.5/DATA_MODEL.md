@@ -44,7 +44,7 @@ erDiagram
 ### Identity, tenancy and access
 
 - `users`: external subject identifier unique by identity provider; status; no global business role.
-- `organisations`: legal/display name, type `client|partner|bidbox`, status, region preference, classification.
+- `organisations`: legal/display name, type `client|partner|valo`, status, region preference, classification.
 - `memberships`: `(organisation_id,user_id)` unique, status, start/end, invited/approved identities.
 - `roles`, `permissions`, `role_permissions`: versioned platform definitions.
 - `role_grants`: tenant, membership, role, optional engagement, purpose, starts/expires, granted/revoked by; no self-grant for privileged roles.

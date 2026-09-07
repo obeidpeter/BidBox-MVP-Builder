@@ -61,6 +61,8 @@ function toActiveConfig(row: AppConfigRow): ActiveConfig {
  * Read the active configuration row, creating it from schema defaults on first
  * access so callers always get a concrete config. The insert is idempotent
  * (fixed primary key + onConflictDoNothing), so concurrent first reads are safe.
+ * The firm name is supplied explicitly because the journalled column default
+ * still carries the pre-rename brand; existing rows are changed via PATCH /config.
  */
 export async function getActiveConfigRow(): Promise<AppConfigRow> {
   const [existing] = await db
@@ -70,7 +72,7 @@ export async function getActiveConfigRow(): Promise<AppConfigRow> {
   if (existing) return existing;
   await db
     .insert(appConfig)
-    .values({ id: APP_CONFIG_ID })
+    .values({ id: APP_CONFIG_ID, firmName: DEFAULT_APP_CONFIG.firmName })
     .onConflictDoNothing();
   const [row] = await db
     .select()

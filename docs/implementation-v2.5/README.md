@@ -1,4 +1,4 @@
-# Valo Nigeria v2.5 implementation dossier
+# BidBox Nigeria v2.5 implementation dossier
 
 Status: **implementation in progress; not accepted for production**
 Baseline date: 2026-08-08

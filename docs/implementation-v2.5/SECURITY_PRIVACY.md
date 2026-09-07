@@ -63,7 +63,7 @@ The actual role can vary by engagement and purpose; one blanket label is prohibi
 
 ## Authentication and session controls
 
-MFA is required for BidBox, partner admins and client owners/approvers; risk-based step-up applies to exports, role grants, break-glass, payment changes and sign-off. Sessions use secure/HttpOnly/SameSite cookies, CSRF protection where applicable, rotation, absolute/idle expiry and revocation on role/security change. API rate limits are identity+tenant+operation aware and do not leak resource existence.
+MFA is required for BidBox staff, partner admins and client owners/approvers; risk-based step-up applies to exports, role grants, break-glass, payment changes and sign-off. Sessions use secure/HttpOnly/SameSite cookies, CSRF protection where applicable, rotation, absolute/idle expiry and revocation on role/security change. API rate limits are identity+tenant+operation aware and do not leak resource existence.
 
 ## Cryptography and secrets
 

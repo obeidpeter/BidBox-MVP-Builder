@@ -1,4 +1,4 @@
-# Valo Nigeria v2.5 candidate
+# BidBox Nigeria v2.5 candidate
 
 BidBox is an internal bid-compliance workbench for tender intake, reviewer-confirmed requirements, evidence and defect review, exact-kobo BOQ checks, submission-readiness gates, and signed report/package export. The v2.5 candidate adds organisation tenancy, scoped permissions, PostgreSQL row-level-security (RLS) foundations, role-specific UI surfaces, and commercial feature gates. It remains a pre-production candidate; source presence and a successful Replit preview are not production acceptance.
 

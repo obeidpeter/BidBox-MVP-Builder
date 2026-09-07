@@ -283,6 +283,8 @@ export async function attachTenantContext(
       (req as AccessRequest).accessContext = context;
       res.vary("X-BidBox-Organisation-Id");
       res.vary("X-BidBox-Break-Glass-Session");
+      res.vary("X-Valo-Organisation-Id");
+      res.vary("X-Valo-Break-Glass-Session");
       next();
       return;
     }

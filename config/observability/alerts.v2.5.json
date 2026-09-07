@@ -4,7 +4,7 @@
   "status": "deployment_adapter_required",
   "defaults": {
     "evaluationWindowMinutes": 5,
-    "owner": "valo_operations",
+    "owner": "bidbox_operations",
     "runbookBase": "docs/implementation-v2.5/runbooks"
   },
   "alerts": [
