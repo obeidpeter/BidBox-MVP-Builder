@@ -1,3 +1,7 @@
+import {
+  lockCompatibleAdvisoryKey,
+  type StableAdvisoryLockKey,
+} from "./compatibleAdvisoryLock";
 import { createHash } from "node:crypto";
 import { processingJobs, processingRuns } from "@workspace/db/schema";
 import {
@@ -612,8 +616,11 @@ function projectPredicate(projectId: string | null | undefined) {
     : eq(processingJobs.projectId, projectId);
 }
 
-function admissionLockKey(organisationId: string, capability: string): string {
-  return `bidbox-worker:${organisationId}:${capability}`;
+function admissionLockKey(
+  organisationId: string,
+  capability: string,
+): StableAdvisoryLockKey {
+  return `valo-worker:${organisationId}:${capability}`;
 }
 
 export class DrizzleDurableWorkerRepository implements DurableWorkerRepository {
@@ -621,8 +628,9 @@ export class DrizzleDurableWorkerRepository implements DurableWorkerRepository {
     const database = (await import("@workspace/db")).db;
     return database.transaction(
       async (tx) => {
-        await tx.execute(
-          sql`SELECT pg_advisory_xact_lock(hashtextextended(${admissionLockKey(input.organisationId, input.capability)}, 0))`,
+        await lockCompatibleAdvisoryKey(
+          tx,
+          admissionLockKey(input.organisationId, input.capability),
         );
         const [existing] = await tx
           .select()
@@ -708,8 +716,9 @@ export class DrizzleDurableWorkerRepository implements DurableWorkerRepository {
     const database = (await import("@workspace/db")).db;
     return database.transaction(
       async (tx) => {
-        await tx.execute(
-          sql`SELECT pg_advisory_xact_lock(hashtextextended(${admissionLockKey(input.organisationId, input.capability)}, 0))`,
+        await lockCompatibleAdvisoryKey(
+          tx,
+          admissionLockKey(input.organisationId, input.capability),
         );
         const [running] = await tx
           .select({ value: count() })

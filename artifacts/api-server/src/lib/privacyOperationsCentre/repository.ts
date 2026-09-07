@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "../compatibleAdvisoryLock";
 import {
   and,
   asc,
@@ -64,14 +65,10 @@ async function lockPrivacyMembershipAdministration(
   transaction: PrivacyTransaction,
   organisationId: string,
 ): Promise<void> {
-  await transaction.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(
-        ${`bidbox.membership-administration:${organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.membership-administration:${organisationId}`,
+  );
 }
 
 async function actorForAudit(

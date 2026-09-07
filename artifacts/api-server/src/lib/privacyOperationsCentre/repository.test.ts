@@ -70,7 +70,7 @@ test("mutations revalidate a current direct named privacy authority", () => {
 test("every privacy mutation stabilises membership authority before reads and writes", () => {
   assert.match(
     source,
-    /pg_advisory_xact_lock\([\s\S]*bidbox\.membership-administration:\$\{organisationId\}/u,
+    /await lockCompatibleAdvisoryKey\([\s\S]*valo\.membership-administration:\$\{organisationId\}/u,
   );
   const methods = [
     ["async triageDataSubjectRequest", "async recordConsentWithdrawal"],
@@ -106,7 +106,7 @@ test("privacy and membership writers share the exact advisory namespace", () => 
     new URL("../../routes/organisations.ts", import.meta.url),
     "utf8",
   );
-  const namespace = "bidbox.membership-administration:${organisationId}";
+  const namespace = "valo.membership-administration:${organisationId}";
   assert.ok(source.includes(namespace));
   assert.ok(organisations.includes(namespace));
 });

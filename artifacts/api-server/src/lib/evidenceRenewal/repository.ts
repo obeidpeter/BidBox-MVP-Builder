@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "../compatibleAdvisoryLock";
 import {
   and,
   asc,
@@ -186,14 +187,10 @@ async function lockMembershipAuthority(
   tx: RenewalTx,
   organisationId: string,
 ): Promise<void> {
-  await tx.execute(sql`
-    SELECT pg_catalog.pg_advisory_xact_lock(
-      pg_catalog.hashtextextended(
-        ${`bidbox.membership-administration:${organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    tx,
+    `valo.membership-administration:${organisationId}`,
+  );
 }
 
 async function lockRenewalProject(

@@ -2,7 +2,7 @@
 
 Status: Accepted; candidate and verification tooling implemented; live protection, approvals and provider evidence remain external
 Date: 2026-08-31
-Last reviewed: 2026-08-31
+Last reviewed: 2026-09-07
 Next review: 2026-11-30
 Owner: Release engineering (`@obeidpeter`)
 Backup owner: Unassigned; tracked as `AR-001`
@@ -20,9 +20,9 @@ BidBox needs to bind an reviewed merged source object, built outputs, SBOM, depl
 
 1. A release candidate starts only from an exact full commit already reachable from protected `main`. The workflow verifies exact HEAD, tracked cleanliness and ancestry before executing checked-out tooling.
 2. The candidate builds the API and Workbench, generates a CycloneDX SBOM, inventories artifact files with SHA-256, and emits an immutable manifest whose `releaseSha256` binds source plus aggregate artifact identities. It reverifies the manifest before publishing one source-named GitHub artifact.
-3. Deployment injects that candidate digest as environment-scoped `VALO_RELEASE_SHA256`; it is not stored in tracked deployment configuration. Health and readiness publish it only when it is a valid lowercase SHA-256 digest.
-4. Protected deployment verification accepts the candidate run ID, full source SHA, immutable provider deployment ID and environment. It attests the exact successful candidate workflow run, downloads only its source-named artifact, recomputes the candidate/SBOM digests, probes exact liveness and readiness URLs without redirects, and requires the runtime-declared release identity.
-5. The resulting record states `runtimeIdentityEvidence: environment_declared` and `liveArtifactDigestVerified: false` for Replit unless a provider-supplied measured runtime digest is independently verified. The exact Replit source snapshot and build/deployment evidence must be retained separately.
+3. Deployment injects that candidate digest as environment-scoped `VALO_RELEASE_SHA256`; it is not stored in tracked deployment configuration. Health and readiness publish it only when it is a valid lowercase SHA-256 digest. The API build independently stamps clean committed Git source into `X-BidBox-Source-Commit`; runtime variables cannot override it. Provider publication commits can resolve to their main ancestor only with identical Git trees.
+4. Protected deployment verification accepts the candidate run ID, full source SHA, immutable provider deployment ID and environment. It attests the exact successful candidate workflow run, downloads only its source-named artifact, recomputes the candidate/SBOM digests, probes exact liveness and readiness URLs without redirects with the target Origin and matching credentialed CORS, and requires both the runtime-declared release identity and compiled source commit to match the candidate. Reusing an old environment digest with different source fails verification. A separate unauthenticated bounded Clerk environment probe rejects broken sign-in bootstrap; it records only status/timing and never forwards edge authorization.
+5. The resulting record states `runtimeIdentityEvidence: environment_declared`, `runtimeSourceEvidence: build_time_git_verified`, and `liveArtifactDigestVerified: false` for Replit unless a provider-supplied measured runtime digest is independently verified. The exact Replit source snapshot and build/deployment evidence must be retained separately.
 6. Candidate evidence and deployment verification are evidence, not deployment authority. Live branch/environment protection, reviewer approval, migration, backup, smoke, observation and rollback records remain required operational controls.
 
 ## Consequences

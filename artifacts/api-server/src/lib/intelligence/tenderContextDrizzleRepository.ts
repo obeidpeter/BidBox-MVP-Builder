@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "../compatibleAdvisoryLock";
 import { randomUUID } from "node:crypto";
 import {
   db,
@@ -687,16 +688,14 @@ async function configureMutation(
 ) {
   await transaction.execute(sql`SET LOCAL lock_timeout = '3s'`);
   await transaction.execute(sql`SET LOCAL statement_timeout = '15s'`);
-  await transaction.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(${`bidbox.membership-administration:${scope.organisationId}`}, 0)
-    )
-  `);
-  await transaction.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(${`bidbox.tender-context:${scope.organisationId}:${projectId}`}, 0)
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.membership-administration:${scope.organisationId}`,
+  );
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.tender-context:${scope.organisationId}:${projectId}`,
+  );
 }
 
 async function requireCurrentWriteAuthority(

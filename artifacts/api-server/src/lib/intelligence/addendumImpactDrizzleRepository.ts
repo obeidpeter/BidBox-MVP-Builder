@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "../compatibleAdvisoryLock";
 import { Buffer } from "node:buffer";
 import {
   addendumImpactAssessments,
@@ -1397,14 +1398,10 @@ async function acquireAddendumMutationLocks(
   // Membership administration writers take this first. The request route has
   // already revalidated the direct grants under the same outer transaction;
   // reacquiring the transaction lock here also protects direct repository use.
-  await transaction.execute(sql`
-    SELECT pg_catalog.pg_advisory_xact_lock(
-      pg_catalog.hashtextextended(
-        ${`bidbox.membership-administration:${scope.organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.membership-administration:${scope.organisationId}`,
+  );
   const preflightCandidates = await loadVersionCandidates(
     transaction,
     scope,
@@ -1415,14 +1412,10 @@ async function acquireAddendumMutationLocks(
     throw new AddendumImpactPersistenceConflict("stale");
   }
   const sourceId = preflight.revision.snapshot.sourceId;
-  await transaction.execute(sql`
-    SELECT pg_catalog.pg_advisory_xact_lock(
-      pg_catalog.hashtextextended(
-        ${`bidbox.document-snapshot-series:${scope.organisationId}:${projectId}:${sourceId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    transaction,
+    `valo.document-snapshot-series:${scope.organisationId}:${projectId}:${sourceId}`,
+  );
   return sourceId;
 }
 

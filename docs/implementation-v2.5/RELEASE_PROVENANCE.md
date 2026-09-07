@@ -85,7 +85,28 @@ workflow inputs, logs, or deployment records.
 The exact health routes publish `X-BidBox-Release-Sha256` only when the configured
 value is a lowercase 64-character digest. This is a deployment-controlled,
 environment-declared identity; it is not a hash measured from the running
-bytes. Liveness remains dependency-free and readiness still requires the
+bytes. They also publish `X-BidBox-Source-Commit`, compiled into the API from
+clean committed Git source at build time. No runtime environment variable can
+set that source stamp. Deployment verification requires both headers to match
+the candidate on both probes, so a reused digest cannot make changed source
+pass as an older release.
+
+Production and CI builds require Git metadata and a clean working tree, including no
+uncommitted new files. Local development builds may proceed without that proof,
+but omit the source stamp and cannot pass deployment verification. The build
+rechecks committed source after bundling.
+The API's selected application inputs and build configuration are also compared
+directly with the committed Git blobs, including inputs hidden by ignore rules
+or index flags. Workspace packages remain application source; third-party
+dependency bytes remain covered by the frozen install and candidate inventory.
+Replit publication commits are mapped
+to their nearest `origin/main` or `upstream/main` ancestor only when Git proves the entire trees
+identical. A changed provider snapshot or missing ancestry is never assigned an
+assumed main commit: its actual HEAD must match the candidate, or verification
+fails. Publish the exact candidate checkout with its Git metadata when the
+provider cannot prove this binding.
+
+Liveness remains dependency-free and readiness still requires the
 accepting lifecycle plus the bounded database probe. A missing or malformed
 identity does not make the process unhealthy, but it makes deployment
 verification fail closed.
@@ -93,7 +114,8 @@ verification fail closed.
 Replit currently rebuilds from a source snapshot. The CI artifact inventory is
 therefore candidate evidence, not independent proof that Replit ran the same
 bytes. The generated verification record explicitly says
-`runtimeIdentityEvidence: environment_declared` and
+`runtimeIdentityEvidence: environment_declared`,
+`runtimeSourceEvidence: build_time_git_verified`, and
 `liveArtifactDigestVerified: false`. Record the exact Replit source snapshot,
 provider build evidence, and immutable deployment ID. Do not claim byte-for-byte
 artifact promotion unless the platform supplies and the operator verifies a
@@ -121,18 +143,33 @@ checks out that exact source, proves it remains reachable from `main`, and then:
 3. requires the manifest repository ID/name, workflow path/name/SHA, run
    ID/attempt/URL and source commit to match the run attestation;
 4. recomputes every candidate artifact and SBOM digest;
-5. checks `/api/healthz` and `/api/readyz` without redirects;
-6. requires both responses to declare the candidate release identity, without
-   treating that declaration as a live byte digest;
+5. checks `/api/healthz` and `/api/readyz` without redirects, sending the target
+   origin and requiring an exact credentialed CORS response;
+6. requires both responses to declare the candidate release identity and the
+   build-time source commit, without treating either as a measured live byte
+   digest;
 7. requires exact liveness, lifecycle and database readiness contracts;
-8. records metrics/paging delivery state without treating a disconnected
+8. checks the public `/api/__clerk/v1/environment` bootstrap without redirects,
+   cookies or authorization, requiring bounded successful JSON containing
+   Clerk's authentication and display configuration discriminators;
+9. records metrics/paging delivery state without treating a disconnected
    adapter as connected; and
-9. writes a content-minimised `valo.deployment-verification` JSON artifact with
-   the run-attestation digest and bounded run identity.
+10. writes a content-minimised `valo.deployment-verification` JSON artifact with
+    the run-attestation digest and bounded run identity.
+
+The authentication probe follows Clerk's
+[Frontend API environment contract](https://clerk.com/docs/reference/frontend-api).
+Only its HTTP status and timing are recorded; provider configuration is neither
+logged nor persisted. This verifies that sign-in can load its configuration,
+not that a particular user can complete authentication. It catches an unmapped
+proxy host even when the database and process are healthy.
 
 For a private edge, store the complete HTTP `Authorization` value as the
 protected environment secret `VALO_READINESS_AUTHORIZATION`. Leave it absent
-when no edge authorization is required. If GitHub-hosted runners cannot reach
+when no edge authorization is required. That value is sent only to health and
+readiness, never to the Clerk proxy where it could be relayed upstream. The
+sign-in bootstrap must be publicly reachable; a private edge that blocks it
+fails this probe. If GitHub-hosted runners cannot reach
 the private deployment, run the same verifier from an approved private runner;
 do not weaken the endpoint, publish a credential, or record an unverifiable
 manual `200` claim.
@@ -176,6 +213,14 @@ target. Never hardcode these values in either workflow or source configuration.
   `OPERATIONAL_SCHEDULES.md`. Source entrypoints are not schedule evidence.
 
 ## Failure handling
+
+If a provider snapshot was published without a successful matching candidate,
+remove its stale `VALO_RELEASE_SHA256` declaration through the target's
+environment configuration. Health remains available while release verification
+fails closed. Restore the declaration only from a successful candidate for the
+source being deployed; never copy the previous deployment's digest. Missing
+observed usability evidence remains a release blocker and cannot be replaced
+by a successful source build or automated tests.
 
 Do not retry around a changed source, digest mismatch, redirect, malformed or
 oversized response, missing identity header, non-200 readiness, database check

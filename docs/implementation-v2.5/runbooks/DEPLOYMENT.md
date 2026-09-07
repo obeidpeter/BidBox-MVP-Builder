@@ -2,6 +2,10 @@
 
 No production deployment is authorised by this document. Replace bracketed provider commands with approved, non-interactive platform procedures and record outputs in `DEPLOYMENT_RECORD.md`.
 
+For the Valo-to-BidBox domain and authentication transition, follow
+[`BIDBOX_RENAME_CUTOVER.md`](BIDBOX_RENAME_CUTOVER.md), including its source-drift
+and release-evidence checks before publication.
+
 ## Preconditions
 
 - Named release owner, security/privacy approver, operations owner, target environment/domain and change window.
@@ -51,7 +55,9 @@ No production deployment is authorised by this document. Replace bracketed provi
    deployment-secret mechanism (never tracked `.replit` or artifact
    configuration), deploy API/workers/web with flags off, then use the
    deployment-verification workflow to bind liveness, readiness and runtime
-   identity to the candidate.
+   identity to the candidate. Both probes must also return the build-stamped
+   `X-BidBox-Source-Commit` matching that candidate. Build the clean merged
+   checkout with Git metadata; do not reuse an old digest for a new snapshot.
 6. Run smoke: sign-in/MFA, tenant denial, create engagement, safe test upload/quarantine/job progress, requirement review, evidence/fatal gate, BOQ fixture, package render/sign/export, audit anchor and notification simulator.
 7. Run staging E2E/a11y/performance security subset; verify logs contain no content/secrets.
 8. Approve promotion using the same artefacts.

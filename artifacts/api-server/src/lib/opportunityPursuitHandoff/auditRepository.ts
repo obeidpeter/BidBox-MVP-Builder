@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "../compatibleAdvisoryLock";
 import {
   and,
   asc,
@@ -658,14 +659,10 @@ async function lockMembershipAdministrationBoundary(
   organisationId: string,
 ): Promise<void> {
   await tx.execute(sql`SET LOCAL lock_timeout = '3s'`);
-  await tx.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      pg_catalog.hashtextextended(
-        ${`bidbox.membership-administration:${organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    tx,
+    `valo.membership-administration:${organisationId}`,
+  );
   await tx.execute(sql`
     SELECT id FROM public.organisation_memberships
     WHERE organisation_id = ${organisationId}::uuid

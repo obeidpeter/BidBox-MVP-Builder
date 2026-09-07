@@ -43,7 +43,7 @@ async function withRegistryStateLock<T>(work: () => Promise<T>): Promise<T> {
   return db.transaction(async (mutex) => {
     await mutex.execute(
       sql`SELECT pg_catalog.pg_advisory_xact_lock(
-        pg_catalog.hashtext('bidbox_ai_retrieval_registry_state')
+        pg_catalog.hashtext('valo_ai_retrieval_registry_state')
       )`,
     );
     return work();

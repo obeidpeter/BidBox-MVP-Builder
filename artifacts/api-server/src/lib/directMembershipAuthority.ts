@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "./compatibleAdvisoryLock";
 import { and, eq, gt, isNull, lte, or, sql } from "drizzle-orm";
 import {
   db,
@@ -66,14 +67,10 @@ export async function resolveCurrentDirectAuthority(
   // Membership writers use this exact transaction-scoped organisation key.
   // Taking it before reading makes this authority snapshot stable through the
   // surrounding request transaction and therefore through any mutation.
-  await db.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(
-        ${`bidbox.membership-administration:${context.organisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    db,
+    `valo.membership-administration:${context.organisationId}`,
+  );
   const nowResult = requestedNow
     ? { rows: [{ now: requestedNow }] }
     : await db.execute(sql`SELECT clock_timestamp() AS now`);
@@ -207,14 +204,10 @@ export async function resolveCurrentAccessAuthority(
     return null;
   }
 
-  await db.execute(sql`
-    SELECT pg_advisory_xact_lock(
-      hashtextextended(
-        ${`bidbox.membership-administration:${context.membershipOrganisationId}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    db,
+    `valo.membership-administration:${context.membershipOrganisationId}`,
+  );
 
   const relationshipRows =
     context.source === "partner"

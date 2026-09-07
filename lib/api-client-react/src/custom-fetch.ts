@@ -391,6 +391,19 @@ export async function customFetch<T = unknown>(
     isRequest(input) ? input.headers : undefined,
     headersInit,
   );
+  // Both header names are supported by the API during the rename. Explicit
+  // selection under either name must take precedence over ambient context.
+  const explicitOrganisationId = headers.get("x-bidbox-organisation-id");
+  const legacyOrganisationId = headers.get("x-valo-organisation-id");
+  if (
+    explicitOrganisationId !== null &&
+    legacyOrganisationId !== null &&
+    explicitOrganisationId !== legacyOrganisationId
+  ) {
+    throw new TypeError(
+      "customFetch: X-BidBox-Organisation-Id and X-Valo-Organisation-Id must select the same organisation.",
+    );
+  }
 
   if (
     typeof init.body === "string" &&
@@ -416,7 +429,8 @@ export async function customFetch<T = unknown>(
   if (
     attachRequestContext &&
     _requestContextGetter &&
-    !headers.has("x-bidbox-organisation-id")
+    explicitOrganisationId === null &&
+    legacyOrganisationId === null
   ) {
     const context = await _requestContextGetter();
     const organisationId = context?.organisationId?.trim();

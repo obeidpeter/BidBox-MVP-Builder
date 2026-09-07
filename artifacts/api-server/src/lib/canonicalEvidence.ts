@@ -1,3 +1,4 @@
+import { lockCompatibleAdvisoryKey } from "./compatibleAdvisoryLock";
 import { sql } from "drizzle-orm";
 import { db } from "@workspace/db";
 
@@ -45,14 +46,10 @@ export async function lockCanonicalEvidenceDigest(
   if (!UUID_PATTERN.test(organisationId) || !SHA256_PATTERN.test(sha256)) {
     throw new CanonicalEvidenceUnavailableError();
   }
-  await db.execute(sql`
-    SELECT pg_catalog.pg_advisory_xact_lock(
-      pg_catalog.hashtextextended(
-        ${`bidbox:canonical-evidence:${organisationId}:${sha256}`},
-        0
-      )
-    )
-  `);
+  await lockCompatibleAdvisoryKey(
+    db,
+    `valo:canonical-evidence:${organisationId}:${sha256}`,
+  );
 }
 
 function validOption(option: CanonicalEvidenceOption): boolean {
