@@ -4,7 +4,7 @@ This programme turns usability and interaction-design quality into release evide
 
 The machine-readable contract is [`config/product/usability-programme.v1.json`](../../config/product/usability-programme.v1.json). CI verifies its role coverage, critical workflows, safeguards, and release gates.
 
-Release evidence is recorded separately in [`config/product/usability-release-evidence.v1.json`](../../config/product/usability-release-evidence.v1.json). The checked-in manifest currently says `missing`; that is an intentional truthful state, not approval. Ordinary developer checks validate the manifest shape, while the release-candidate workflow runs `verify:usability-release` and fails until observed, privacy-reviewed evidence satisfies the configured thresholds.
+Release evidence is recorded separately in [`config/product/usability-release-evidence.v1.json`](../../config/product/usability-release-evidence.v1.json). The checked-in manifest currently says `missing`; that is an intentional truthful state, not approval. Ordinary developer checks validate the manifest shape. The default release decision applies the same gate as `verify:usability-release` and fails until observed, privacy-reviewed evidence satisfies the configured thresholds. A separately authorised per-release missing-evidence waiver is described below; it never changes research evidence to complete.
 
 ## What the programme must answer
 
@@ -67,6 +67,28 @@ Do not change `coverageStatus` to `complete` merely to unblock a build. A comple
 All evidence must fall inside the declared evidence window. Weekly triage may leave no gap longer than seven calendar days, including the interval from the final triage to the approval decision. The window must end before the approval decision, the decision must follow every recorded review, session, triage, finding observation, and fixed-finding retest, and neither evidence nor the decision may be future-dated. This chronology is enforced from the records themselves rather than inferred from a filename or planned date.
 
 An expert walkthrough can block a release, but it cannot satisfy the user-session cadence. Synthetic automation can protect interaction contracts, but it cannot be reported as participant evidence.
+
+## Explicit missing-evidence waiver
+
+The release gate is fail closed by default. A release owner who explicitly accepts
+the risk of unknown usability outcomes may select
+`waive_missing_usability_evidence=true` for one manually dispatched **Release
+candidate** run, together with a single-line `usability_waiver_reason` containing
+the authorisation reference. The option defaults to false and is not a repository
+or production environment setting.
+
+Only a valid manifest whose `coverageStatus` is explicitly `missing` is eligible.
+Malformed evidence, failed completed studies, critical findings, accessibility
+violations and the other technical release gates cannot be bypassed this way.
+The unchanged `verify:usability-release` command still rejects missing evidence.
+
+The workflow writes an immutable `release-evidence/usability/decision.json` with
+the actual missing state, accepted risk and reason, source commit, programme and
+evidence hashes, GitHub repository, workflow/run/attempt and actor identities.
+Its bytes become part of the release manifest's `usability-decision` artifact and
+therefore the release digest. A new source or workflow run needs its own explicit
+decision. Keep that artifact with the deployment record; it is risk acceptance,
+not participant research or a claim that usability was verified.
 
 ## Cadence and ownership
 

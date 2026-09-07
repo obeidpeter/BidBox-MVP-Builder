@@ -8,6 +8,15 @@ on:
         description: Full commit SHA already merged into main
         required: true
         type: string
+      waive_missing_usability_evidence:
+        description: Explicitly accept missing usability evidence for this source and run only
+        required: true
+        type: boolean
+        default: false
+      usability_waiver_reason:
+        description: Required reason and authorisation reference when waiving missing evidence
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -76,7 +85,14 @@ jobs:
           pnpm run verify:governance
           pnpm run verify:release-provenance
           pnpm run verify:release-config
-          pnpm run verify:usability-release
+          pnpm run verify:usability
+
+      - name: Record source-bound usability release decision
+        env:
+          SOURCE_SHA: ${{ steps.source.outputs.commit_sha }}
+          WAIVE_MISSING_USABILITY_EVIDENCE: ${{ inputs.waive_missing_usability_evidence }}
+          USABILITY_WAIVER_REASON: ${{ inputs.usability_waiver_reason }}
+        run: node ./scripts/usability-release-decision.mjs
 
       - name: Prove production database migration and startup attestation
         run: pnpm --filter @workspace/db test
@@ -109,6 +125,7 @@ jobs:
             --expected-source-commit "$SOURCE_SHA" \
             --artifact api-server=artifacts/api-server/dist \
             --artifact workbench=artifacts/bidbox-workbench/dist \
+            --artifact usability-decision=release-evidence/usability \
             --sbom bidbox-sbom.cdx.json \
             --output release-evidence/release-manifest.json
           RELEASE_SHA256="$(node ./scripts/release-provenance.mjs print-release-id \
@@ -132,6 +149,7 @@ jobs:
             artifacts/bidbox-workbench/dist
             bidbox-sbom.cdx.json
             release-evidence/release-manifest.json
+            release-evidence/usability/decision.json
           if-no-files-found: error
           retention-days: 90
 

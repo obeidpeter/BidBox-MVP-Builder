@@ -34,9 +34,14 @@ the provider has assigned a new public domain.
    domain, stop and obtain an approved downtime window and rollback plan. Do not
    delete or recreate the app, database, storage or identity instance.
 4. Obtain a successful release candidate from the exact merged source. The
-   usability evidence gate remains mandatory; the missing-evidence placeholder
-   is not approval. Follow the [usability programme](../../usability/CONTINUOUS_USABILITY_PROGRAMME.md)
-   to record real, consented, privacy-reviewed observations and named reviews.
+   missing-evidence placeholder is not approval. The owner's 7 September 2026
+   instruction, "Go ahead. (Then deploy without usability evidence)", authorises
+   the bounded per-release missing-evidence waiver for this cutover. Select the
+   default-off waiver input and include that authorisation in the reason; retain
+   the generated decision artifact. This accepts unknown usability outcomes and
+   does not claim research was completed or waive other release checks. Follow
+   the [usability programme](../../usability/CONTINUOUS_USABILITY_PROGRAMME.md)
+   for future observed sessions and reviews.
 5. Publish the verified candidate. Set `VALO_RELEASE_SHA256` to that candidate's
    digest, never a digest copied from an earlier build. The API build itself stamps
    the verified source commit; it cannot be supplied through runtime environment.

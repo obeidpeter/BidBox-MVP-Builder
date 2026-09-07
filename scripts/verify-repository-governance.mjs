@@ -202,7 +202,7 @@ const REVIEWED_WORKFLOW_SHA256 = new Map([
   ],
   [
     ".github/workflows/release-candidate.yml",
-    "9a96e0cf7f9d5adfd6154614024af6d6f60d4d27572b6b2ff04d78a4673e0cea",
+    "cad9363cad8425617adf71e9c292bf9ca7cd679ee2d80448409b3a36762ff56a",
   ],
   [
     ".github/workflows/deployment-verification.yml",
@@ -524,6 +524,44 @@ export function validateReleaseWorkflowSecurity(candidate, deployment) {
   );
 }
 
+export function validateUsabilityReleaseDecisionWorkflow(candidate) {
+  assert.match(
+    candidate,
+    /waive_missing_usability_evidence:\n(?:        [^\n]+\n)*        type: boolean\n        default: false/u,
+    "Usability waiver must be a default-off boolean dispatch input",
+  );
+  assert.match(
+    candidate,
+    /^\s*WAIVE_MISSING_USABILITY_EVIDENCE: \$\{\{ inputs\.waive_missing_usability_evidence \}\}\s*$/mu,
+    "Usability waiver must come only from the current dispatch",
+  );
+  assert.match(
+    candidate,
+    /^\s*USABILITY_WAIVER_REASON: \$\{\{ inputs\.usability_waiver_reason \}\}\s*$/mu,
+    "Usability waiver reason must be passed through environment data",
+  );
+  assert.match(
+    candidate,
+    /^\s*run: node \.\/scripts\/usability-release-decision\.mjs\s*$/mu,
+    "Every candidate must record its usability decision",
+  );
+  assert.ok(
+    candidate.indexOf("run: node ./scripts/usability-release-decision.mjs") <
+      candidate.indexOf("- name: Build API release artifact"),
+    "The usability decision must precede candidate builds",
+  );
+  assert.match(
+    candidate,
+    /--artifact usability-decision=release-evidence\/usability/u,
+    "The usability decision must be bound into the release manifest",
+  );
+  assert.match(
+    candidate,
+    /^            release-evidence\/usability\/decision\.json\s*$/mu,
+    "The immutable usability decision must be uploaded with its candidate",
+  );
+}
+
 export async function verifyRepositoryGovernance(root = DEFAULT_ROOT) {
   const policy = validateBranchPolicy(
     JSON.parse(
@@ -565,6 +603,7 @@ export async function verifyRepositoryGovernance(root = DEFAULT_ROOT) {
   validateReviewedWorkflowBytes(candidatePath, candidate);
   validateReviewedWorkflowBytes(deploymentPath, deployment);
   validateReleaseWorkflowSecurity(candidate, deployment);
+  validateUsabilityReleaseDecisionWorkflow(candidate);
   return policy;
 }
 

@@ -8,6 +8,7 @@ import {
   validateUsabilityReleaseEvidence,
   verifyUsabilityProgramme,
 } from "./verify-usability-programme.mjs";
+import { createUsabilityReleaseDecision } from "./usability-release-decision.mjs";
 
 const repositoryRoot = resolve(import.meta.dirname, "..");
 const checkedInProgramme = JSON.parse(
@@ -16,6 +17,48 @@ const checkedInProgramme = JSON.parse(
     "utf8",
   ),
 );
+
+test("the per-release waiver cannot bypass failed complete evidence", () => {
+  const values = {
+    programme: programme(),
+    evidence: completeReleaseEvidence(),
+    programmeSha256: "a".repeat(64),
+    evidenceSha256: "b".repeat(64),
+    sourceCommitSha: "c".repeat(40),
+    github: {
+      repository: "obeidpeter/BidBox-MVP-Builder",
+      repositoryId: "123",
+      runId: "456",
+      runAttempt: "1",
+      actor: "obeidpeter",
+      triggeringActor: "obeidpeter",
+      workflowSha: "c".repeat(40),
+      workflowRef:
+        "obeidpeter/BidBox-MVP-Builder/.github/workflows/release-candidate.yml@refs/heads/main",
+      ref: "refs/heads/main",
+      event: "workflow_dispatch",
+    },
+    now: new Date("2026-08-30T12:00:00.000Z"),
+  };
+  const passed = createUsabilityReleaseDecision(values);
+  assert.equal(passed.decision, "evidence_verified");
+  assert.equal(passed.waiver, null);
+  assert.equal(passed.result.completionPercent, 100);
+  values.evidence.accessibilityReview.criticalViolations = 1;
+  assert.throws(
+    () => createUsabilityReleaseDecision(values),
+    /Critical accessibility violations/u,
+  );
+  assert.throws(
+    () =>
+      createUsabilityReleaseDecision({
+        ...values,
+        waiveMissingEvidence: true,
+        reason: "Owner approved release without missing research evidence",
+      }),
+    /Only explicitly missing usability evidence can be waived/u,
+  );
+});
 
 function programme() {
   return structuredClone(checkedInProgramme);

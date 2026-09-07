@@ -20,7 +20,7 @@
     "release:provenance": "node ./scripts/release-provenance.mjs",
     "verify:governance": "node --test ./scripts/repository-governance.test.mjs && node ./scripts/verify-repository-governance.mjs",
     "verify:architecture": "node --test ./scripts/verify-architecture.test.mjs && node ./scripts/verify-architecture.mjs",
-    "verify:usability": "node --test ./scripts/verify-usability-programme.test.mjs && node ./scripts/verify-usability-programme.mjs",
+    "verify:usability": "node --test ./scripts/verify-usability-programme.test.mjs ./scripts/usability-release-decision.test.mjs && node ./scripts/verify-usability-programme.mjs",
     "verify:usability-release": "node ./scripts/verify-usability-programme.mjs --release",
     "verify:release-provenance": "node --test ./scripts/release-provenance.test.mjs",
     "verify:product-capabilities": "node --test ./scripts/verify-product-capabilities.test.mjs && node ./scripts/verify-product-capabilities.mjs",
