@@ -7,15 +7,15 @@ import {
 
 describe("Clerk proxy public-host boundary", () => {
   const origins = new Set([
-    "https://valo-mvp-builder.replit.app",
+    "https://bidbox-mvp-builder.replit.app",
     "https://bids.bidbox.example",
   ]);
   const hosts = clerkProxyHostsFromOrigins(origins);
 
   it("derives only exact host values from configured origins", () => {
     assert.deepEqual([...hosts].sort(), [
+      "bidbox-mvp-builder.replit.app",
       "bids.bidbox.example",
-      "valo-mvp-builder.replit.app",
     ]);
     assert.deepEqual(
       [
@@ -32,13 +32,13 @@ describe("Clerk proxy public-host boundary", () => {
       getClerkProxyHost(
         {
           headers: {
-            "x-forwarded-host": "valo-mvp-builder.replit.app, internal.proxy",
+            "x-forwarded-host": "bidbox-mvp-builder.replit.app, internal.proxy",
             host: "internal.proxy",
           },
         },
         hosts,
       ),
-      "valo-mvp-builder.replit.app",
+      "bidbox-mvp-builder.replit.app",
     );
   });
 
@@ -48,7 +48,7 @@ describe("Clerk proxy public-host boundary", () => {
         {
           headers: {
             "x-forwarded-host": "attacker.example",
-            host: "valo-mvp-builder.replit.app",
+            host: "bidbox-mvp-builder.replit.app",
           },
         },
         hosts,

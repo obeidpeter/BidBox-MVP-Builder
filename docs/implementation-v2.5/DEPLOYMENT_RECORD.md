@@ -9,7 +9,7 @@ Last reconciled: 2026-08-31. The current topology is documented in [`../architec
 | Field                    | Source-controlled fact                                                                                                                                |
 | ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
 | Deployment target        | Replit autoscale application declared in `.replit`                                                                                                    |
-| Production domain        | `https://valo-mvp-builder.replit.app` is the configured allowed origin and deployment URL                                                             |
+| Production domain        | `https://bidbox-mvp-builder.replit.app` is the configured allowed origin and deployment URL                                                           |
 | Runtime shape            | One Node production process serves `/api` and the built Workbench; PostgreSQL and object storage are external dependencies                            |
 | Build/promotion boundary | Replit rebuilds the authorised source snapshot; source/SBOM/provenance controls exist, but this file does not claim independent live byte attestation |
 | Database migration       | Source-controlled migrations and production startup safety checks exist; completion for a release requires retained runtime evidence                  |

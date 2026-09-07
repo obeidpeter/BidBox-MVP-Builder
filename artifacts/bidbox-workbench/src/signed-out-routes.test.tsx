@@ -439,7 +439,7 @@ describe("Bid Autopsy request", () => {
     ).toBeDisabled();
     expect(
       screen.getByRole("link", { name: /return to bidbox/i }),
-    ).toHaveAttribute("href", "https://valo-mvp-builder.replit.app/");
+    ).toHaveAttribute("href", "https://bidbox-mvp-builder.replit.app/");
     fireEvent.change(screen.getByLabelText(/^company/i), {
       target: { value: "Edited company" },
     });

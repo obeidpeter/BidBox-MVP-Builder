@@ -87,7 +87,7 @@ assert.match(
 );
 assert.match(
   legacyDeploymentConfiguration,
-  /^run = "CORS_ALLOWED_ORIGINS=https:\/\/valo-mvp-builder\.replit\.app VALO_PUBLIC_LEAD_DESTINATION=database TRUST_PROXY=1 NODE_ENV=production node --enable-source-maps scripts\/start-replit-production\.mjs"$/m,
+  /^run = "CORS_ALLOWED_ORIGINS=https:\/\/bidbox-mvp-builder\.replit\.app,https:\/\/valo-mvp-builder\.replit\.app VALO_PUBLIC_LEAD_DESTINATION=database TRUST_PROXY=1 NODE_ENV=production node --enable-source-maps scripts\/start-replit-production\.mjs"$/m,
   "The legacy Replit deployment path must use the shared production startup wrapper",
 );
 assert.doesNotMatch(
@@ -108,7 +108,10 @@ assert.doesNotMatch(
 for (const [name, value] of [
   ["PORT", "8080"],
   ["NODE_ENV", "production"],
-  ["CORS_ALLOWED_ORIGINS", "https://valo-mvp-builder.replit.app"],
+  [
+    "CORS_ALLOWED_ORIGINS",
+    "https://bidbox-mvp-builder.replit.app,https://valo-mvp-builder.replit.app",
+  ],
   ["VALO_PUBLIC_LEAD_DESTINATION", "database"],
   ["TRUST_PROXY", "1"],
 ]) {

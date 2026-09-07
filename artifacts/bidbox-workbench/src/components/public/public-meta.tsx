@@ -1,6 +1,6 @@
 import { useEffect } from "react";
 
-export const APPROVED_PUBLIC_ORIGIN = "https://valo-mvp-builder.replit.app";
+export const APPROVED_PUBLIC_ORIGIN = "https://bidbox-mvp-builder.replit.app";
 
 function setMeta(name: string, content: string, property = false) {
   const selector = property
