@@ -93,7 +93,7 @@ describe("server-permission action gates", () => {
       /const actorName = meQuery\.data\?\.name\?\.trim\(\)/u,
     );
     expect(content).toMatch(
-      /actorName\.length >= 2 && actorName\.length <= 200/u,
+      /actorName\.length >= 2\s*&&\s*actorName\.length <= 200/u,
     );
     expect(content).toMatch(
       /enabled: canRequestStudio && projectId\.length > 0/u,

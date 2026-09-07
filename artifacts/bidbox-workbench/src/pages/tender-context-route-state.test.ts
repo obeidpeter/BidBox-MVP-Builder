@@ -1,5 +1,8 @@
 import { describe, expect, it } from "vitest";
-import { queryDisplayState } from "./tender-context-route-state";
+import {
+  isRulePackJurisdictionCompatible,
+  queryDisplayState,
+} from "./tender-context-route-state";
 
 describe("Tender Context query display state", () => {
   it("keeps cold and paused queries in loading instead of claiming emptiness", () => {
@@ -51,5 +54,20 @@ describe("Tender Context query display state", () => {
         hasData: true,
       }),
     ).toBe("ready");
+  });
+});
+
+describe("Tender Context rule-pack jurisdiction compatibility", () => {
+  it("accepts an exact jurisdiction and the national Nigeria fallback", () => {
+    expect(isRulePackJurisdictionCompatible("NG", "NG")).toBe(true);
+    expect(isRulePackJurisdictionCompatible("NG-LA", "NG-LA")).toBe(true);
+    expect(isRulePackJurisdictionCompatible(" ng ", " ng-la ")).toBe(true);
+  });
+
+  it("rejects a narrower pack for Nigeria, sibling subdivisions and invalid codes", () => {
+    expect(isRulePackJurisdictionCompatible("NG-LA", "NG")).toBe(false);
+    expect(isRulePackJurisdictionCompatible("NG-LA", "NG-KN")).toBe(false);
+    expect(isRulePackJurisdictionCompatible("NG", "Nigeria")).toBe(false);
+    expect(isRulePackJurisdictionCompatible("", "NG")).toBe(false);
   });
 });

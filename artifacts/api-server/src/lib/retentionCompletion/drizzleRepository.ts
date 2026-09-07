@@ -52,7 +52,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import { writeAuditTx } from "../audit";
 import { sha256Hex } from "../canonicalDigest";
 import {

@@ -1,7 +1,16 @@
 # ADR-0003: Persistent jobs and transactional outbox
 
-Status: Accepted target
+Status: Accepted; persistence foundation implemented; workload activation gated
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Delivery and operations architecture (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Security/privacy, delivery and operations role holders before workload activation; named alternates are not yet recorded
+Drivers: `AD-005`, `AD-008`, `AD-009`
+Evidence: `artifacts/api-server/src/lib/durableWorkerFoundation.ts`; `artifacts/api-server/src/lib/transactionalOutbox.ts`; `artifacts/api-server/src/routes/durableWorkerFoundation.ts`; `docs/durable-worker-foundation/IMPLEMENTATION.md`; `config/operations/schedules.v1.json`
+Supersedes: Request-lifetime and fire-and-forget execution for durable work
+Superseded by: None
 
 ## Context
 

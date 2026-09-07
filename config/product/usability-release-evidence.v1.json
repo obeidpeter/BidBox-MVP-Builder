@@ -1,0 +1,23 @@
+{
+  "schemaVersion": 1,
+  "programmeId": "bidbox-continuous-usability/v1",
+  "evidenceId": "usability-evidence-pending",
+  "coverageStatus": "missing",
+  "evidenceWindow": {
+    "from": null,
+    "through": null
+  },
+  "missingReason": "Representative moderated sessions, weekly production-feedback triage, the quarterly coverage review, and the before-release expert and accessibility reviews have not yet been recorded. This manifest must not be treated as release approval.",
+  "expertWalkthrough": null,
+  "accessibilityReview": null,
+  "roleCoverageReview": null,
+  "productionFeedbackTriages": [],
+  "sessions": [],
+  "findings": [],
+  "releaseDecision": {
+    "status": "blocked_missing_evidence",
+    "owner": null,
+    "decidedAt": null,
+    "rationale": "The release gate remains blocked until observed, privacy-reviewed session, triage, coverage, expert, and accessibility evidence replaces this explicit missing-evidence record."
+  }
+}

@@ -1,7 +1,16 @@
 # ADR-0007: Versioned Nigeria and tender rule packs
 
-Status: Accepted target; initial packs require legal approval
+Status: Accepted target; initial production packs require legal approval
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Product rules and compliance (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Nigerian legal, product and security/privacy role holders before pack promotion; named alternates are not yet recorded
+Drivers: `AD-001`, `AD-003`, `AD-007`
+Evidence: `config/rules/nigeria/v2026-08-08.json`; `docs/implementation-v2.5/SECURITY_PRIVACY.md`; `docs/implementation-v2.5/PRODUCT_REQUIREMENTS.md`
+Supersedes: Fixed legal, tax, procurement and tender constants
+Superseded by: None
 
 ## Context
 

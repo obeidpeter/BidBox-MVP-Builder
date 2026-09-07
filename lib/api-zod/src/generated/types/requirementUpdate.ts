@@ -20,14 +20,18 @@ import type { RequirementUpdateConfidence } from './requirementUpdateConfidence'
 import type { RequirementUpdateReviewStatus } from './requirementUpdateReviewStatus';
 
 export interface RequirementUpdate {
-  pageRef?: string;
-  clauseRef?: string;
+  /** @nullable */
+  pageRef?: string | null;
+  /** @nullable */
+  clauseRef?: string | null;
   /** @minLength 1 */
   text?: string;
   category?: RequirementUpdateCategory;
-  expectedEvidence?: string;
+  /** @nullable */
+  expectedEvidence?: string | null;
   isMandatory?: boolean;
   confidence?: RequirementUpdateConfidence;
   reviewStatus?: RequirementUpdateReviewStatus;
-  reviewerNotes?: string;
+  /** @nullable */
+  reviewerNotes?: string | null;
 }

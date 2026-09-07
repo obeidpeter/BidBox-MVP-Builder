@@ -9,11 +9,18 @@ export const TENDER_CONTEXT_AUTHORITY_NOTE =
   "This is tender-specific decision support based only on the selected source versions. " +
   "It is not legal advice, compliance clearance, a responsiveness decision, submission approval, or an award prediction.";
 
+export const TENDER_CONTEXT_SELECTION_FRESHNESS_NOTE =
+  "These eligible options reflect this read only. The server rechecks current source, review, approval, and access authority when you submit.";
+
 export const TENDER_CONTEXT_BOUNDS = Object.freeze({
   contextVersionsPerProject: 50,
   passportsPerProject: 100,
   requirementsPerContext: 500,
   artifactsPerContext: 500,
+  primaryDocumentOptions: 100,
+  rulePackOptions: 100,
+  requirementOptions: 500,
+  companyEvidenceOptions: 500,
   scopesPerContext: 100,
   legalEntityCharacters: 300,
   scopeCharacters: 120,
@@ -163,6 +170,47 @@ export interface TenderContextCentre {
   readonly eligibilityPolicyVersion: typeof TENDER_ELIGIBILITY_POLICY_VERSION;
   readonly authorityNote: typeof TENDER_CONTEXT_AUTHORITY_NOTE;
   readonly project: { readonly id: string; readonly title: string };
+  readonly selectionOptions: {
+    readonly freshnessNote: typeof TENDER_CONTEXT_SELECTION_FRESHNESS_NOTE;
+    readonly primaryDocuments: readonly {
+      readonly documentId: string;
+      readonly documentVersionId: string;
+      readonly filename: string;
+      readonly versionNumber: number;
+      readonly verifiedByName: string;
+    }[];
+    readonly rulePacks: readonly {
+      readonly id: string;
+      readonly label: string;
+      readonly packKey: string;
+      readonly version: string;
+      readonly jurisdiction: string;
+      readonly approvedByName: string;
+    }[];
+    readonly requirements: readonly {
+      readonly requirementId: string;
+      readonly requirementCitationId: string;
+      readonly description: string;
+      readonly sourceDocumentName: string;
+      readonly sourceSnippet: string;
+      readonly pageNumber: number | null;
+      readonly paragraphRef: string | null;
+      readonly suggestedEvidenceKind: string;
+      readonly mandatoryByDefault: boolean;
+      readonly reviewedByName: string;
+    }[];
+    readonly companyEvidence: readonly {
+      readonly vaultItemVersionId: string;
+      readonly sourceDocumentId: string;
+      readonly documentVersionId: string;
+      readonly versionNumber: number;
+      readonly label: string;
+      readonly issuer: string;
+      readonly validFrom: string | null;
+      readonly validUntil: string | null;
+      readonly approvedByName: string;
+    }[];
+  };
   readonly contexts: readonly TenderContextVersionRecord[];
   readonly passports: readonly TenderEligibilityPassportRecord[];
 }

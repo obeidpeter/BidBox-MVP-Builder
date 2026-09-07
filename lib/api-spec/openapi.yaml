@@ -3378,12 +3378,33 @@ paths:
         "500":
           $ref: "#/components/responses/InternalServerError"
   /projects/{id}/export:
-    get:
+    post:
       operationId: exportProject
       tags: [Reports]
       summary: Export project data as a ZIP (admin only)
       parameters:
         - $ref: "#/components/parameters/IdParam"
+        - name: Idempotency-Key
+          in: header
+          required: true
+          description: A fresh UUID for this exact confirmed export scope. Reuse is safe only with the identical body.
+          schema:
+            type: string
+            format: uuid
+        - name: If-Match
+          in: header
+          required: true
+          description: The exact report/package provenance fingerprint returned by the package-version projection and confirmed by the user.
+          schema:
+            type: string
+            pattern: '^"[a-f0-9]{64}"$'
+
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ProjectExportRequest"
       responses:
         "200":
           description: ZIP archive
@@ -3394,6 +3415,8 @@ paths:
                 format: binary
         "403":
           $ref: "#/components/responses/Forbidden"
+        "409":
+          $ref: "#/components/responses/Conflict"
   /projects/{id}/cost:
     get:
       operationId: getProjectCost
@@ -11408,6 +11431,7 @@ components:
         - packageType
         - versionNumber
         - manifestSha256
+        - sourceSnapshotSha256
         - renderQaStatus
         - createdAt
       properties:
@@ -11420,14 +11444,42 @@ components:
         manifestSha256:
           type: string
           pattern: "^[a-f0-9]{64}$"
+        sourceSnapshotSha256:
+          type: string
+          pattern: "^[a-f0-9]{64}$"
         renderQaStatus:
           type: string
           enum: [pending, passed, failed]
         createdAt: { type: string, format: date-time }
+    ProjectExportRequest:
+      type: object
+      additionalProperties: false
+      required:
+        - reportId
+        - reportVersion
+        - packageVersionId
+        - packageVersionNumber
+        - packageManifestSha256
+        - packageSourceSnapshotSha256
+      properties:
+        reportId: { type: string, format: uuid }
+        reportVersion: { type: integer, minimum: 1 }
+        packageVersionId:
+          type: [string, "null"]
+          format: uuid
+        packageVersionNumber:
+          type: [integer, "null"]
+          minimum: 1
+        packageManifestSha256:
+          type: [string, "null"]
+          pattern: "^[a-f0-9]{64}$"
+        packageSourceSnapshotSha256:
+          type: [string, "null"]
+          pattern: "^[a-f0-9]{64}$"
     ProjectExportPackageVersionListResponse:
       type: object
       additionalProperties: false
-      required: [items, limit, truncated]
+      required: [items, limit, truncated, exportScopeSha256]
       properties:
         items:
           type: array
@@ -11438,6 +11490,9 @@ components:
           type: integer
           const: 100
         truncated: { type: boolean }
+        exportScopeSha256:
+          type: string
+          pattern: "^[a-f0-9]{64}$"
     GrowthHumanControlNote:
       type: string
       const: "Every assignment, qualification, conversion proposal, quote term and quote approval is a named human action. This surface sends no email, creates no CRM record, converts no pursuit, submits no bid, calculates no price and collects no payment."
@@ -15348,6 +15403,114 @@ components:
           $ref: "#/components/schemas/TenderNamedReview"
         createdAt: { type: string, format: date-time }
         version: { type: integer, minimum: 1 }
+    TenderContextPrimaryDocumentOption:
+      type: object
+      additionalProperties: false
+      required:
+        [documentId, documentVersionId, filename, versionNumber, verifiedByName]
+      properties:
+        documentId: { type: string, format: uuid }
+        documentVersionId: { type: string, format: uuid }
+        filename: { type: string, minLength: 1, maxLength: 1000 }
+        versionNumber: { type: integer, minimum: 1 }
+        verifiedByName: { type: string, minLength: 1, maxLength: 200 }
+    TenderContextRulePackOption:
+      type: object
+      additionalProperties: false
+      required: [id, label, packKey, version, jurisdiction, approvedByName]
+      properties:
+        id: { type: string, format: uuid }
+        label: { type: string, minLength: 1, maxLength: 500 }
+        packKey: { type: string, minLength: 1, maxLength: 200 }
+        version: { type: string, minLength: 1, maxLength: 100 }
+        jurisdiction: { type: string, pattern: "^NG(?:-[A-Z0-9]{1,12})?$" }
+        approvedByName: { type: string, minLength: 1, maxLength: 200 }
+    TenderContextRequirementOption:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          requirementId,
+          requirementCitationId,
+          description,
+          sourceDocumentName,
+          sourceSnippet,
+          pageNumber,
+          paragraphRef,
+          suggestedEvidenceKind,
+          mandatoryByDefault,
+          reviewedByName,
+        ]
+      properties:
+        requirementId: { type: string, format: uuid }
+        requirementCitationId: { type: string, format: uuid }
+        description: { type: string, minLength: 1 }
+        sourceDocumentName: { type: string, minLength: 1, maxLength: 1000 }
+        sourceSnippet: { type: string, minLength: 1, maxLength: 20000 }
+        pageNumber: { type: [integer, "null"], minimum: 1 }
+        paragraphRef: { type: [string, "null"], maxLength: 500 }
+        suggestedEvidenceKind: { type: string, minLength: 1, maxLength: 120 }
+        mandatoryByDefault: { type: boolean }
+        reviewedByName: { type: string, minLength: 1, maxLength: 200 }
+    TenderContextCompanyEvidenceOption:
+      type: object
+      additionalProperties: false
+      required:
+        [
+          vaultItemVersionId,
+          sourceDocumentId,
+          documentVersionId,
+          versionNumber,
+          label,
+          issuer,
+          validFrom,
+          validUntil,
+          approvedByName,
+        ]
+      properties:
+        vaultItemVersionId: { type: string, format: uuid }
+        sourceDocumentId: { type: string, format: uuid }
+        documentVersionId: { type: string, format: uuid }
+        versionNumber: { type: integer, minimum: 1 }
+        label: { type: string, minLength: 1, maxLength: 500 }
+        issuer: { type: string, minLength: 1, maxLength: 500 }
+        validFrom: { type: [string, "null"], format: date }
+        validUntil: { type: [string, "null"], format: date }
+        approvedByName: { type: string, minLength: 1, maxLength: 200 }
+    TenderContextSelectionOptions:
+      type: object
+      additionalProperties: false
+      description: Permission-scoped, bounded, point-in-time candidates. The create transaction authoritatively revalidates every selected record.
+      required:
+        [
+          freshnessNote,
+          primaryDocuments,
+          rulePacks,
+          requirements,
+          companyEvidence,
+        ]
+      properties:
+        freshnessNote: { type: string, minLength: 1 }
+        primaryDocuments:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/TenderContextPrimaryDocumentOption"
+        rulePacks:
+          type: array
+          maxItems: 100
+          items:
+            $ref: "#/components/schemas/TenderContextRulePackOption"
+        requirements:
+          type: array
+          maxItems: 500
+          items:
+            $ref: "#/components/schemas/TenderContextRequirementOption"
+        companyEvidence:
+          type: array
+          maxItems: 500
+          items:
+            $ref: "#/components/schemas/TenderContextCompanyEvidenceOption"
     TenderContextCentre:
       type: object
       additionalProperties: false
@@ -15357,6 +15520,7 @@ components:
           eligibilityPolicyVersion,
           authorityNote,
           project,
+          selectionOptions,
           contexts,
           passports,
         ]
@@ -15372,6 +15536,8 @@ components:
           properties:
             id: { type: string, format: uuid }
             title: { type: string }
+        selectionOptions:
+          $ref: "#/components/schemas/TenderContextSelectionOptions"
         contexts:
           type: array
           maxItems: 50
@@ -18104,8 +18270,8 @@ components:
               past_performance,
               other,
             ]
-        description: { type: string }
-        evidenceDocId: { type: string, nullable: true }
+        description: { type: [string, "null"] }
+        evidenceDocId: { type: [string, "null"] }
         approvedStatus:
           type: string
           enum: [pending, approved, rejected]
@@ -18147,12 +18313,12 @@ components:
       type: object
       properties:
         artefactType: { type: string, minLength: 1 }
-        issuer: { type: string }
-        issueDate: { type: string }
-        expiryDate: { type: string }
-        renewalLeadDays: { type: integer, minimum: 0 }
+        issuer: { type: [string, "null"] }
+        issueDate: { type: [string, "null"] }
+        expiryDate: { type: [string, "null"] }
+        renewalLeadDays: { type: [integer, "null"], minimum: 0 }
         status: { type: string }
-        sourceDocumentId: { type: string, nullable: true }
+        sourceDocumentId: { type: [string, "null"] }
     VaultExpiringItem:
       allOf:
         - $ref: "#/components/schemas/VaultItem"
@@ -18748,14 +18914,14 @@ components:
     RequirementUpdate:
       type: object
       properties:
-        pageRef: { type: string }
-        clauseRef: { type: string }
+        pageRef: { type: [string, "null"] }
+        clauseRef: { type: [string, "null"] }
         text: { type: string, minLength: 1 }
         category:
           type: string
           enum:
             [eligibility, administrative, technical, financial_format, other]
-        expectedEvidence: { type: string }
+        expectedEvidence: { type: [string, "null"] }
         isMandatory: { type: boolean }
         confidence:
           type: string
@@ -18763,7 +18929,7 @@ components:
         reviewStatus:
           type: string
           enum: [suggested, confirmed, edited, rejected, pending]
-        reviewerNotes: { type: string }
+        reviewerNotes: { type: [string, "null"] }
     EvidenceItem:
       type: object
       required: [id, projectId, requirementId, evidenceStatus, createdAt]
@@ -18807,12 +18973,12 @@ components:
     EvidenceUpdate:
       type: object
       properties:
-        documentId: { type: string }
+        documentId: { type: [string, "null"] }
         evidenceStatus:
           type: string
           enum: [present, missing, expired, unclear, not_applicable, pending]
-        excerpt: { type: string }
-        notes: { type: string }
+        excerpt: { type: [string, "null"] }
+        notes: { type: [string, "null"] }
         suggested: { type: boolean }
     Defect:
       type: object
@@ -18891,7 +19057,7 @@ components:
     DefectUpdate:
       type: object
       properties:
-        requirementId: { type: string }
+        requirementId: { type: [string, "null"] }
         type:
           type: string
           enum:
@@ -18909,9 +19075,9 @@ components:
           type: string
           enum: [fatal, likely_fatal, scoring_risk, cosmetic]
         description: { type: string, minLength: 1 }
-        evidenceSnapshot: { type: string }
-        remediation: { type: string }
-        owner: { type: string }
+        evidenceSnapshot: { type: [string, "null"] }
+        remediation: { type: [string, "null"] }
+        owner: { type: [string, "null"] }
         status:
           type: string
           enum: [open, remediated, waived, suggested]

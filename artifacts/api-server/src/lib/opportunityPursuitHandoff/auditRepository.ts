@@ -23,7 +23,7 @@ import {
   tenders,
   users,
 } from "@workspace/db";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import { writeAuditTx } from "../audit";
 import { parseInstantPreserving } from "../dbClock";
 import {

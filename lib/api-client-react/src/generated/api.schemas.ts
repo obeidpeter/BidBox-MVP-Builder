@@ -4286,8 +4286,33 @@ export interface ProjectExportPackageVersionSummary {
   versionNumber: number;
   /** @pattern ^[a-f0-9]{64}$ */
   manifestSha256: string;
+  /** @pattern ^[a-f0-9]{64}$ */
+  sourceSnapshotSha256: string;
   renderQaStatus: ProjectExportPackageVersionSummaryRenderQaStatus;
   createdAt: string;
+}
+
+export interface ProjectExportRequest {
+  reportId: string;
+  /** @minimum 1 */
+  reportVersion: number;
+  /** @nullable */
+  packageVersionId: string | null;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  packageVersionNumber: number | null;
+  /**
+     * @nullable
+     * @pattern ^[a-f0-9]{64}$
+     */
+  packageManifestSha256: string | null;
+  /**
+     * @nullable
+     * @pattern ^[a-f0-9]{64}$
+     */
+  packageSourceSnapshotSha256: string | null;
 }
 
 export interface ProjectExportPackageVersionListResponse {
@@ -4295,6 +4320,8 @@ export interface ProjectExportPackageVersionListResponse {
   items: ProjectExportPackageVersionSummary[];
   limit: 100;
   truncated: boolean;
+  /** @pattern ^[a-f0-9]{64}$ */
+  exportScopeSha256: string;
 }
 
 /**
@@ -8557,6 +8584,130 @@ export interface TenderEligibilityPassport {
   version: number;
 }
 
+export interface TenderContextPrimaryDocumentOption {
+  documentId: string;
+  documentVersionId: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  filename: string;
+  /** @minimum 1 */
+  versionNumber: number;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  verifiedByName: string;
+}
+
+export interface TenderContextRulePackOption {
+  id: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  label: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  packKey: string;
+  /**
+     * @minLength 1
+     * @maxLength 100
+     */
+  version: string;
+  /** @pattern ^NG(?:-[A-Z0-9]{1,12})?$ */
+  jurisdiction: string;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  approvedByName: string;
+}
+
+export interface TenderContextRequirementOption {
+  requirementId: string;
+  requirementCitationId: string;
+  /** @minLength 1 */
+  description: string;
+  /**
+     * @minLength 1
+     * @maxLength 1000
+     */
+  sourceDocumentName: string;
+  /**
+     * @minLength 1
+     * @maxLength 20000
+     */
+  sourceSnippet: string;
+  /**
+     * @minimum 1
+     * @nullable
+     */
+  pageNumber: number | null;
+  /**
+     * @maxLength 500
+     * @nullable
+     */
+  paragraphRef: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 120
+     */
+  suggestedEvidenceKind: string;
+  mandatoryByDefault: boolean;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  reviewedByName: string;
+}
+
+export interface TenderContextCompanyEvidenceOption {
+  vaultItemVersionId: string;
+  sourceDocumentId: string;
+  documentVersionId: string;
+  /** @minimum 1 */
+  versionNumber: number;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  label: string;
+  /**
+     * @minLength 1
+     * @maxLength 500
+     */
+  issuer: string;
+  /** @nullable */
+  validFrom: string | null;
+  /** @nullable */
+  validUntil: string | null;
+  /**
+     * @minLength 1
+     * @maxLength 200
+     */
+  approvedByName: string;
+}
+
+/**
+ * Permission-scoped, bounded, point-in-time candidates. The create transaction authoritatively revalidates every selected record.
+ */
+export interface TenderContextSelectionOptions {
+  /** @minLength 1 */
+  freshnessNote: string;
+  /** @maxItems 100 */
+  primaryDocuments: TenderContextPrimaryDocumentOption[];
+  /** @maxItems 100 */
+  rulePacks: TenderContextRulePackOption[];
+  /** @maxItems 500 */
+  requirements: TenderContextRequirementOption[];
+  /** @maxItems 500 */
+  companyEvidence: TenderContextCompanyEvidenceOption[];
+}
+
 export type TenderContextCentreProject = {
   id: string;
   title: string;
@@ -8567,6 +8718,7 @@ export interface TenderContextCentre {
   eligibilityPolicyVersion: 'valo.tender-eligibility-passport/v1';
   authorityNote: string;
   project: TenderContextCentreProject;
+  selectionOptions: TenderContextSelectionOptions;
   /** @maxItems 50 */
   contexts: TenderContextVersion[];
   /** @maxItems 100 */
@@ -10887,7 +11039,9 @@ export const CapabilityItemUpdateApprovedStatus = {
 
 export interface CapabilityItemUpdate {
   claimType?: CapabilityItemUpdateClaimType;
-  description?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
   evidenceDocId?: string | null;
   approvedStatus?: CapabilityItemUpdateApprovedStatus;
 }
@@ -10938,12 +11092,19 @@ export interface VaultItemCreate {
 export interface VaultItemUpdate {
   /** @minLength 1 */
   artefactType?: string;
-  issuer?: string;
-  issueDate?: string;
-  expiryDate?: string;
-  /** @minimum 0 */
-  renewalLeadDays?: number;
+  /** @nullable */
+  issuer?: string | null;
+  /** @nullable */
+  issueDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  renewalLeadDays?: number | null;
   status?: string;
+  /** @nullable */
   sourceDocumentId?: string | null;
 }
 
@@ -11833,16 +11994,20 @@ export const RequirementUpdateReviewStatus = {
 } as const;
 
 export interface RequirementUpdate {
-  pageRef?: string;
-  clauseRef?: string;
+  /** @nullable */
+  pageRef?: string | null;
+  /** @nullable */
+  clauseRef?: string | null;
   /** @minLength 1 */
   text?: string;
   category?: RequirementUpdateCategory;
-  expectedEvidence?: string;
+  /** @nullable */
+  expectedEvidence?: string | null;
   isMandatory?: boolean;
   confidence?: RequirementUpdateConfidence;
   reviewStatus?: RequirementUpdateReviewStatus;
-  reviewerNotes?: string;
+  /** @nullable */
+  reviewerNotes?: string | null;
 }
 
 export type EvidenceItemEvidenceStatus = typeof EvidenceItemEvidenceStatus[keyof typeof EvidenceItemEvidenceStatus];
@@ -11912,10 +12077,13 @@ export const EvidenceUpdateEvidenceStatus = {
 } as const;
 
 export interface EvidenceUpdate {
-  documentId?: string;
+  /** @nullable */
+  documentId?: string | null;
   evidenceStatus?: EvidenceUpdateEvidenceStatus;
-  excerpt?: string;
-  notes?: string;
+  /** @nullable */
+  excerpt?: string | null;
+  /** @nullable */
+  notes?: string | null;
   suggested?: boolean;
 }
 
@@ -12059,14 +12227,18 @@ export const DefectUpdateStatus = {
 } as const;
 
 export interface DefectUpdate {
-  requirementId?: string;
+  /** @nullable */
+  requirementId?: string | null;
   type?: DefectUpdateType;
   severity?: DefectUpdateSeverity;
   /** @minLength 1 */
   description?: string;
-  evidenceSnapshot?: string;
-  remediation?: string;
-  owner?: string;
+  /** @nullable */
+  evidenceSnapshot?: string | null;
+  /** @nullable */
+  remediation?: string | null;
+  /** @nullable */
+  owner?: string | null;
   status?: DefectUpdateStatus;
   suggested?: boolean;
 }

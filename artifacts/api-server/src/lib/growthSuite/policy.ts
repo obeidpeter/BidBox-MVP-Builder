@@ -1,4 +1,4 @@
-import type { AccessContext } from "../../middlewares/tenancy";
+import type { AccessContext } from "../accessContext";
 
 const LEAD_OPERATOR_ROLES = new Set([
   "valo_operations_administrator",

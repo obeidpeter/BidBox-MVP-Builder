@@ -1,0 +1,347 @@
+{
+  "schemaVersion": 1,
+  "catalogueId": "valo.architecture.drivers.v1",
+  "status": "active_current_source_reviewed",
+  "lastReviewed": "2026-08-31",
+  "lastReviewedAt": "2026-08-31",
+  "sourceReviewedThrough": "2026-08-31",
+  "owner": "Platform architecture (@obeidpeter)",
+  "backupOwner": "UNASSIGNED (AR-001)",
+  "statusVocabulary": ["active", "provisional", "retired"],
+  "priorityVocabulary": ["must", "should", "could"],
+  "reviewPolicy": {
+    "cadenceDays": 90,
+    "changeTriggers": [
+      "material invariant or human-release-gate change",
+      "tenant, identity, privilege or data-residency boundary change",
+      "new deployable, provider, worker, scheduler or paid infrastructure",
+      "irreversible migration, external API contract or release-provenance change",
+      "new high-risk route-policy override"
+    ]
+  },
+  "drivers": [
+    {
+      "id": "AD-001",
+      "category": "principle",
+      "title": "Fail closed at material human gates",
+      "statement": "AI and automation may suggest or prepare, but authoritative sign-off, release, submission, deletion and provider effects require current server-enforced human authority and every applicable invariant.",
+      "owner": "Product integrity",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "docs/implementation-v2.5/PRODUCT_REQUIREMENTS.md",
+        "artifacts/api-server/src/routes/reports.ts"
+      ],
+      "decisionRefs": [
+        "ADR-0002",
+        "ADR-0006",
+        "ADR-0007",
+        "ADR-0010",
+        "ADR-0012",
+        "ADR-0013",
+        "ADR-0014"
+      ],
+      "acceptanceMeasures": [
+        "No UI flag or stale preflight can bypass a material server gate",
+        "Authoritative responses are exposed only after durable commit"
+      ]
+    },
+    {
+      "id": "AD-002",
+      "category": "quality_attribute",
+      "title": "Tenant isolation and least privilege",
+      "statement": "Every tenant-owned data path uses server-resolved organisation context, scoped authority and forced PostgreSQL RLS under a non-owner runtime identity.",
+      "owner": "Platform security and data",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "lib/db/src/runtimeSecurity.ts",
+        "artifacts/api-server/src/middlewares/databaseTenancy.ts",
+        "lib/db/src/runtimeSecurity.test.ts"
+      ],
+      "decisionRefs": ["ADR-0002", "ADR-0009", "ADR-0010", "ADR-0014"],
+      "acceptanceMeasures": [
+        "Production startup rejects owner, superuser, BYPASSRLS or drifted privilege catalogues",
+        "Negative cross-tenant tests remain part of the database gate"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-TENANT-001",
+          "stimulus": "An authenticated caller changes an organisation header or resource identifier to another tenant while concurrent legitimate tenant work is running.",
+          "environment": "Production-shaped PostgreSQL with FORCE RLS, the constrained runtime role and the normal tenant middleware stack.",
+          "response": "The server derives current authority, sets transaction-local tenant context and returns a non-disclosing denial without reading or mutating the other tenant.",
+          "measure": "0 cross-tenant rows or object bytes disclosed; 0 cross-tenant mutations; 100% of negative isolation fixtures pass.",
+          "releaseConsequence": "Any cross-tenant disclosure or mutation is an immediate release blocker and rollback condition."
+        }
+      ]
+    },
+    {
+      "id": "AD-003",
+      "category": "quality_attribute",
+      "title": "Evidence, provenance and auditability",
+      "statement": "Material outputs and decisions retain versioned source bindings, deterministic digests, attributable audit events and independently verifiable release evidence.",
+      "owner": "Product integrity and release engineering",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "artifacts/api-server/src/lib/projectExportPackage.ts",
+        "scripts/release-provenance.mjs",
+        "artifacts/api-server/src/lib/aiRetrievalPipeline.test.ts",
+        "artifacts/api-server/scripts/injection-corpus/corpus.ts"
+      ],
+      "decisionRefs": ["ADR-0004", "ADR-0007", "ADR-0011", "ADR-0013"],
+      "acceptanceMeasures": [
+        "Release and package identities are SHA-256 bound to exact inputs",
+        "Evidence gaps are labelled rather than inferred from a successful request"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-AI-001",
+          "stimulus": "Retrieved tender content contains hostile instructions, lacks a current approved injection scan, contradicts its cited source or cannot support a factual claim.",
+          "environment": "Offline pre-ship corpus and any production-enabled AI retrieval/drafting path.",
+          "response": "The retrieval firewall blocks or abstains, preserves source provenance and prevents the result from becoming an authoritative fact or release input.",
+          "measure": "100% injection containment on the approved hostile corpus; 0 contradicted or ungrounded claims released; every accepted claim has at least one exact approved source binding.",
+          "releaseConsequence": "Any injection escape or released ungrounded claim blocks model/prompt promotion and the affected product release."
+        }
+      ]
+    },
+    {
+      "id": "AD-004",
+      "category": "constraint",
+      "title": "Incremental modular monolith within current capacity",
+      "statement": "BidBox evolves the existing TypeScript, React, PostgreSQL and OpenAPI monorepo and adds deployables only when measured isolation, scale or ownership pressure justifies their operational cost.",
+      "owner": "Platform architecture",
+      "priority": "must",
+      "status": "active",
+      "evidence": ["pnpm-workspace.yaml", ".replit"],
+      "decisionRefs": ["ADR-0001", "ADR-0008"],
+      "acceptanceMeasures": [
+        "Workspace dependency directions remain acyclic and allowlisted",
+        "A new deployable has a named owner, operational plan and ADR"
+      ]
+    },
+    {
+      "id": "AD-005",
+      "category": "functional",
+      "title": "Recoverable durable work",
+      "statement": "Work that can outlive an HTTP request is admitted durably, leased and fenced, retry-bounded, idempotent and operator-recoverable before activation.",
+      "owner": "Delivery and operations architecture",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "artifacts/api-server/src/lib/durableWorkerFoundation.ts",
+        "docs/durable-worker-foundation/IMPLEMENTATION.md",
+        "artifacts/api-server/src/lib/storageLifecycle/repository.ts"
+      ],
+      "decisionRefs": ["ADR-0001", "ADR-0003", "ADR-0008", "ADR-0012"],
+      "acceptanceMeasures": [
+        "No activated durable effect depends on request lifetime or an in-memory queue",
+        "Crash, lease-fence, duplicate-effect and two-tenant tests pass before activation"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-DEADLINE-001",
+          "stimulus": "Deadline-period arrivals reach twice the most recently observed 30-minute peak while object storage responds slowly or times out.",
+          "environment": "Production-shaped load rehearsal with bounded provider latency/failure injection and the durable worker boundary enabled only for the rehearsed capability.",
+          "response": "Accepted work receives one durable receipt, request threads do not claim a provider effect, leases recover after failure and users see a truthful queued or unavailable state.",
+          "measure": "30-minute run at 2x observed peak; 100% accepted jobs durably recorded; 0 duplicate external effects; 0 false-success responses; p95 API latency remains within the approved release SLO.",
+          "releaseConsequence": "Do not activate the capability until the peak is calibrated and all binary safety measures pass; an SLO miss requires capacity or admission-policy review."
+        }
+      ]
+    },
+    {
+      "id": "AD-006",
+      "category": "principle",
+      "title": "Provider neutrality with explicit activation",
+      "statement": "Provider integrations sit behind typed boundaries and remain disconnected or disabled until configuration, privacy, residency, terms, health and fallback gates are approved.",
+      "owner": "Platform integrations",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "docs/ai-overhaul/TARGET_ARCHITECTURE.md",
+        "artifacts/api-server/src/lib/reconciledCommunications/service.ts"
+      ],
+      "decisionRefs": ["ADR-0005", "ADR-0006"],
+      "acceptanceMeasures": [
+        "Development, fake and disconnected adapters cannot claim production effects",
+        "Fallback never crosses an unapproved tenant policy or region"
+      ]
+    },
+    {
+      "id": "AD-007",
+      "category": "quality_attribute",
+      "title": "Versioned contracts and traceability",
+      "statement": "External APIs, generated clients, rule packs, database migrations and architecture decisions are versioned and traceable to reviewed source evidence.",
+      "owner": "API and platform architecture",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "lib/api-spec/openapi.yaml",
+        "docs/implementation-v2.5/REQUIREMENTS_TRACEABILITY.md"
+      ],
+      "decisionRefs": ["ADR-0001", "ADR-0007", "ADR-0011", "ADR-0014"],
+      "acceptanceMeasures": [
+        "Generated client checks reject OpenAPI drift",
+        "Material architecture changes name their driver and ADR impact"
+      ]
+    },
+    {
+      "id": "AD-008",
+      "category": "quality_attribute",
+      "title": "Transactional concurrency correctness",
+      "statement": "Material mutations use a declared lock order, current authority and state revalidation, compare-and-set transitions, idempotency and commit-before-response semantics.",
+      "owner": "Data and delivery governance",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "artifacts/api-server/src/routes/reports.governanceRace.static.test.ts",
+        "artifacts/api-server/src/routes/reports.export.integration.test.ts",
+        "artifacts/api-server/src/lib/retentionCompletion/service.test.ts"
+      ],
+      "decisionRefs": ["ADR-0003", "ADR-0010", "ADR-0012", "ADR-0013"],
+      "acceptanceMeasures": [
+        "Concurrent revocation or source mutation is serialized or rejected",
+        "A retry cannot bind one idempotency key to a different operation scope"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-CONCURRENCY-001",
+          "stimulus": "A reviewer membership or report-sign-off grant is revoked, or an NDA is revoked, while sign-off or package export is in flight.",
+          "environment": "Production-shaped PostgreSQL integration test with the real advisory namespaces, row locks and request transaction lifecycle.",
+          "response": "The final transaction orders the revocation before or after the material action; stale authority/governance is rejected and no response capability is exposed before commit.",
+          "measure": "0 sign-offs committed after an earlier effective authority revocation; 0 ZIP bytes exposed from stale NDA state; 100% race permutations end in one committed outcome or bounded 403/409 denial.",
+          "releaseConsequence": "Any stale-authority success, split durable state or stream-before-commit result blocks release."
+        },
+        {
+          "id": "QA-RETENTION-001",
+          "stimulus": "A retention completion is requested for a project with an active legal hold, incomplete object reconciliation or a concurrently changing retention action.",
+          "environment": "Production-shaped retention workflow with tenant RLS, exact project locks and activation manifests.",
+          "response": "The workflow refuses destructive completion, preserves the hold and produces a bounded auditable blocker until reconciliation and certification are current.",
+          "measure": "0 held records or objects deleted; 0 completion certificates before all mandatory actions are reconciled; 100% legal-hold negative fixtures pass.",
+          "releaseConsequence": "Any deletion under hold or premature certificate is a release blocker and privacy incident."
+        }
+      ]
+    },
+    {
+      "id": "AD-009",
+      "category": "principle",
+      "title": "Privacy and data minimisation by boundary",
+      "statement": "Logs, jobs, provider calls, release records and cross-tenant operations carry only the minimum identifiers and content needed for their declared purpose.",
+      "owner": "Security and privacy",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "docs/implementation-v2.5/SECURITY_PRIVACY.md",
+        "artifacts/api-server/src/lib/observability.ts",
+        "artifacts/api-server/src/routes/public.ts",
+        "artifacts/api-server/src/lib/uploadInspection.test.ts"
+      ],
+      "decisionRefs": [
+        "ADR-0002",
+        "ADR-0003",
+        "ADR-0004",
+        "ADR-0005",
+        "ADR-0009",
+        "ADR-0012",
+        "ADR-0014"
+      ],
+      "acceptanceMeasures": [
+        "Operational signals contain no tenant, identity or tender-content dimensions",
+        "Provider activation records an approved data-governance boundary"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-INTAKE-001",
+          "stimulus": "An anonymous request uses a disallowed origin, oversized/non-JSON body, replayed key with changed content, automation trap, or attempts to submit tender documents; an authenticated upload is malformed or malware-flagged.",
+          "environment": "Public intake and governed upload paths under production configuration with scanners unavailable and available.",
+          "response": "Public intake accepts no document content and applies strict 16 KiB JSON, origin, idempotency and durable rate limits; governed files remain quarantined or rejected with no preview, extraction or release.",
+          "measure": "100% hostile-intake fixtures rejected or quarantined; 0 unsafe bytes previewed/extracted/released; 0 public request bodies written to logs; changed-payload idempotency replay returns 409.",
+          "releaseConsequence": "Any unsafe-file release, origin bypass, PII body logging or changed-payload replay blocks release."
+        }
+      ]
+    },
+    {
+      "id": "AD-010",
+      "category": "functional",
+      "title": "Verifiable release and recoverable operation",
+      "statement": "A release binds exact merged source, artifacts, SBOM, target identity and deployment verification, with documented rollback, restore and incident procedures.",
+      "owner": "Release engineering and operations",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        ".github/workflows/release-candidate.yml",
+        ".github/workflows/deployment-verification.yml",
+        "docs/implementation-v2.5/runbooks/RESTORE.md",
+        "docs/implementation-v2.5/runbooks/BACKUP.md"
+      ],
+      "decisionRefs": [
+        "ADR-0004",
+        "ADR-0008",
+        "ADR-0010",
+        "ADR-0011",
+        "ADR-0013"
+      ],
+      "acceptanceMeasures": [
+        "Deployment verification fails on source, manifest, URL, readiness or identity mismatch",
+        "Evidence distinguishes environment-declared identity from measured live bytes"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-DR-001",
+          "stimulus": "The primary database/object-storage environment is unavailable or a release introduces suspected corruption.",
+          "environment": "Quarterly and pre-GA isolated restore rehearsal using an approved immutable backup and fixed recovery point.",
+          "response": "Operations restore into a new isolated target, re-attest identities/RLS, reconcile object manifests, audit/package hashes and provider side effects, then cut over only after smoke approval.",
+          "measure": "Measured RTO <= 4 hours; provisional RPO <= 24 hours until business-impact approval tightens it; 0 unreconciled duplicate provider effects; all restore acceptance checks pass.",
+          "releaseConsequence": "Missing restore evidence or a measured RTO/RPO miss blocks GA or requires a time-bounded, named risk acceptance."
+        }
+      ]
+    },
+    {
+      "id": "AD-011",
+      "category": "constraint",
+      "title": "Externally evidenced production dependencies",
+      "statement": "Source configuration cannot by itself prove live provider approval, GitHub protection, platform schedules, alert delivery, backups or deployment state.",
+      "owner": "Operations and security",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "docs/implementation-v2.5/RELEASE_PROVENANCE.md",
+        "config/operations/schedules.v1.json"
+      ],
+      "decisionRefs": ["ADR-0005", "ADR-0006", "ADR-0008", "ADR-0009"],
+      "acceptanceMeasures": [
+        "Status stays disconnected, not installed or externally unverified until a retained receipt exists",
+        "Repository checks never present desired platform policy as applied live state"
+      ]
+    },
+    {
+      "id": "AD-012",
+      "category": "quality_attribute",
+      "title": "Accessible and interruption-tolerant critical journeys",
+      "statement": "Critical BidBox journeys expose authority, status, errors and recovery in perceivable, operable and understandable forms across keyboard, screen reader, narrow viewport and low-bandwidth use.",
+      "owner": "Product experience and accessibility",
+      "priority": "must",
+      "status": "active",
+      "evidence": [
+        "config/product/usability-programme.v1.json",
+        "docs/usability/CONTINUOUS_USABILITY_PROGRAMME.md",
+        "artifacts/bidbox-workbench/src/public-accessibility.test.tsx"
+      ],
+      "decisionRefs": ["ADR-0001", "ADR-0014"],
+      "acceptanceMeasures": [
+        "No unrecovered critical accessibility violation in a release-critical task",
+        "Missing representative evidence is reported as missing, never inferred as a pass"
+      ],
+      "scenarios": [
+        {
+          "id": "QA-A11Y-001",
+          "stimulus": "A keyboard-only or screen-reader user is interrupted on a narrow, low-bandwidth connection while identifying a deadline blocker or completing a governed review action.",
+          "environment": "Pre-release critical-task walkthrough at desktop and narrow mobile viewport, including delayed responses and focus restoration.",
+          "response": "The interface preserves entered state where safe, announces status/errors, returns focus predictably, exposes the recorded deadline and next permitted action, and never represents cached/offline data as current authority.",
+          "measure": "0 critical axe violations on automated public checks; 100% keyboard completion of the defined critical tasks; 0 keyboard traps; 0 unrecovered critical screen-reader or truthfulness defects.",
+          "releaseConsequence": "Any unrecovered critical accessibility or authority-truthfulness defect blocks release."
+        }
+      ]
+    }
+  ]
+}

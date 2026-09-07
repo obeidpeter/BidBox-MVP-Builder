@@ -3,8 +3,8 @@ import { getAuth, clerkClient } from "@clerk/express";
 import { db, users } from "@workspace/db";
 import { eq } from "drizzle-orm";
 import { isBootstrapIdentity } from "../lib/bootstrap";
-
-export type LocalUser = typeof users.$inferSelect;
+import type { LocalUser } from "../lib/accessContext";
+export type { LocalUser } from "../lib/accessContext";
 
 function getLocalUser(req: Request): LocalUser | undefined {
   return (req as unknown as { localUser?: LocalUser }).localUser;

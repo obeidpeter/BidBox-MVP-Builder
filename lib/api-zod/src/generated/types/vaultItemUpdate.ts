@@ -19,11 +19,18 @@
 export interface VaultItemUpdate {
   /** @minLength 1 */
   artefactType?: string;
-  issuer?: string;
-  issueDate?: string;
-  expiryDate?: string;
-  /** @minimum 0 */
-  renewalLeadDays?: number;
+  /** @nullable */
+  issuer?: string | null;
+  /** @nullable */
+  issueDate?: string | null;
+  /** @nullable */
+  expiryDate?: string | null;
+  /**
+     * @minimum 0
+     * @nullable
+     */
+  renewalLeadDays?: number | null;
   status?: string;
+  /** @nullable */
   sourceDocumentId?: string | null;
 }

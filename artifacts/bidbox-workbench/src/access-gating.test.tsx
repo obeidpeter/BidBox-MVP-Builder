@@ -12,6 +12,7 @@ type MeResult = {
 };
 
 let meResult: MeResult = { data: undefined, isLoading: true };
+let organisationError = false;
 
 const TEST_PERMISSIONS = [
   "analytics:read",
@@ -55,7 +56,7 @@ vi.mock("./contexts/organisation-context", () => ({
       | undefined;
     const role = identity?.role;
     const activeOrganisation =
-      role && identity?.hasOrganisation !== false
+      !organisationError && role && identity?.hasOrganisation !== false
         ? {
             id: "org-test",
             name: "Test organisation",
@@ -79,8 +80,10 @@ vi.mock("./contexts/organisation-context", () => ({
       effectiveRoles: activeOrganisation?.roles ?? [],
       effectivePermissions: activeOrganisation?.permissions ?? [],
       isLoading: meResult.isLoading,
-      isError: false,
-      error: null,
+      isError: organisationError,
+      error: organisationError
+        ? new Error("Organisation service unavailable")
+        : null,
       needsSelection: false,
       isSwitching: false,
       hasPendingMutation: false,
@@ -103,6 +106,7 @@ function renderLayout() {
 describe("access gating in Layout", () => {
   beforeEach(() => {
     meResult = { data: undefined, isLoading: true };
+    organisationError = false;
     window.history.pushState({}, "", "/app");
   });
 
@@ -128,6 +132,53 @@ describe("access gating in Layout", () => {
     ).toBeInTheDocument();
     expect(
       screen.queryByText(/you don't have organisation access yet/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("lets a signed-in user without an organisation open the user manual", () => {
+    meResult = {
+      data: {
+        id: "2e1295d3-898f-4757-abec-a06df959401e",
+        email: "new-user@example.com",
+        name: "New User",
+        role: "none",
+        status: "active",
+        hasOrganisation: false,
+      },
+      isLoading: false,
+    };
+    window.history.pushState({}, "", "/help?topic=finding-your-way-around");
+
+    renderLayout();
+
+    expect(screen.getByTestId("protected-child")).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: /help & user manual/i }),
+    ).toHaveAttribute("href", "/help");
+    expect(
+      screen.queryByText(/you don't have organisation access yet/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("keeps the local user manual available during an organisation lookup failure", () => {
+    meResult = {
+      data: {
+        id: "u-help",
+        email: "help@example.com",
+        name: "Help User",
+        role: "reviewer",
+        status: "active",
+      },
+      isLoading: false,
+    };
+    organisationError = true;
+    window.history.pushState({}, "", "/help");
+
+    renderLayout();
+
+    expect(screen.getByTestId("protected-child")).toBeInTheDocument();
+    expect(
+      screen.queryByText(/couldn't load your organisations/i),
     ).not.toBeInTheDocument();
   });
 
@@ -261,6 +312,7 @@ describe("access gating in Layout", () => {
     expect(screen.getByText(/^claims$/i)).toBeInTheDocument();
     expect(screen.getByText(/^leads & offers$/i)).toBeInTheDocument();
     expect(screen.getByTestId("protected-child")).toBeInTheDocument();
+    expect(screen.getByText(/^help & user manual$/i)).toBeInTheDocument();
     expect(screen.queryByText(/no role assigned yet/i)).not.toBeInTheDocument();
     expect(
       screen.queryByText(/we couldn't sign you in/i),

@@ -1,0 +1,312 @@
+{
+  "schemaVersion": 1,
+  "catalogueId": "valo.architecture.module-boundaries.v1",
+  "status": "active_allowlist_checked_against_workspace_source",
+  "lastReviewed": "2026-08-31",
+  "lastReviewedAt": "2026-08-31",
+  "sourceReviewedThrough": "2026-08-31",
+  "owner": "Platform architecture (@obeidpeter)",
+  "backupOwner": "UNASSIGNED (AR-001)",
+  "dependencyPolicy": {
+    "default": "deny",
+    "scope": "@workspace package declarations and source imports",
+    "generatedContractDirection": "lib/api-spec/openapi.yaml -> lib/api-zod/src/generated and lib/api-client-react/src/generated",
+    "status": "catalogued_for_repository_verification"
+  },
+  "modules": [
+    {
+      "id": "api-server",
+      "package": "@workspace/api-server",
+      "roots": ["artifacts/api-server"],
+      "kind": "deployable_server",
+      "status": "production_entrypoint_configured",
+      "owner": "API and delivery",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Express composition, route policies, domain workflows, provider orchestration and production web serving.",
+      "mayDependOn": ["api-zod", "database", "openai-server-integration"],
+      "evidence": [
+        "artifacts/api-server/package.json",
+        "artifacts/api-server/src/app.ts",
+        "artifacts/api-server/src/routes/index.ts"
+      ]
+    },
+    {
+      "id": "workbench",
+      "package": "@workspace/bidbox-workbench",
+      "roots": ["artifacts/bidbox-workbench"],
+      "kind": "deployable_browser_application",
+      "status": "production_build_configured",
+      "owner": "Product experience",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "React user experience and presentation-only access gating over generated API clients.",
+      "mayDependOn": ["api-client-react"],
+      "evidence": [
+        "artifacts/bidbox-workbench/package.json",
+        "artifacts/bidbox-workbench/src/authenticated-gateway.tsx"
+      ]
+    },
+    {
+      "id": "mockup-sandbox",
+      "package": "@workspace/mockup-sandbox",
+      "roots": ["artifacts/mockup-sandbox"],
+      "kind": "non_production_prototype",
+      "status": "excluded_from_release_candidate",
+      "owner": "Product design",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Design exploration only; it is not an authority, runtime dependency or release artifact.",
+      "mayDependOn": [],
+      "evidence": [
+        "artifacts/mockup-sandbox/package.json",
+        ".github/workflows/release-candidate.yml"
+      ]
+    },
+    {
+      "id": "database",
+      "package": "@workspace/db",
+      "roots": ["lib/db"],
+      "kind": "server_library_and_schema_authority",
+      "status": "production_runtime_boundary_implemented",
+      "owner": "Platform security and data",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "PostgreSQL schema, migrations, RLS/runtime attestation, tenant transaction context and operational database entrypoints.",
+      "mayDependOn": [],
+      "evidence": [
+        "lib/db/package.json",
+        "lib/db/src/index.ts",
+        "lib/db/src/runtimeSecurity.ts"
+      ]
+    },
+    {
+      "id": "api-spec",
+      "package": "@workspace/api-spec",
+      "roots": ["lib/api-spec"],
+      "kind": "build_time_contract_authority",
+      "status": "generated_contract_checks_implemented",
+      "owner": "API architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Canonical OpenAPI document, client generation and contract parity checks.",
+      "mayDependOn": [],
+      "evidence": [
+        "lib/api-spec/openapi.yaml",
+        "lib/api-spec/check-generated.mjs"
+      ]
+    },
+    {
+      "id": "api-zod",
+      "package": "@workspace/api-zod",
+      "roots": ["lib/api-zod"],
+      "kind": "generated_server_contract",
+      "status": "generated_from_openapi",
+      "owner": "API architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Generated runtime request and response schemas consumed by the API.",
+      "mayDependOn": [],
+      "evidence": ["lib/api-zod/package.json", "lib/api-zod/src/index.ts"]
+    },
+    {
+      "id": "api-client-react",
+      "package": "@workspace/api-client-react",
+      "roots": ["lib/api-client-react"],
+      "kind": "generated_browser_contract",
+      "status": "generated_from_openapi",
+      "owner": "API architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Generated React Query client plus bounded transport/context helpers; no server or database authority.",
+      "mayDependOn": [],
+      "evidence": [
+        "lib/api-client-react/package.json",
+        "lib/api-client-react/src/custom-fetch.ts"
+      ]
+    },
+    {
+      "id": "object-storage-web",
+      "package": "@workspace/object-storage-web",
+      "roots": ["lib/object-storage-web"],
+      "kind": "browser_upload_library",
+      "status": "available_not_a_current_workspace_dependency",
+      "owner": "Product experience",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Browser upload UI primitives; it must not decide tenant object paths or provider authorization.",
+      "mayDependOn": [],
+      "evidence": [
+        "lib/object-storage-web/package.json",
+        "lib/object-storage-web/src/index.ts"
+      ]
+    },
+    {
+      "id": "openai-server-integration",
+      "package": "@workspace/integrations-openai-ai-server",
+      "roots": ["lib/integrations-openai-ai-server"],
+      "kind": "server_provider_adapter",
+      "status": "implemented_activation_governed_by_api",
+      "owner": "Platform integrations",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "OpenAI SDK transport helpers behind API-owned policy, evaluation and feature gates.",
+      "mayDependOn": [],
+      "evidence": [
+        "lib/integrations-openai-ai-server/package.json",
+        "lib/integrations-openai-ai-server/src/index.ts"
+      ]
+    },
+    {
+      "id": "operational-scripts",
+      "package": "@workspace/scripts",
+      "roots": ["scripts"],
+      "kind": "operator_and_repository_tooling",
+      "status": "source_entrypoints_not_implicit_activation",
+      "owner": "Platform operations",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "responsibility": "Repository verification, release tooling, Replit startup and bounded operational commands.",
+      "mayDependOn": ["database"],
+      "evidence": [
+        "scripts/package.json",
+        "scripts/start-replit-production.mjs"
+      ]
+    }
+  ],
+  "runtimeRules": [
+    {
+      "id": "MB-001",
+      "status": "active",
+      "rule": "Browser modules may not import database, server-provider or API-server packages."
+    },
+    {
+      "id": "MB-002",
+      "status": "active",
+      "rule": "Only the API server and operational scripts may depend on the database package; scripts are not user-request authorities."
+    },
+    {
+      "id": "MB-003",
+      "status": "active",
+      "rule": "OpenAPI is the source for generated Zod and React client code; generated outputs are not hand-maintained boundaries."
+    },
+    {
+      "id": "MB-004",
+      "status": "active",
+      "rule": "Mockup Sandbox is excluded from the release candidate and must not become a production dependency."
+    }
+  ],
+  "internalBoundaries": [
+    {
+      "id": "api-server-lib",
+      "module": "api-server",
+      "roots": ["artifacts/api-server/src/lib"],
+      "status": "active_coarse_domain_boundary",
+      "responsibility": "Application/domain services, repositories and provider-policy code; it must not depend on HTTP routes or middleware composition.",
+      "mayDependOn": []
+    },
+    {
+      "id": "api-server-middlewares",
+      "module": "api-server",
+      "roots": ["artifacts/api-server/src/middlewares"],
+      "status": "active_edge_policy_boundary",
+      "responsibility": "Authentication, tenant/database context, rate limits and cross-cutting HTTP policy.",
+      "mayDependOn": ["api-server-lib"]
+    },
+    {
+      "id": "api-server-routes",
+      "module": "api-server",
+      "roots": ["artifacts/api-server/src/routes"],
+      "status": "active_edge_orchestration_boundary",
+      "responsibility": "HTTP parsing, permission selection, domain orchestration and response mapping.",
+      "mayDependOn": ["api-server-lib", "api-server-middlewares"]
+    },
+    {
+      "id": "workbench-source",
+      "module": "workbench",
+      "roots": ["artifacts/bidbox-workbench/src"],
+      "status": "active_browser_boundary",
+      "responsibility": "Browser presentation and generated-client consumption; no API-server or database implementation imports.",
+      "mayDependOn": []
+    }
+  ],
+  "internalBoundaryLimitations": {
+    "status": "known_risk",
+    "riskId": "AR-012",
+    "statement": "The API domain is still one coarse internal component; delivery, intelligence, retention, commercial and communication submodules require finer dependency rules as ownership and change pressure justify them."
+  },
+  "hotspotPolicy": {
+    "status": "active_exception_review_required",
+    "defaultMaxLines": 2000,
+    "excludedPaths": [],
+    "exceptions": [
+      {
+        "path": "artifacts/api-server/src/routes/reports.ts",
+        "maxLines": 2050,
+        "owner": "Delivery governance",
+        "reason": "Sign-off and exact package-export concurrency protocols remain co-located while AR-012 tracks a boundary-preserving route decomposition.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "lib/db/scripts/legacy-bridge-ci-rehearsal.mjs",
+        "maxLines": 6000,
+        "owner": "Platform data",
+        "reason": "Finite legacy bridge rehearsal retains a single auditable migration narrative pending decommissioning.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "lib/db/src/schema/index.ts",
+        "maxLines": 4500,
+        "owner": "Platform data",
+        "reason": "Canonical Drizzle schema remains centralized while bounded-domain extraction is planned.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
+        "maxLines": 4500,
+        "owner": "Delivery engineering",
+        "reason": "Delivery Studio transactional repository is a known decomposition hotspot with coupled lock protocols.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "lib/db/scripts/run-legacy-bridge.mjs",
+        "maxLines": 4200,
+        "owner": "Platform data",
+        "reason": "One-shot legacy bridge orchestration remains grouped for deterministic rehearsal and evidence comparison.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "maxLines": 4200,
+        "owner": "Product experience",
+        "reason": "Delivery Studio UI is a recognized component-extraction hotspot under active product iteration.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/retentionCompletion/drizzleRepository.ts",
+        "maxLines": 4000,
+        "owner": "Privacy operations",
+        "reason": "Retention completion keeps its multi-stage transactional protocol together pending safe repository decomposition.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/intelligence/tenderContextDrizzleRepository.ts",
+        "maxLines": 3500,
+        "owner": "Intelligence engineering",
+        "reason": "Tender-context persistence and version-review invariants are currently co-located and need staged extraction.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "lib/db/src/runtimeSecurity.ts",
+        "maxLines": 3200,
+        "owner": "Platform security and data",
+        "reason": "Exact startup attestation intentionally centralizes a closed PostgreSQL security catalogue for drift review.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/intelligence/addendumImpactDrizzleRepository.ts",
+        "maxLines": 3200,
+        "owner": "Intelligence engineering",
+        "reason": "Addendum review and apply transactions share exact version and project-lock invariants pending decomposition.",
+        "reviewBy": "2026-10-31"
+      },
+      {
+        "path": "artifacts/api-server/src/lib/commercialRetainer/drizzleRepository.ts",
+        "maxLines": 3000,
+        "owner": "Commercial platform",
+        "reason": "Commercial lifecycle transactions are a known repository hotspot requiring boundary-preserving extraction.",
+        "reviewBy": "2026-10-31"
+      }
+    ]
+  }
+}

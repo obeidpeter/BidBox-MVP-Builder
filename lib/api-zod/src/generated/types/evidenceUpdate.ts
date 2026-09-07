@@ -18,9 +18,12 @@
 import type { EvidenceUpdateEvidenceStatus } from './evidenceUpdateEvidenceStatus';
 
 export interface EvidenceUpdate {
-  documentId?: string;
+  /** @nullable */
+  documentId?: string | null;
   evidenceStatus?: EvidenceUpdateEvidenceStatus;
-  excerpt?: string;
-  notes?: string;
+  /** @nullable */
+  excerpt?: string | null;
+  /** @nullable */
+  notes?: string | null;
   suggested?: boolean;
 }

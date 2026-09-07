@@ -1,7 +1,11 @@
 import {
+  getGetCurrentDocumentVersionSnapshotQueryKey,
   getGetDeliveryStudioQueryKey,
+  getListDocumentsQueryKey,
+  useGetCurrentDocumentVersionSnapshot,
   useGetDeliveryStudio,
   useGetMe,
+  useListDocuments,
   useRunDeliveryStudioAction,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -19,7 +23,9 @@ import {
   ShieldCheck,
   UserRoundCheck,
 } from "lucide-react";
-import { useMemo, useRef, useState, type ReactNode } from "react";
+import { useEffect, useMemo, useRef, useState, type ReactNode } from "react";
+import { GovernedDocumentPicker } from "@/components/delivery-studio/governed-document-picker";
+import { ReviewDesk } from "@/components/delivery-studio/review-desk";
 import {
   DataErrorPanel,
   LoadingPanel,
@@ -442,6 +448,72 @@ function ActionError({ message }: { message: string | null }) {
   ) : null;
 }
 
+function WhyStatusDetails({
+  status,
+  sourceSnapshot,
+  rule,
+  reviewTime,
+  dependencies,
+  remediation,
+  provenance,
+}: {
+  status: string;
+  sourceSnapshot: string;
+  rule: string;
+  reviewTime: string;
+  dependencies: string[];
+  remediation: string;
+  provenance: string;
+}) {
+  return (
+    <details className="mb-5 rounded-lg border border-border bg-muted/20 p-4">
+      <summary className="cursor-pointer text-sm font-semibold">
+        Why this status?
+      </summary>
+      <div className="mt-4 grid gap-4 text-sm lg:grid-cols-2">
+        <dl className="grid gap-3">
+          <div>
+            <dt className="text-xs text-muted-foreground">Recorded status</dt>
+            <dd className="mt-0.5 font-medium">{statusLabel(status)}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Source snapshot</dt>
+            <dd className="mt-0.5 break-all font-mono text-xs">
+              {sourceSnapshot}
+            </dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Rule or policy</dt>
+            <dd className="mt-0.5 leading-6">{rule}</dd>
+          </div>
+          <div>
+            <dt className="text-xs text-muted-foreground">Review time</dt>
+            <dd className="mt-0.5 leading-6">{reviewTime}</dd>
+          </div>
+        </dl>
+        <div className="grid content-start gap-3">
+          <div>
+            <p className="text-xs text-muted-foreground">Dependencies</p>
+            <ul className="mt-1 list-disc space-y-1 pl-5 leading-6">
+              {dependencies.map((dependency) => (
+                <li key={dependency}>{dependency}</li>
+              ))}
+            </ul>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Remediation</p>
+            <p className="mt-1 leading-6">{remediation}</p>
+          </div>
+          <div>
+            <p className="text-xs text-muted-foreground">Provenance</p>
+            <p className="mt-1 break-words leading-6">{provenance}</p>
+          </div>
+        </div>
+      </div>
+    </details>
+  );
+}
+
 const EMPTY_RESPONSE_FORM = {
   sectionKey: "",
   title: "",
@@ -451,7 +523,6 @@ const EMPTY_RESPONSE_FORM = {
   claimKind: "opinion" as ResponseClaimInput["kind"],
   supportMode: "exact_quote" as NonNullable<ResponseClaimInput["supportMode"]>,
   documentId: "",
-  documentVersionId: "",
   pageNumber: "",
   quote: "",
 };
@@ -468,7 +539,6 @@ type RehearsalFileMappingForm = {
 
 type RehearsalForm = {
   portalSourceId: string;
-  portalSourceVersionId: string;
   reviewAccepted: boolean;
   reviewNote: string;
   rehearsalSubjectId: string;
@@ -477,7 +547,6 @@ type RehearsalForm = {
 
 const EMPTY_REHEARSAL_FORM: RehearsalForm = {
   portalSourceId: "",
-  portalSourceVersionId: "",
   reviewAccepted: false,
   reviewNote: "",
   rehearsalSubjectId: "",
@@ -514,6 +583,50 @@ function buildRehearsalManifestText(
     }
   }
   return `${lines.join("\n")}\n`;
+}
+
+function uniqueUtf16CitationRange(
+  content: string,
+  quote: string,
+): { startOffset: number; endOffset: number } | null {
+  const startOffset = content.indexOf(quote);
+  if (startOffset < 0 || content.indexOf(quote, startOffset + 1) !== -1) {
+    return null;
+  }
+  return { startOffset, endOffset: startOffset + quote.length };
+}
+
+function packagePreflightFingerprint(
+  snapshot: DeliveryStudioSnapshot | undefined,
+): string {
+  if (!snapshot) return "";
+  return JSON.stringify({
+    version: snapshot.version,
+    sourceSnapshotHash: snapshot.sourceSnapshotHash,
+    responseStatus: snapshot.responseStudio.status,
+    responses: snapshot.responseStudio.sections.map((section) => ({
+      id: section.id,
+      status: section.status,
+      currentVersionNumber: section.currentVersionNumber,
+      versionId: section.version?.id ?? null,
+      contentHash: section.version?.contentHash ?? null,
+    })),
+    redTeam: {
+      status: snapshot.redTeamReview.status,
+      runId: snapshot.redTeamReview.run?.id ?? null,
+      runStatus: snapshot.redTeamReview.run?.status ?? null,
+      sourceSnapshotHash:
+        snapshot.redTeamReview.run?.sourceSnapshotHash ?? null,
+      policyVersion: snapshot.redTeamReview.run?.policyVersion ?? null,
+      approvedAt: snapshot.redTeamReview.run?.approvedAt ?? null,
+      findings:
+        snapshot.redTeamReview.run?.findings.map((finding) => ({
+          id: finding.id,
+          status: finding.status,
+          version: finding.version,
+        })) ?? [],
+    },
+  });
 }
 
 async function sha256Hex(value: string): Promise<string> {
@@ -562,11 +675,16 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     canReviewDefects &&
     canSignPackage &&
     canReviewIntelligence;
+  const canPrepareRehearsal = canReviewIntelligence && canReadDocuments;
   const meQuery = useGetMe();
   const actorUserId = meQuery.data?.id ?? "";
   const actorName = meQuery.data?.name?.trim() ?? "";
   const hasNamedActor = Boolean(
-    actorUserId.length > 0 && actorName.length >= 2 && actorName.length <= 200,
+    meQuery.isSuccess &&
+    !meQuery.isError &&
+    actorUserId.length > 0 &&
+    actorName.length >= 2 &&
+    actorName.length <= 200,
   );
   const canRequestStudio = canReadStudio && hasNamedActor;
   const studioQuery = useGetDeliveryStudio(projectId, {
@@ -602,12 +720,191 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     null,
   );
   const [rehearsalPreparing, setRehearsalPreparing] = useState(false);
+  const [packagePreflightAcceptedBinding, setPackagePreflightAcceptedBinding] =
+    useState<string | null>(null);
+  const [rehearsalAcceptedBinding, setRehearsalAcceptedBinding] = useState<
+    string | null
+  >(null);
+  const documentQueryContext = [
+    activeOrganisation?.id ?? "no-organisation",
+    actorUserId || "no-actor",
+    canReadDocuments ? "document:read" : "!document:read",
+  ] as const;
+  const documentsQuery = useListDocuments(projectId, {
+    query: {
+      enabled:
+        canRequestStudio && canReadDocuments && projectId.trim().length > 0,
+      queryKey: [
+        ...getListDocumentsQueryKey(projectId),
+        ...documentQueryContext,
+        "delivery-studio",
+      ],
+      staleTime: 0,
+      retry: false,
+    },
+  });
+  const responseDocumentId = responseForm.documentId.trim();
+  const responseDocumentVersionQuery = useGetCurrentDocumentVersionSnapshot(
+    responseDocumentId,
+    {
+      query: {
+        enabled: Boolean(
+          canRequestStudio &&
+          canReadDocuments &&
+          dialog?.type === "response" &&
+          UUID_PATTERN.test(responseDocumentId),
+        ),
+        queryKey: [
+          ...getGetCurrentDocumentVersionSnapshotQueryKey(responseDocumentId),
+          ...documentQueryContext,
+          "response-citation",
+        ],
+        staleTime: 0,
+        retry: false,
+      },
+    },
+  );
+  const rehearsalDocumentId = rehearsalForm.portalSourceId.trim();
+  const rehearsalDocumentVersionQuery = useGetCurrentDocumentVersionSnapshot(
+    rehearsalDocumentId,
+    {
+      query: {
+        enabled: Boolean(
+          canRequestStudio &&
+          canReadDocuments &&
+          dialog?.type === "rehearsal" &&
+          UUID_PATTERN.test(rehearsalDocumentId),
+        ),
+        queryKey: [
+          ...getGetCurrentDocumentVersionSnapshotQueryKey(rehearsalDocumentId),
+          ...documentQueryContext,
+          "submission-rehearsal",
+        ],
+        staleTime: 0,
+        retry: false,
+      },
+    },
+  );
   const snapshot = studioQuery.data as DeliveryStudioSnapshot | undefined;
+  const studioSnapshotIsCurrent = Boolean(
+    snapshot && studioQuery.isSuccess && !studioQuery.isFetching,
+  );
+  const governedDocumentListIsCurrent = Boolean(
+    documentsQuery.isSuccess && !documentsQuery.isFetching,
+  );
+  const responseDocumentVersionIsCurrent = Boolean(
+    responseDocumentVersionQuery.isSuccess &&
+    !responseDocumentVersionQuery.isFetching,
+  );
+  const rehearsalDocumentVersionIsCurrent = Boolean(
+    rehearsalDocumentVersionQuery.isSuccess &&
+    !rehearsalDocumentVersionQuery.isFetching,
+  );
+  const responseDocumentVersion =
+    responseDocumentVersionIsCurrent &&
+    responseDocumentVersionQuery.data?.documentId === responseDocumentId &&
+    responseDocumentVersionQuery.data.projectId === projectId
+      ? responseDocumentVersionQuery.data
+      : undefined;
+  const rehearsalDocumentVersion =
+    rehearsalDocumentVersionIsCurrent &&
+    rehearsalDocumentVersionQuery.data?.documentId === rehearsalDocumentId &&
+    rehearsalDocumentVersionQuery.data.projectId === projectId
+      ? rehearsalDocumentVersionQuery.data
+      : undefined;
+  const rehearsalVerifiedSnapshot =
+    rehearsalDocumentVersion?.snapshot?.status === "verified"
+      ? rehearsalDocumentVersion.snapshot
+      : undefined;
+  const rehearsalStructuredSource =
+    rehearsalVerifiedSnapshot?.structuredSnapshot ?? undefined;
+  const rehearsalSourceIsVerified = Boolean(
+    rehearsalVerifiedSnapshot &&
+    rehearsalStructuredSource &&
+    UUID_PATTERN.test(rehearsalStructuredSource.sourceId) &&
+    (rehearsalStructuredSource.sourceKind === "solicitation" ||
+      rehearsalStructuredSource.sourceKind === "addendum") &&
+    rehearsalStructuredSource.authority === "authoritative" &&
+    rehearsalStructuredSource.origin.trim().length > 0 &&
+    rehearsalVerifiedSnapshot.canonicalText.length > 0 &&
+    SHA_256_PATTERN.test(rehearsalVerifiedSnapshot.canonicalTextSha256) &&
+    rehearsalVerifiedSnapshot.createdAt.length > 0,
+  );
+  const governedDocuments =
+    canReadDocuments && governedDocumentListIsCurrent
+      ? (documentsQuery.data ?? []).filter(
+          (document) => document.redactionStatus !== "excluded",
+        )
+      : [];
   const projectIsReleased = TERMINAL_PROJECT_STATES.has(
     normalizedStatus(snapshot?.project.status),
   );
   const projectReleasedRef = useRef(projectIsReleased);
   projectReleasedRef.current = projectIsReleased;
+  const currentPackagePreflightBinding =
+    dialog?.type === "assemble_package" && studioSnapshotIsCurrent
+      ? packagePreflightFingerprint(snapshot)
+      : "";
+  const packagePreflightAccepted = Boolean(
+    currentPackagePreflightBinding &&
+    packagePreflightAcceptedBinding === currentPackagePreflightBinding,
+  );
+  const currentRehearsalPreflightBinding =
+    dialog?.type === "rehearsal" &&
+    studioSnapshotIsCurrent &&
+    governedDocumentListIsCurrent &&
+    rehearsalDocumentVersionIsCurrent &&
+    snapshot &&
+    rehearsalDocumentVersion &&
+    rehearsalVerifiedSnapshot &&
+    rehearsalStructuredSource
+      ? JSON.stringify({
+          deliverySnapshotVersion: snapshot.version,
+          deliverySourceSnapshotHash: snapshot.sourceSnapshotHash,
+          package: {
+            id: dialog.deliveryPackage.id,
+            versionId: dialog.deliveryPackage.versionId,
+            sourceSnapshotHash: dialog.deliveryPackage.sourceSnapshotHash,
+            manifestHash: dialog.deliveryPackage.manifestHash,
+            renderQaStatus: dialog.deliveryPackage.renderQaStatus,
+            manifestItems: dialog.deliveryPackage.manifestItems,
+          },
+          document: {
+            documentId: rehearsalDocumentVersion.documentId,
+            documentVersionId: rehearsalDocumentVersion.documentVersionId,
+            documentVersionSha256:
+              rehearsalDocumentVersion.documentVersionSha256,
+            filename: rehearsalDocumentVersion.filename,
+            snapshotId: rehearsalVerifiedSnapshot.id,
+            snapshotVersion: rehearsalVerifiedSnapshot.version,
+            canonicalTextSha256: rehearsalVerifiedSnapshot.canonicalTextSha256,
+            capturedAt: rehearsalVerifiedSnapshot.createdAt,
+            sourceId: rehearsalStructuredSource.sourceId,
+            sourceKind: rehearsalStructuredSource.sourceKind,
+            origin: rehearsalStructuredSource.origin,
+          },
+          mappings: rehearsalForm.fileMappings,
+          reviewNote: rehearsalForm.reviewNote,
+          rehearsalSubjectId: rehearsalForm.rehearsalSubjectId,
+          reviewerId: actorUserId,
+        })
+      : "";
+  const rehearsalPreflightAccepted = Boolean(
+    rehearsalForm.reviewAccepted &&
+    currentRehearsalPreflightBinding &&
+    rehearsalAcceptedBinding === currentRehearsalPreflightBinding,
+  );
+
+  useEffect(() => {
+    setPackagePreflightAcceptedBinding(null);
+  }, [currentPackagePreflightBinding]);
+
+  useEffect(() => {
+    setRehearsalAcceptedBinding(null);
+    setRehearsalForm((current) =>
+      current.reviewAccepted ? { ...current, reviewAccepted: false } : current,
+    );
+  }, [currentRehearsalPreflightBinding]);
 
   const mutation = useRunDeliveryStudioAction({
     mutation: {
@@ -621,6 +918,8 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
         setResponseFormError(null);
         setRehearsalFormError(null);
         setRehearsalPreparing(false);
+        setPackagePreflightAcceptedBinding(null);
+        setRehearsalAcceptedBinding(null);
         setResolution("");
         setAttestation("");
         toast({ title: "Delivery Studio updated" });
@@ -636,6 +935,12 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
               : "The action was rejected. No approval, package release or external action was inferred.",
           ),
         );
+        setPackagePreflightAcceptedBinding(null);
+        setRehearsalAcceptedBinding(null);
+        setRehearsalForm((current) => ({
+          ...current,
+          reviewAccepted: false,
+        }));
         toast({
           variant: "destructive",
           title: stale ? "Delivery snapshot is stale" : "Action rejected",
@@ -650,6 +955,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
   const runAction = (data: DeliveryStudioAction) => {
     if (
       !snapshot ||
+      !studioSnapshotIsCurrent ||
       projectReleasedRef.current ||
       !Number.isSafeInteger(snapshot.version)
     ) {
@@ -664,12 +970,18 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     });
   };
 
+  const openActionDialog = (nextDialog: Exclude<DialogState, null>) => {
+    setActionError(null);
+    setDialog(nextDialog);
+  };
+
   const openResponse = (section?: DeliveryStudioSection) => {
     if (projectIsReleased) return;
     if (section) {
-      setDialog({ type: "response_edit_blocked", section });
+      openActionDialog({ type: "response_edit_blocked", section });
       return;
     }
+    setActionError(null);
     setResponseFormError(null);
     setResponseForm(EMPTY_RESPONSE_FORM);
     setDialog({ type: "response" });
@@ -703,7 +1015,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     }
     const citationValues = [
       responseForm.documentId,
-      responseForm.documentVersionId,
+      responseDocumentVersion?.documentVersionId ?? "",
       responseForm.pageNumber,
       responseForm.quote,
     ];
@@ -713,13 +1025,22 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     const citationComplete = citationValues.every(
       (value) => value.trim().length > 0,
     );
+    const selectedCitationDocument = governedDocuments.find(
+      (document) => document.id === responseForm.documentId.trim(),
+    );
     const pageNumber = Number(responseForm.pageNumber);
     if (
       citationStarted &&
       (!citationComplete || !Number.isSafeInteger(pageNumber) || pageNumber < 1)
     ) {
       setResponseFormError(
-        "Complete the document, version, positive page number and exact quote for the citation.",
+        "Select a governed current document version, then complete the positive page number and exact quote for the citation.",
+      );
+      return;
+    }
+    if (citationStarted && !selectedCitationDocument) {
+      setResponseFormError(
+        "Choose the citation source from the current permission-scoped project-document list. Identifiers entered outside that list are not accepted.",
       );
       return;
     }
@@ -737,7 +1058,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
       ? [
           {
             documentId: responseForm.documentId.trim(),
-            documentVersionId: responseForm.documentVersionId.trim(),
+            documentVersionId: responseDocumentVersion!.documentVersionId,
             pageNumber,
             quote: responseForm.quote.trim(),
           },
@@ -768,6 +1089,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     if (projectIsReleased || deliveryPackage.manifestItems.length !== 1) {
       return;
     }
+    setActionError(null);
     const priorReceipt = snapshot?.submissionRehearsal.receipt;
     setRehearsalForm({
       ...EMPTY_REHEARSAL_FORM,
@@ -786,6 +1108,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
         mappingRationale: "",
       })),
     });
+    setRehearsalAcceptedBinding(null);
     setRehearsalFormError(null);
     setDialog({ type: "rehearsal", deliveryPackage });
   };
@@ -796,21 +1119,27 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
   ) => {
     setRehearsalForm((current) => ({
       ...current,
+      reviewAccepted: false,
       fileMappings: current.fileMappings.map((mapping) =>
         mapping.manifestItemId === manifestItemId
           ? { ...mapping, ...patch }
           : mapping,
       ),
     }));
+    setRehearsalAcceptedBinding(null);
   };
 
   const submitRehearsal = async () => {
     if (dialog?.type !== "rehearsal" || projectIsReleased) return;
     const deliveryPackage = dialog.deliveryPackage;
     const portalSourceId = rehearsalForm.portalSourceId.trim();
-    const portalSourceVersionId = rehearsalForm.portalSourceVersionId.trim();
+    const portalSourceVersionId =
+      rehearsalDocumentVersion?.documentVersionId ?? "";
     const reviewNote = rehearsalForm.reviewNote.trim();
     const rehearsalSubjectId = rehearsalForm.rehearsalSubjectId.trim();
+    const selectedPortalDocument = governedDocuments.find(
+      (document) => document.id === portalSourceId,
+    );
     if (
       !portalSourceId ||
       !portalSourceVersionId ||
@@ -818,7 +1147,13 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
       !actorUserId
     ) {
       setRehearsalFormError(
-        "Complete the verified portal document IDs, exact rule quote and named review. Your authenticated user identity must also be available.",
+        "Select a governed verified portal document, complete the exact rule quote and named review, and ensure your authenticated identity is available.",
+      );
+      return;
+    }
+    if (!selectedPortalDocument) {
+      setRehearsalFormError(
+        "Choose the portal source from the current permission-scoped project-document list. No identifier entered outside that list is accepted.",
       );
       return;
     }
@@ -828,6 +1163,17 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     ) {
       setRehearsalFormError(
         "Portal source and version IDs must identify a verified project document and use UUID format.",
+      );
+      return;
+    }
+    if (
+      !rehearsalSourceIsVerified ||
+      !rehearsalDocumentVersion ||
+      !rehearsalVerifiedSnapshot ||
+      !rehearsalStructuredSource
+    ) {
+      setRehearsalFormError(
+        "The selected portal source is not the exact current version with a verified named-human structured snapshot and complete provenance. No rehearsal was recorded.",
       );
       return;
     }
@@ -920,9 +1266,27 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
       );
       return;
     }
-    if (!rehearsalForm.reviewAccepted) {
+    const portalCitationRanges = new Map(
+      normalizedMappings.map((mapping) => [
+        mapping.manifestItemId,
+        uniqueUtf16CitationRange(
+          rehearsalVerifiedSnapshot.canonicalText,
+          mapping.portalRuleText,
+        ),
+      ]),
+    );
+    const ambiguousPortalCitation = normalizedMappings.find(
+      (mapping) => !portalCitationRanges.get(mapping.manifestItemId),
+    );
+    if (ambiguousPortalCitation) {
       setRehearsalFormError(
-        "Explicitly accept the exact portal fields, files and mappings before recording this named review.",
+        `The exact portal rule for ${itemById.get(ambiguousPortalCitation.manifestItemId)?.filename ?? "a manifest file"} must occur exactly once in the current verified canonical document text. Refresh or select an unambiguous quote before recording the review.`,
+      );
+      return;
+    }
+    if (!rehearsalPreflightAccepted) {
+      setRehearsalFormError(
+        "Explicitly accept the exact current portal source, fields, files and mappings before recording this named review. If source or package provenance changed, review and confirm it again.",
       );
       return;
     }
@@ -941,10 +1305,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     setRehearsalPreparing(true);
     setRehearsalFormError(null);
     try {
-      const [portalSourceHash, manifestSourceHash] = await Promise.all([
-        sha256Hex(normalizedMappings[0]!.portalRuleText),
-        sha256Hex(manifestSourceContent),
-      ]);
+      const manifestSourceHash = await sha256Hex(manifestSourceContent);
       if (projectReleasedRef.current) return;
       const reviewedAt = new Date().toISOString();
       const review: RehearsalHumanReviewInput = {
@@ -963,15 +1324,16 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
       };
       const portalCitations = new Map(
         normalizedMappings.map((mapping) => {
-          const startOffset = 0;
+          const range = portalCitationRanges.get(mapping.manifestItemId)!;
           return [
             mapping.manifestItemId,
             {
-              sourceId: portalSourceId,
+              sourceId: rehearsalStructuredSource.sourceId,
               sourceVersionId: portalSourceVersionId,
-              contentSha256: portalSourceHash,
-              startOffset,
-              endOffset: startOffset + mapping.portalRuleText.length,
+              contentSha256:
+                rehearsalVerifiedSnapshot.canonicalTextSha256.toLowerCase(),
+              startOffset: range.startOffset,
+              endOffset: range.endOffset,
               quote: mapping.portalRuleText,
             } satisfies RehearsalExactCitationInput,
           ];
@@ -980,15 +1342,16 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
       const rehearsal: PortalSubmissionRehearsalInput = {
         sources: [
           {
-            sourceId: portalSourceId,
+            sourceId: rehearsalStructuredSource.sourceId,
             versionId: portalSourceVersionId,
-            kind: "other",
-            title: "Verified project portal source",
-            content: normalizedMappings[0]!.portalRuleText,
-            contentSha256: portalSourceHash,
-            capturedAt: reviewedAt,
-            authority: "authoritative",
-            origin: `document:${portalSourceId}:version:${portalSourceVersionId}`,
+            kind: rehearsalStructuredSource.sourceKind,
+            title: rehearsalDocumentVersion.filename,
+            content: rehearsalVerifiedSnapshot.canonicalText,
+            contentSha256:
+              rehearsalVerifiedSnapshot.canonicalTextSha256.toLowerCase(),
+            capturedAt: rehearsalVerifiedSnapshot.createdAt,
+            authority: rehearsalStructuredSource.authority,
+            origin: rehearsalStructuredSource.origin,
           },
           {
             sourceId: deliveryPackage.id,
@@ -1096,6 +1459,16 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     );
   }
 
+  if (meQuery.isError) {
+    return (
+      <DataErrorPanel
+        title="Your profile could not be loaded"
+        description="BidBox could not verify the signed-in identity required for named Delivery Studio actions. No Delivery Studio records were requested or shown."
+        onRetry={() => void meQuery.refetch()}
+      />
+    );
+  }
+
   if (!hasNamedActor) {
     return (
       <StatusPanel
@@ -1138,6 +1511,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
   const deliveryPackage = snapshot.packageAssembly.package;
   const receipt = snapshot.submissionRehearsal.receipt;
   const canAssemble =
+    studioSnapshotIsCurrent &&
     snapshot.responseStudio.status === "ready" &&
     snapshot.redTeamReview.status === "approved";
 
@@ -1213,7 +1587,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
         </CardContent>
       </Card>
 
-      <ActionError message={actionError} />
+      <ActionError message={dialog ? null : actionError} />
 
       {projectIsReleased ? (
         <StatusPanel
@@ -1249,6 +1623,13 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
         />
       ) : null}
 
+      <ReviewDesk
+        sections={snapshot.responseStudio.sections}
+        redTeamRun={snapshot.redTeamReview.run}
+        redTeamStatus={snapshot.redTeamReview.status}
+        sourceSnapshotHash={snapshot.sourceSnapshotHash}
+      />
+
       <StageCard
         title="Response Studio"
         description="Write bounded sections, identify claims and bind factual or instructional statements to exact source versions. Placeholders and unsupported claims block readiness."
@@ -1266,6 +1647,26 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
           ) : undefined
         }
       >
+        <WhyStatusDetails
+          status={snapshot.responseStudio.status}
+          sourceSnapshot={snapshot.sourceSnapshotHash}
+          rule="No response-rule version is exposed in this snapshot. The recorded status is supported only by the claim-grounding and placeholder counts shown below."
+          reviewTime={`No response-stage review timestamp is exposed. This status was projected at ${formatWatInstant(snapshot.generatedAt, { suffix: " WAT" })}.`}
+          dependencies={[
+            `${snapshot.responseStudio.sectionCount} response section${snapshot.responseStudio.sectionCount === 1 ? "" : "s"}`,
+            `${snapshot.responseStudio.groundedClaimCount} of ${snapshot.responseStudio.claimCount} claims recorded as grounded`,
+            `${snapshot.responseStudio.placeholderCount} unresolved placeholder${snapshot.responseStudio.placeholderCount === 1 ? "" : "s"}`,
+          ]}
+          remediation={
+            snapshot.responseStudio.placeholderCount > 0
+              ? "Remove every recorded placeholder and save a new bounded section version."
+              : snapshot.responseStudio.groundedClaimCount <
+                  snapshot.responseStudio.claimCount
+                ? "Bind unsupported factual or instructional claims to exact governed source versions and complete their named review."
+                : "No response remediation is exposed by the current counts; refresh if the displayed status disagrees with them."
+          }
+          provenance={`Delivery snapshot v${snapshot.version}; source binding ${snapshot.sourceSnapshotHash}.`}
+        />
         <div className="grid gap-3 sm:grid-cols-4">
           {[
             ["Sections", snapshot.responseStudio.sectionCount],
@@ -1305,7 +1706,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                 onReview={(claim) => {
                   setClaimDecision("needs_changes");
                   setClaimNote("");
-                  setDialog({ type: "claim", claim });
+                  openActionDialog({ type: "claim", claim });
                 }}
               />
             ))}
@@ -1325,7 +1726,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
               (!run || snapshot.redTeamReview.status === "stale") ? (
                 <Button
                   type="button"
-                  onClick={() => setDialog({ type: "red_team" })}
+                  onClick={() => openActionDialog({ type: "red_team" })}
                   disabled={mutation.isPending}
                 >
                   Start red-team review
@@ -1339,7 +1740,9 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
               normalizedStatus(snapshot.redTeamReview.status) !== "stale" ? (
                 <Button
                   type="button"
-                  onClick={() => setDialog({ type: "approve_red_team", run })}
+                  onClick={() =>
+                    openActionDialog({ type: "approve_red_team", run })
+                  }
                   disabled={mutation.isPending}
                 >
                   Record approval
@@ -1349,6 +1752,45 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
           ) : undefined
         }
       >
+        <WhyStatusDetails
+          status={snapshot.redTeamReview.status}
+          sourceSnapshot={
+            run?.sourceSnapshotHash ?? snapshot.sourceSnapshotHash
+          }
+          rule={
+            run
+              ? `Red-team policy ${run.policyVersion}.`
+              : "No red-team policy version is exposed because no review run is recorded."
+          }
+          reviewTime={
+            run?.approvedAt
+              ? `Approval recorded ${formatWatInstant(run.approvedAt, { suffix: " WAT" })}.`
+              : run
+                ? `No approval time is recorded. The run was created ${formatWatInstant(run.createdAt, { suffix: " WAT" })}.`
+                : "No red-team review time is recorded."
+          }
+          dependencies={[
+            `Response Studio status: ${statusLabel(snapshot.responseStudio.status)}`,
+            `${openFindings.length} unresolved finding${openFindings.length === 1 ? "" : "s"}`,
+            run
+              ? `Run ${run.id} reviewed source ${shortHash(run.sourceSnapshotHash)}`
+              : "No review run is recorded",
+          ]}
+          remediation={
+            !run
+              ? "Start an independent red-team run against the current response snapshot."
+              : openFindings.length > 0
+                ? "Resolve permitted non-fatal findings; remediate cited sources and start a new independent review for fatal or likely-fatal findings."
+                : normalizedStatus(snapshot.redTeamReview.status) !== "approved"
+                  ? "A different authorised named reviewer must inspect the current run and record approval."
+                  : "No unresolved red-team remediation is exposed by the current run."
+          }
+          provenance={
+            run
+              ? `Run ${run.id}; initiated by ${run.initiatedByUserId ?? "not recorded"}; approved by ${run.approvedByUserId ?? "not recorded"}.`
+              : `Delivery snapshot v${snapshot.version}.`
+          }
+        />
         {!canStartRedTeam && !canResolveRedTeam && !canApproveRedTeam ? (
           <ReadOnlyNote permission="the required red-team action permissions" />
         ) : null}
@@ -1455,7 +1897,11 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                             size="sm"
                             variant="outline"
                             onClick={() =>
-                              setDialog({ type: "finding", run, finding })
+                              openActionDialog({
+                                type: "finding",
+                                run,
+                                finding,
+                              })
                             }
                             disabled={mutation.isPending}
                           >
@@ -1502,7 +1948,11 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
           canGeneratePackage && !projectIsReleased ? (
             <Button
               type="button"
-              onClick={() => setDialog({ type: "assemble_package" })}
+              onClick={() => {
+                setActionError(null);
+                setPackagePreflightAcceptedBinding(null);
+                openActionDialog({ type: "assemble_package" });
+              }}
               disabled={!canAssemble || mutation.isPending}
               title={
                 canAssemble
@@ -1515,6 +1965,34 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
           ) : undefined
         }
       >
+        <WhyStatusDetails
+          status={snapshot.packageAssembly.status}
+          sourceSnapshot={
+            deliveryPackage?.sourceSnapshotHash ?? snapshot.sourceSnapshotHash
+          }
+          rule="No package-assembly rule version is exposed in this snapshot. Assembly depends on a ready response and approved red-team review."
+          reviewTime="No package review timestamp is exposed by the current package projection."
+          dependencies={[
+            `Response Studio status: ${statusLabel(snapshot.responseStudio.status)}`,
+            `Red-team status: ${statusLabel(snapshot.redTeamReview.status)}`,
+            deliveryPackage
+              ? `Package v${deliveryPackage.versionNumber} contains ${deliveryPackage.manifestItems.length} manifest item${deliveryPackage.manifestItems.length === 1 ? "" : "s"}`
+              : "No package version is recorded",
+          ]}
+          remediation={
+            !canAssemble
+              ? "Make the response ready and obtain independent red-team approval before assembly."
+              : deliveryPackage &&
+                  normalizedStatus(deliveryPackage.renderQaStatus) !== "passed"
+                ? "Complete render QA through the governed package workflow before relying on this version."
+                : "No assembly remediation is exposed; sign-off and export remain separate named-human controls."
+          }
+          provenance={
+            deliveryPackage
+              ? `Package version ${deliveryPackage.versionId}; manifest ${deliveryPackage.manifestHash}; render QA ${deliveryPackage.renderQaStatus}.`
+              : `Delivery snapshot v${snapshot.version}; no package provenance is recorded yet.`
+          }
+        />
         {!canGeneratePackage ? (
           <ReadOnlyNote permission="package:generate" />
         ) : null}
@@ -1603,11 +2081,12 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
         status={snapshot.submissionRehearsal.status}
         icon={ClipboardCheck}
         actions={
-          canReviewIntelligence && !projectIsReleased ? (
+          canPrepareRehearsal && !projectIsReleased ? (
             <Button
               type="button"
               onClick={() => deliveryPackage && openRehearsal(deliveryPackage)}
               disabled={
+                !studioSnapshotIsCurrent ||
                 !deliveryPackage ||
                 deliveryPackage.manifestItems.length !== 1 ||
                 normalizedStatus(snapshot.packageAssembly.status) !== "ready" ||
@@ -1627,9 +2106,44 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
           ) : undefined
         }
       >
-        {!canReviewIntelligence ? (
+        <WhyStatusDetails
+          status={snapshot.submissionRehearsal.status}
+          sourceSnapshot={
+            deliveryPackage?.sourceSnapshotHash ?? snapshot.sourceSnapshotHash
+          }
+          rule="No rehearsal-rule version is exposed in this snapshot. The receipt records the reviewed package version and any blocker or warning issues returned by the bounded rehearsal."
+          reviewTime={
+            receipt
+              ? `Receipt completed ${formatWatInstant(receipt.completedAt, { suffix: " WAT" })}.`
+              : "No rehearsal completion time is recorded."
+          }
+          dependencies={[
+            `Package status: ${statusLabel(snapshot.packageAssembly.status)}`,
+            receipt
+              ? `Receipt ${receipt.id} is bound to package version ${receipt.packageVersionId}`
+              : "No rehearsal receipt is recorded",
+            receipt
+              ? `${receipt.issues.filter((issue) => issue.severity === "blocker").length} blocker issue${receipt.issues.filter((issue) => issue.severity === "blocker").length === 1 ? "" : "s"} and ${receipt.issues.filter((issue) => issue.severity === "warning").length} warning${receipt.issues.filter((issue) => issue.severity === "warning").length === 1 ? "" : "s"}`
+              : "A current verified portal-rule source is required",
+          ]}
+          remediation={
+            !deliveryPackage
+              ? "Assemble a governed package before preparing a rehearsal."
+              : receipt?.issues.some((issue) => issue.severity === "blocker")
+                ? "Resolve every blocker described in the current receipt, then record a new named review against the exact package and portal source versions."
+                : !receipt
+                  ? "Select a verified current portal-rule document and complete the exact file-field mapping review."
+                  : "No blocker remediation is exposed by the receipt. External submission still requires the authorised operator."
+          }
+          provenance={
+            receipt
+              ? `Rehearsal ${receipt.rehearsalId}; reviewer ${receipt.reviewerUserId}; package version ${receipt.packageVersionId}.`
+              : `Delivery snapshot v${snapshot.version}; no rehearsal receipt is recorded yet.`
+          }
+        />
+        {!canPrepareRehearsal ? (
           <div className="mb-4">
-            <ReadOnlyNote permission="intelligence:review" />
+            <ReadOnlyNote permission="intelligence:review and document:read" />
           </div>
         ) : null}
         {!receipt ? (
@@ -1741,6 +2255,15 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
             dialog?.type === "rehearsal" ? "max-w-4xl" : "max-w-2xl"
           }`}
         >
+          {actionError ? (
+            <div
+              role="alert"
+              className="rounded-md border border-red-200 bg-red-50 p-3 text-sm leading-6 text-red-950"
+            >
+              <p className="font-medium">Action was not recorded</p>
+              <p className="mt-1">{actionError}</p>
+            </div>
+          ) : null}
           {dialog?.type === "response" ? (
             <>
               <DialogHeader>
@@ -1893,37 +2416,35 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                     This bounded form applies one citation to every listed
                     claim.
                   </p>
+                  <GovernedDocumentPicker
+                    label="Governed citation source"
+                    description="Search only the project documents available to your current organisation role. BidBox resolves the exact current version; document and version IDs cannot be typed from memory."
+                    documents={governedDocuments}
+                    selectedDocumentId={responseForm.documentId}
+                    onSelect={(documentId) =>
+                      setResponseForm({
+                        ...responseForm,
+                        documentId,
+                      })
+                    }
+                    currentVersion={responseDocumentVersion}
+                    documentsLoading={Boolean(
+                      documentsQuery.isLoading ||
+                      documentsQuery.isPending ||
+                      documentsQuery.isFetching ||
+                      (!documentsQuery.isSuccess && !documentsQuery.isError),
+                    )}
+                    documentsError={documentsQuery.isError}
+                    versionLoading={Boolean(
+                      responseDocumentVersionQuery.isLoading ||
+                      responseDocumentVersionQuery.isPending ||
+                      responseDocumentVersionQuery.isFetching ||
+                      (!responseDocumentVersionQuery.isSuccess &&
+                        !responseDocumentVersionQuery.isError),
+                    )}
+                    versionError={responseDocumentVersionQuery.isError}
+                  />
                   <div className="grid gap-3 sm:grid-cols-2">
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="response-document-id">Document ID</Label>
-                      <Input
-                        id="response-document-id"
-                        value={responseForm.documentId}
-                        onChange={(event) =>
-                          setResponseForm({
-                            ...responseForm,
-                            documentId: event.currentTarget.value,
-                          })
-                        }
-                        maxLength={100}
-                      />
-                    </div>
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="response-document-version-id">
-                        Document version ID
-                      </Label>
-                      <Input
-                        id="response-document-version-id"
-                        value={responseForm.documentVersionId}
-                        onChange={(event) =>
-                          setResponseForm({
-                            ...responseForm,
-                            documentVersionId: event.currentTarget.value,
-                          })
-                        }
-                        maxLength={100}
-                      />
-                    </div>
                     <div className="grid gap-1.5">
                       <Label htmlFor="response-page-number">Page number</Label>
                       <Input
@@ -2334,6 +2855,108 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                 Final visual QA, sign-off and delivery remain separate
                 named-human controls.
               </div>
+              <div
+                className="grid gap-4 rounded-lg border border-border p-4"
+                aria-labelledby="package-assembly-preflight-title"
+              >
+                <div>
+                  <h3
+                    id="package-assembly-preflight-title"
+                    className="text-sm font-semibold"
+                  >
+                    Preflight — exact assembly inputs
+                  </h3>
+                  <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                    Review what the server will bind. A new package version and
+                    manifest hash are assigned only after the server revalidates
+                    this snapshot.
+                  </p>
+                </div>
+                <dl className="grid gap-3 text-xs sm:grid-cols-2">
+                  <div>
+                    <dt className="text-muted-foreground">
+                      Delivery snapshot version
+                    </dt>
+                    <dd className="mt-0.5 font-mono">v{snapshot.version}</dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">
+                      Source snapshot SHA-256
+                    </dt>
+                    <dd className="mt-0.5 break-all font-mono">
+                      {snapshot.sourceSnapshotHash}
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Response status</dt>
+                    <dd className="mt-0.5 font-medium">
+                      {statusLabel(snapshot.responseStudio.status)} ·{" "}
+                      {snapshot.responseStudio.claimCount} claims
+                    </dd>
+                  </div>
+                  <div>
+                    <dt className="text-muted-foreground">Red-team review</dt>
+                    <dd className="mt-0.5 font-medium">
+                      {statusLabel(snapshot.redTeamReview.status)} ·{" "}
+                      {openFindings.length} unresolved findings
+                    </dd>
+                  </div>
+                </dl>
+                <div>
+                  <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                    Response versions to assemble
+                  </p>
+                  <ul className="mt-2 space-y-2 text-sm">
+                    {snapshot.responseStudio.sections.map((section) => (
+                      <li
+                        key={section.id}
+                        className="rounded-md border border-border bg-muted/20 p-3"
+                      >
+                        <span className="font-medium">{section.title}</span> · v
+                        {section.currentVersionNumber}
+                        <span className="mt-1 block break-all font-mono text-xs text-muted-foreground">
+                          {section.version?.id ?? "No current version ID"} ·{" "}
+                          {section.version?.contentHash ?? "No content hash"}
+                        </span>
+                      </li>
+                    ))}
+                  </ul>
+                </div>
+                <div
+                  className={`rounded-md border p-3 text-sm leading-6 ${
+                    canAssemble
+                      ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                      : "border-red-200 bg-red-50 text-red-950"
+                  }`}
+                >
+                  {canAssemble
+                    ? "No upstream blocker is exposed in this snapshot. The server still rechecks the exact version, source bindings and authority before writing anything."
+                    : `Unresolved blockers: response is ${statusLabel(snapshot.responseStudio.status).toLowerCase()} and red-team review is ${statusLabel(snapshot.redTeamReview.status).toLowerCase()}.`}
+                </div>
+                <label
+                  htmlFor="package-assembly-confirmation"
+                  className="flex items-start gap-3 rounded-md border border-border p-3 text-sm leading-6"
+                >
+                  <input
+                    id="package-assembly-confirmation"
+                    type="checkbox"
+                    className="mt-1 size-4"
+                    checked={packagePreflightAccepted}
+                    onChange={(event) =>
+                      setPackagePreflightAcceptedBinding(
+                        event.currentTarget.checked
+                          ? currentPackagePreflightBinding
+                          : null,
+                      )
+                    }
+                  />
+                  <span>
+                    I reviewed this exact source snapshot, response-version list
+                    and red-team state. I understand assembly does not sign,
+                    export, deliver or submit the package.
+                  </span>
+                </label>
+              </div>
               <DialogFooter>
                 <Button
                   type="button"
@@ -2345,7 +2968,11 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                 </Button>
                 <Button
                   type="button"
-                  disabled={mutation.isPending}
+                  disabled={
+                    mutation.isPending ||
+                    !packagePreflightAccepted ||
+                    !canAssemble
+                  }
                   onClick={() =>
                     runAction({
                       action: "assemble_package",
@@ -2379,52 +3006,146 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                   from this frozen package, never typed by the operator.
                 </div>
 
+                <section
+                  className="grid gap-4 rounded-lg border border-border p-4"
+                  aria-labelledby="rehearsal-preflight-title"
+                >
+                  <div>
+                    <h3
+                      id="rehearsal-preflight-title"
+                      className="text-sm font-semibold"
+                    >
+                      Preflight — exact version, contents and blockers
+                    </h3>
+                    <p className="mt-1 text-xs leading-5 text-muted-foreground">
+                      This preview records no portal action. The final named
+                      review below confirms these exact inputs; the server then
+                      revalidates all authority and provenance.
+                    </p>
+                  </div>
+                  <dl className="grid gap-3 text-xs sm:grid-cols-2 lg:grid-cols-3">
+                    <div>
+                      <dt className="text-muted-foreground">Package version</dt>
+                      <dd className="mt-0.5 font-medium">
+                        v{dialog.deliveryPackage.versionNumber}
+                      </dd>
+                      <dd className="mt-0.5 break-all font-mono">
+                        {dialog.deliveryPackage.versionId}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Manifest hash</dt>
+                      <dd className="mt-0.5 break-all font-mono">
+                        {dialog.deliveryPackage.manifestHash}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">
+                        Package source snapshot
+                      </dt>
+                      <dd className="mt-0.5 break-all font-mono">
+                        {dialog.deliveryPackage.sourceSnapshotHash}
+                      </dd>
+                    </div>
+                    <div>
+                      <dt className="text-muted-foreground">Render QA</dt>
+                      <dd className="mt-0.5 font-medium">
+                        {statusLabel(dialog.deliveryPackage.renderQaStatus)}
+                      </dd>
+                    </div>
+                    <div className="sm:col-span-2">
+                      <dt className="text-muted-foreground">
+                        Selected portal source version
+                      </dt>
+                      <dd className="mt-0.5 break-all font-mono">
+                        {rehearsalDocumentVersion?.documentVersionId ??
+                          "Select a governed document below"}
+                      </dd>
+                    </div>
+                  </dl>
+                  <div>
+                    <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                      Frozen manifest contents
+                    </p>
+                    <ul className="mt-2 space-y-2 text-sm">
+                      {dialog.deliveryPackage.manifestItems.map((item) => (
+                        <li
+                          key={item.id}
+                          className="rounded-md border border-border bg-muted/20 p-3"
+                        >
+                          <span className="font-medium">
+                            {item.ordinal}. {item.filename}
+                          </span>
+                          <span className="mt-1 block break-all font-mono text-xs text-muted-foreground">
+                            {item.sizeBytes} bytes · {item.sha256}
+                          </span>
+                        </li>
+                      ))}
+                    </ul>
+                  </div>
+                  <div
+                    className={`rounded-md border p-3 text-sm leading-6 ${
+                      normalizedStatus(snapshot.packageAssembly.status) ===
+                        "ready" &&
+                      dialog.deliveryPackage.manifestItems.length === 1 &&
+                      rehearsalSourceIsVerified
+                        ? "border-emerald-200 bg-emerald-50 text-emerald-950"
+                        : "border-red-200 bg-red-50 text-red-950"
+                    }`}
+                  >
+                    {normalizedStatus(snapshot.packageAssembly.status) !==
+                    "ready"
+                      ? `Unresolved blocker: package status is ${statusLabel(snapshot.packageAssembly.status).toLowerCase()}.`
+                      : dialog.deliveryPackage.manifestItems.length !== 1
+                        ? `Unresolved blocker: this bounded workflow requires exactly one file; this version has ${dialog.deliveryPackage.manifestItems.length}.`
+                        : !rehearsalDocumentId
+                          ? "Unresolved blocker: select a governed current portal-rule document below."
+                          : !rehearsalSourceIsVerified
+                            ? "Unresolved blocker: the selected current portal source does not have a verified named-human snapshot."
+                            : "No package or source-verification blocker is exposed. Complete every mapping field and the named review below before recording the rehearsal."}
+                  </div>
+                  <p className="text-xs leading-5 text-muted-foreground">
+                    Change provenance: this rehearsal will reference the frozen
+                    package version and the server-resolved current document
+                    version shown above. No free-text ID can replace either
+                    record.
+                  </p>
+                </section>
+
                 <fieldset className="grid gap-4 rounded-lg border border-border p-4">
                   <legend className="px-1 text-sm font-semibold">
                     Verified portal-rule source
                   </legend>
-                  <div className="grid gap-4 sm:grid-cols-2">
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="rehearsal-portal-source-id">
-                        Project document ID
-                      </Label>
-                      <Input
-                        id="rehearsal-portal-source-id"
-                        value={rehearsalForm.portalSourceId}
-                        onChange={(event) =>
-                          setRehearsalForm({
-                            ...rehearsalForm,
-                            portalSourceId: event.currentTarget.value,
-                          })
-                        }
-                        maxLength={128}
-                        placeholder="00000000-0000-4000-8000-000000000000"
-                      />
-                    </div>
-                    <div className="grid gap-1.5">
-                      <Label htmlFor="rehearsal-portal-version-id">
-                        Project document version ID
-                      </Label>
-                      <Input
-                        id="rehearsal-portal-version-id"
-                        value={rehearsalForm.portalSourceVersionId}
-                        onChange={(event) =>
-                          setRehearsalForm({
-                            ...rehearsalForm,
-                            portalSourceVersionId: event.currentTarget.value,
-                          })
-                        }
-                        maxLength={128}
-                        placeholder="00000000-0000-4000-8000-000000000000"
-                      />
-                    </div>
-                    <p className="text-xs leading-5 text-muted-foreground sm:col-span-2">
-                      Only IDs are entered here. Filename, source kind,
-                      canonical text, hash, capture time, authority and origin
-                      are bound server-side from the verified current document
-                      snapshot.
-                    </p>
-                  </div>
+                  <GovernedDocumentPicker
+                    label="Current verified project document"
+                    description="Search the documents available to your current organisation role. BidBox selects the exact current version and requires its named-human snapshot to be verified."
+                    documents={governedDocuments}
+                    selectedDocumentId={rehearsalForm.portalSourceId}
+                    onSelect={(portalSourceId) =>
+                      setRehearsalForm({
+                        ...rehearsalForm,
+                        portalSourceId,
+                        reviewAccepted: false,
+                      })
+                    }
+                    currentVersion={rehearsalDocumentVersion}
+                    documentsLoading={Boolean(
+                      documentsQuery.isLoading ||
+                      documentsQuery.isPending ||
+                      documentsQuery.isFetching ||
+                      (!documentsQuery.isSuccess && !documentsQuery.isError),
+                    )}
+                    documentsError={documentsQuery.isError}
+                    versionLoading={Boolean(
+                      rehearsalDocumentVersionQuery.isLoading ||
+                      rehearsalDocumentVersionQuery.isPending ||
+                      rehearsalDocumentVersionQuery.isFetching ||
+                      (!rehearsalDocumentVersionQuery.isSuccess &&
+                        !rehearsalDocumentVersionQuery.isError),
+                    )}
+                    versionError={rehearsalDocumentVersionQuery.isError}
+                    requireVerifiedSnapshot
+                  />
                 </fieldset>
 
                 <fieldset className="grid gap-4 rounded-lg border border-border p-4">
@@ -2462,21 +3183,13 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                           </dd>
                         </div>
                       </dl>
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="rehearsal-field-id">
-                          Portal field ID
-                        </Label>
-                        <Input
-                          id="rehearsal-field-id"
-                          value={rehearsalForm.fileMappings[0].fieldExternalId}
-                          onChange={(event) =>
-                            updateRehearsalFileMapping(
-                              dialog.deliveryPackage.manifestItems[0]!.id,
-                              { fieldExternalId: event.currentTarget.value },
-                            )
-                          }
-                          maxLength={128}
-                        />
+                      <div className="rounded-md border border-border bg-muted/30 p-3">
+                        <p className="text-xs text-muted-foreground">
+                          Generated portal field ID
+                        </p>
+                        <p className="mt-1 break-all font-mono text-sm">
+                          {rehearsalForm.fileMappings[0].fieldExternalId}
+                        </p>
                       </div>
                       <div className="grid gap-1.5">
                         <Label htmlFor="rehearsal-field-label">
@@ -2512,21 +3225,13 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                           }
                         />
                       </div>
-                      <div className="grid gap-1.5">
-                        <Label htmlFor="rehearsal-mapping-id">Mapping ID</Label>
-                        <Input
-                          id="rehearsal-mapping-id"
-                          value={
-                            rehearsalForm.fileMappings[0].mappingExternalId
-                          }
-                          onChange={(event) =>
-                            updateRehearsalFileMapping(
-                              dialog.deliveryPackage.manifestItems[0]!.id,
-                              { mappingExternalId: event.currentTarget.value },
-                            )
-                          }
-                          maxLength={128}
-                        />
+                      <div className="rounded-md border border-border bg-muted/30 p-3">
+                        <p className="text-xs text-muted-foreground">
+                          Generated mapping ID
+                        </p>
+                        <p className="mt-1 break-all font-mono text-sm">
+                          {rehearsalForm.fileMappings[0].mappingExternalId}
+                        </p>
                       </div>
                       <div className="grid gap-1.5 sm:col-span-2">
                         <Label htmlFor="rehearsal-portal-rule">
@@ -2593,6 +3298,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                           setRehearsalForm({
                             ...rehearsalForm,
                             reviewNote: event.currentTarget.value,
+                            reviewAccepted: false,
                           })
                         }
                         rows={3}
@@ -2608,13 +3314,17 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                         id="rehearsal-review-acceptance"
                         type="checkbox"
                         className="mt-1 size-4"
-                        checked={rehearsalForm.reviewAccepted}
-                        onChange={(event) =>
+                        checked={rehearsalPreflightAccepted}
+                        onChange={(event) => {
+                          const checked = event.currentTarget.checked;
+                          setRehearsalAcceptedBinding(
+                            checked ? currentRehearsalPreflightBinding : null,
+                          );
                           setRehearsalForm({
                             ...rehearsalForm,
-                            reviewAccepted: event.currentTarget.checked,
-                          })
-                        }
+                            reviewAccepted: checked,
+                          });
+                        }}
                       />
                       <span>
                         I accept this exact portal field, assembled file and
@@ -2661,7 +3371,12 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
                 <Button
                   type="button"
                   onClick={() => void submitRehearsal()}
-                  disabled={mutation.isPending || rehearsalPreparing}
+                  disabled={
+                    mutation.isPending ||
+                    rehearsalPreparing ||
+                    !rehearsalPreflightAccepted ||
+                    !rehearsalSourceIsVerified
+                  }
                 >
                   {rehearsalPreparing ? (
                     <Loader2

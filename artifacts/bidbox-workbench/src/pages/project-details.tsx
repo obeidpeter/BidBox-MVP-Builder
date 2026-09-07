@@ -17,21 +17,13 @@ import { lazy, Suspense, useEffect, useState } from "react";
 import {
   Loader2,
   FileText,
-  CheckSquare,
-  Layers,
-  AlertOctagon,
-  FileBarChart,
-  History,
-  Activity,
-  Calculator,
   ShieldAlert,
   Bell,
   Archive,
   Save,
   UserCheck,
-  PackageCheck,
 } from "lucide-react";
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
+import { Tabs, TabsContent } from "@/components/ui/tabs";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -53,6 +45,13 @@ import {
 } from "@/components/project-readiness-gate";
 import { LoadingPanel } from "@/components/platform-states";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import {
+  PursuitLifecycleRail,
+  pursuitRegisterFromSearch,
+  type PursuitRegister,
+  withPursuitRegister,
+} from "@/components/pursuit-lifecycle-rail";
+import type { ReadinessAssessment } from "@/lib/readiness";
 
 const DocumentsTab = lazy(() =>
   import("./project-tabs/documents-tab").then(({ DocumentsTab }) => ({
@@ -123,23 +122,6 @@ type SlaClass = "standard" | "live";
 type PaymentStatus = "not_required" | "pending" | "confirmed";
 type ConflictStatus = (typeof CONFLICT_OPTIONS)[number];
 
-const PROJECT_TABS: readonly ProjectTab[] = [
-  "overview",
-  "documents",
-  "requirements",
-  "evidence",
-  "boq",
-  "defects",
-  "risk",
-  "delivery",
-  "reports",
-  "audit",
-];
-
-function isProjectTab(value: string | null): value is ProjectTab {
-  return PROJECT_TABS.some((tab) => tab === value);
-}
-
 export default function ProjectDetails() {
   const { id } = useParams<{ id: string }>();
   const [searchParams, setSearchParams] = useSearchParams();
@@ -181,21 +163,20 @@ export default function ProjectDetails() {
   });
   const createNotification = useCreateProjectNotification();
   const createRetentionRequest = useCreateRetentionRequest();
-  const requestedTab = searchParams.get("tab");
-  const activeTab: ProjectTab = isProjectTab(requestedTab)
-    ? requestedTab
-    : "overview";
+  const activeTab: ProjectTab = pursuitRegisterFromSearch(searchParams);
+  const [readiness, setReadiness] = useState<ReadinessAssessment>({
+    status: "not_checked",
+  });
   const setActiveTab = (tab: ProjectTab) => {
     setSearchParams(
-      (current) => {
-        const next = new URLSearchParams(current);
-        if (tab === "overview") next.delete("tab");
-        else next.set("tab", tab);
-        return next;
-      },
+      (current) => withPursuitRegister(current, tab as PursuitRegister),
       { replace: true },
     );
   };
+
+  useEffect(() => {
+    setReadiness({ status: "not_checked" });
+  }, [activeTab, id]);
   const [governance, setGovernance] = useState<{
     status: ProjectStatus;
     slaClass: SlaClass;
@@ -379,11 +360,7 @@ export default function ProjectDetails() {
   };
 
   if (isLoading) {
-    return (
-      <div className="p-8 flex justify-center items-center h-64">
-        <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-      </div>
-    );
+    return <LoadingPanel label="Loading pursuit details" />;
   }
 
   if (
@@ -550,78 +527,14 @@ export default function ProjectDetails() {
         onValueChange={(value) => setActiveTab(value as ProjectTab)}
         className="w-full"
       >
-        <TabsList className="w-full justify-start border-b border-border rounded-none bg-transparent h-auto p-0 space-x-6 overflow-x-auto">
-          <TabsTrigger
-            value="overview"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <Activity className="w-4 h-4 mr-2" />
-            Overview &amp; next actions
-          </TabsTrigger>
-          <TabsTrigger
-            value="documents"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <FileText className="w-4 h-4 mr-2" />
-            Tender documents
-          </TabsTrigger>
-          <TabsTrigger
-            value="requirements"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <CheckSquare className="w-4 h-4 mr-2" />
-            Requirements
-          </TabsTrigger>
-          <TabsTrigger
-            value="evidence"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <Layers className="w-4 h-4 mr-2" />
-            Evidence &amp; compliance
-          </TabsTrigger>
-          <TabsTrigger
-            value="boq"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <Calculator className="w-4 h-4 mr-2" />
-            BOQ
-          </TabsTrigger>
-          <TabsTrigger
-            value="defects"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <AlertOctagon className="w-4 h-4 mr-2" />
-            Issues &amp; independent review
-          </TabsTrigger>
-          <TabsTrigger
-            value="risk"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <ShieldAlert className="w-4 h-4 mr-2" />
-            Risk review
-          </TabsTrigger>
-          <TabsTrigger
-            value="delivery"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <PackageCheck className="w-4 h-4 mr-2" />
-            Delivery studio
-          </TabsTrigger>
-          <TabsTrigger
-            value="reports"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <FileBarChart className="w-4 h-4 mr-2" />
-            Package &amp; export
-          </TabsTrigger>
-          <TabsTrigger
-            value="audit"
-            className="data-[state=active]:bg-transparent data-[state=active]:shadow-none data-[state=active]:border-b-2 data-[state=active]:border-primary rounded-none px-0 py-3 font-medium"
-          >
-            <History className="w-4 h-4 mr-2" />
-            Activity &amp; audit
-          </TabsTrigger>
-        </TabsList>
+        <PursuitLifecycleRail
+          activeRegister={activeTab as PursuitRegister}
+          project={project}
+          readiness={
+            activeTab === "overview" ? readiness : { status: "not_checked" }
+          }
+          onSelectRegister={setActiveTab}
+        />
 
         <div className="pt-6 pb-20">
           <Suspense
@@ -632,6 +545,7 @@ export default function ProjectDetails() {
                 <ProjectReadinessGate
                   project={project}
                   onGoToTab={setActiveTab}
+                  onAssessmentChange={setReadiness}
                 />
                 <div className="grid grid-cols-1 xl:grid-cols-3 gap-6">
                   <div className="bg-card border border-border p-6 rounded-xl shadow-xs">

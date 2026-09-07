@@ -7,6 +7,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Select,
   SelectContent,
@@ -25,20 +26,31 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Link } from "wouter";
 import { Loader2, Plus, Building2, ExternalLink } from "lucide-react";
-import { useForm } from "react-hook-form";
+import { type FieldErrors, useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useState } from "react";
 import { useQueryClient } from "@tanstack/react-query";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
-import { DataErrorPanel } from "@/components/platform-states";
+import { DataErrorPanel, LoadingPanel } from "@/components/platform-states";
+import {
+  FieldErrorMessage,
+  FormErrorSummary,
+  UnsavedChangesAlert,
+} from "@/components/form-feedback";
+import { errorMessage } from "@/lib/errors";
+import { useToast } from "@/hooks/use-toast";
 
 const createClientSchema = z.object({
   name: z.string().min(1, "Name is required"),
   segment: z.enum(["federal", "nipex_ncdmb", "donor", "other"]),
   sector: z.string().optional(),
   contactName: z.string().optional(),
-  contactEmail: z.string().email().optional().or(z.literal("")),
+  contactEmail: z
+    .string()
+    .email("Enter a valid contact email address")
+    .optional()
+    .or(z.literal("")),
   ndaStatus: z.enum(["pending", "signed", "not_required", "declined"]),
   notes: z.string().optional(),
   decisionMakerConversations: z.coerce.number().int().min(0).optional(),
@@ -58,8 +70,11 @@ export default function Clients() {
   } = useListClients();
   const createClient = useCreateClient();
   const queryClient = useQueryClient();
+  const { toast } = useToast();
   const canCreateClient = useOrganisationPermission("client:create");
   const [isCreateOpen, setIsCreateOpen] = useState(false);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [submitError, setSubmitError] = useState<string | null>(null);
 
   const form = useForm<CreateClientForm>({
     resolver: zodResolver(createClientSchema),
@@ -75,16 +90,72 @@ export default function Clients() {
   });
 
   const onSubmit = (data: CreateClientForm) => {
+    setSubmitError(null);
     createClient.mutate(
       { data },
       {
         onSuccess: () => {
           setIsCreateOpen(false);
           form.reset();
+          toast({
+            title: "Client created",
+            description: `${data.name} is now available in the client register.`,
+          });
           queryClient.invalidateQueries({ queryKey: getListClientsQueryKey() });
+        },
+        onError: (error) => {
+          setSubmitError(
+            errorMessage(
+              error,
+              "The client could not be created. Your entered details are still here; check your access and try again.",
+            ),
+          );
         },
       },
     );
+  };
+
+  const validationMessages = Object.values(form.formState.errors)
+    .map((fieldError) => fieldError?.message)
+    .filter((message): message is string => typeof message === "string");
+  const formIsDirty = form.formState.isDirty;
+
+  const handleInvalid = (errors: FieldErrors<CreateClientForm>) => {
+    setSubmitError(null);
+    const firstInvalid = [
+      "name",
+      "segment",
+      "ndaStatus",
+      "sector",
+      "decisionMakerConversations",
+      "juniorConversations",
+      "contactName",
+      "contactEmail",
+      "notes",
+    ].find((field) => errors[field as keyof CreateClientForm]);
+    if (firstInvalid) {
+      form.setFocus(firstInvalid as keyof CreateClientForm);
+    }
+  };
+
+  const closeCreateForm = () => {
+    setSubmitError(null);
+    setDiscardOpen(false);
+    setIsCreateOpen(false);
+    form.reset();
+  };
+
+  const requestCreateOpenChange = (open: boolean) => {
+    if (open) {
+      setIsCreateOpen(true);
+      return;
+    }
+    if (createClient.isPending) return;
+    if (formIsDirty) {
+      setDiscardOpen(true);
+      return;
+    }
+    closeCreateForm();
   };
 
   return (
@@ -99,7 +170,7 @@ export default function Clients() {
           </p>
         </div>
         {canCreateClient ? (
-          <Dialog open={isCreateOpen} onOpenChange={setIsCreateOpen}>
+          <Dialog open={isCreateOpen} onOpenChange={requestCreateOpenChange}>
             <DialogTrigger asChild>
               <Button className="bg-primary text-primary-foreground">
                 <Plus className="w-4 h-4 mr-2" />
@@ -112,28 +183,57 @@ export default function Clients() {
                 <DialogDescription>Add a client profile.</DialogDescription>
               </DialogHeader>
               <form
-                onSubmit={form.handleSubmit(onSubmit)}
+                noValidate
+                onSubmit={form.handleSubmit(onSubmit, handleInvalid)}
+                aria-describedby={
+                  validationMessages.length > 0 || submitError
+                    ? "create-client-errors"
+                    : undefined
+                }
                 className="space-y-4 pt-4"
               >
+                <FormErrorSummary
+                  id="create-client-errors"
+                  title={
+                    submitError
+                      ? "Client was not created"
+                      : "Check the highlighted client details"
+                  }
+                  errors={[submitError, ...validationMessages]}
+                />
                 <div className="space-y-2">
-                  <Label htmlFor="name">Company Name</Label>
-                  <Input id="name" {...form.register("name")} />
-                  {form.formState.errors.name && (
-                    <p className="text-xs text-destructive">
-                      {form.formState.errors.name.message}
-                    </p>
-                  )}
+                  <Label htmlFor="client-name">Company name</Label>
+                  <Input
+                    id="client-name"
+                    aria-invalid={Boolean(form.formState.errors.name)}
+                    aria-describedby={
+                      form.formState.errors.name
+                        ? "client-name-error"
+                        : undefined
+                    }
+                    {...form.register("name")}
+                  />
+                  <FieldErrorMessage id="client-name-error">
+                    {form.formState.errors.name?.message}
+                  </FieldErrorMessage>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="segment">Segment</Label>
+                    <Label htmlFor="client-segment">Segment</Label>
                     <Select
                       onValueChange={(val) =>
-                        form.setValue("segment", val as any)
+                        form.setValue(
+                          "segment",
+                          val as CreateClientForm["segment"],
+                          {
+                            shouldDirty: true,
+                            shouldValidate: true,
+                          },
+                        )
                       }
-                      defaultValue={form.getValues("segment")}
+                      value={form.watch("segment")}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="client-segment">
                         <SelectValue placeholder="Select segment" />
                       </SelectTrigger>
                       <SelectContent>
@@ -147,14 +247,18 @@ export default function Clients() {
                     </Select>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="ndaStatus">NDA Status</Label>
+                    <Label htmlFor="client-nda-status">NDA status</Label>
                     <Select
                       onValueChange={(val) =>
-                        form.setValue("ndaStatus", val as any)
+                        form.setValue(
+                          "ndaStatus",
+                          val as CreateClientForm["ndaStatus"],
+                          { shouldDirty: true, shouldValidate: true },
+                        )
                       }
-                      defaultValue={form.getValues("ndaStatus")}
+                      value={form.watch("ndaStatus")}
                     >
-                      <SelectTrigger>
+                      <SelectTrigger id="client-nda-status">
                         <SelectValue placeholder="Select status" />
                       </SelectTrigger>
                       <SelectContent>
@@ -169,63 +273,127 @@ export default function Clients() {
                   </div>
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="sector">Sector</Label>
+                  <Label htmlFor="client-sector">Sector</Label>
                   <Input
-                    id="sector"
+                    id="client-sector"
                     {...form.register("sector")}
                     placeholder="e.g. Oil & Gas, IT"
                   />
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="decisionMakerConversations">
+                    <Label htmlFor="client-decision-maker-conversations">
                       Decision-maker talks
                     </Label>
                     <Input
-                      id="decisionMakerConversations"
+                      id="client-decision-maker-conversations"
                       type="number"
                       min={0}
+                      aria-invalid={Boolean(
+                        form.formState.errors.decisionMakerConversations,
+                      )}
+                      aria-describedby={
+                        form.formState.errors.decisionMakerConversations
+                          ? "client-decision-maker-help client-decision-maker-error"
+                          : "client-decision-maker-help"
+                      }
                       {...form.register("decisionMakerConversations")}
                       placeholder="0"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p
+                      id="client-decision-maker-help"
+                      className="text-xs text-muted-foreground"
+                    >
                       Owners and managing directors
                     </p>
+                    <FieldErrorMessage id="client-decision-maker-error">
+                      {
+                        form.formState.errors.decisionMakerConversations
+                          ?.message
+                      }
+                    </FieldErrorMessage>
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="juniorConversations">Junior contacts</Label>
+                    <Label htmlFor="client-junior-conversations">
+                      Junior contacts
+                    </Label>
                     <Input
-                      id="juniorConversations"
+                      id="client-junior-conversations"
                       type="number"
                       min={0}
+                      aria-invalid={Boolean(
+                        form.formState.errors.juniorConversations,
+                      )}
+                      aria-describedby={
+                        form.formState.errors.juniorConversations
+                          ? "client-junior-help client-junior-error"
+                          : "client-junior-help"
+                      }
                       {...form.register("juniorConversations")}
                       placeholder="0"
                     />
-                    <p className="text-xs text-muted-foreground">
+                    <p
+                      id="client-junior-help"
+                      className="text-xs text-muted-foreground"
+                    >
                       Junior bid staff
                     </p>
+                    <FieldErrorMessage id="client-junior-error">
+                      {form.formState.errors.juniorConversations?.message}
+                    </FieldErrorMessage>
                   </div>
                 </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
-                    <Label htmlFor="contactName">Contact Name</Label>
-                    <Input id="contactName" {...form.register("contactName")} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label htmlFor="contactEmail">Contact Email</Label>
+                    <Label htmlFor="client-contact-name">Contact name</Label>
                     <Input
-                      id="contactEmail"
-                      type="email"
-                      {...form.register("contactEmail")}
+                      id="client-contact-name"
+                      {...form.register("contactName")}
                     />
                   </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="client-contact-email">Contact email</Label>
+                    <Input
+                      id="client-contact-email"
+                      type="email"
+                      aria-invalid={Boolean(form.formState.errors.contactEmail)}
+                      aria-describedby={
+                        form.formState.errors.contactEmail
+                          ? "client-contact-email-error"
+                          : undefined
+                      }
+                      {...form.register("contactEmail")}
+                    />
+                    <FieldErrorMessage id="client-contact-email-error">
+                      {form.formState.errors.contactEmail?.message}
+                    </FieldErrorMessage>
+                  </div>
                 </div>
-                <div className="flex justify-end pt-4">
+                <div className="space-y-2">
+                  <Label htmlFor="client-notes">Notes</Label>
+                  <Textarea
+                    id="client-notes"
+                    rows={3}
+                    {...form.register("notes")}
+                    placeholder="Optional context for the client team"
+                  />
+                </div>
+                <div className="flex justify-end gap-2 pt-4">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    disabled={createClient.isPending}
+                    onClick={() => requestCreateOpenChange(false)}
+                  >
+                    Cancel
+                  </Button>
                   <Button type="submit" disabled={createClient.isPending}>
                     {createClient.isPending ? (
                       <Loader2 className="w-4 h-4 mr-2 animate-spin" />
                     ) : null}
-                    Create Client
+                    {createClient.isPending
+                      ? "Creating client"
+                      : "Create client"}
                   </Button>
                 </div>
               </form>
@@ -234,10 +402,17 @@ export default function Clients() {
         ) : null}
       </div>
 
+      <UnsavedChangesAlert
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onDiscard={closeCreateForm}
+        subject="this client profile"
+      />
+
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
         {isLoading || isPending ? (
-          <div className="col-span-full py-12 flex justify-center">
-            <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
+          <div className="col-span-full">
+            <LoadingPanel label="Loading client register" />
           </div>
         ) : isError || !isSuccess || clients === undefined ? (
           <div className="col-span-full">

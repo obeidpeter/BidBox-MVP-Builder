@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import test from "node:test";
-import type { AccessContext } from "../../middlewares/tenancy";
+import type { AccessContext } from "../accessContext";
 import {
   GovernedClientUploadError,
   GovernedClientUploadService,

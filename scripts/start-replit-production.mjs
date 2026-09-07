@@ -1,5 +1,5 @@
 import { pathToFileURL } from "node:url";
-import { runReplitIntakeMigrations } from "../lib/db/scripts/replit-intake-migrations.mjs";
+import { runReplitIntakeMigrations } from "@workspace/db/replit-intake-migrations";
 import { maybeStartInProcessSchedules } from "./run-inprocess-schedules.mjs";
 
 const API_SERVER_ENTRYPOINT = new URL(

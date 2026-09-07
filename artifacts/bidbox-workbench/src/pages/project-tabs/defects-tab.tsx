@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useListDefects,
   useSuggestDefects,
@@ -45,8 +45,14 @@ import {
   ShieldCheck,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { mutationErrorToast } from "@/lib/errors";
+import { errorMessage, mutationErrorToast } from "@/lib/errors";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import { DataErrorPanel, LoadingPanel } from "@/components/platform-states";
+import {
+  FieldErrorMessage,
+  FormErrorSummary,
+  UnsavedChangesAlert,
+} from "@/components/form-feedback";
 
 const DEFECT_TYPES = [
   "omission",
@@ -92,8 +98,22 @@ const EMPTY: DefectForm = {
 export function DefectsTab({ projectId }: { projectId: string }) {
   const canWriteDefects = useOrganisationPermission("defect:write");
   const canReviewDefects = useOrganisationPermission("defect:review");
-  const { data: defects, isLoading } = useListDefects(projectId);
-  const { data: requirements } = useListRequirements(projectId);
+  const {
+    data: defects,
+    isLoading: defectsLoading,
+    isPending: defectsPending,
+    isError: defectsError,
+    isSuccess: defectsSuccess,
+    refetch: refetchDefects,
+  } = useListDefects(projectId);
+  const {
+    data: requirements,
+    isLoading: requirementsLoading,
+    isPending: requirementsPending,
+    isError: requirementsError,
+    isSuccess: requirementsSuccess,
+    refetch: refetchRequirements,
+  } = useListRequirements(projectId);
   const suggestDefects = useSuggestDefects();
   const createDefect = useCreateDefect();
   const updateDefect = useMutation({
@@ -114,7 +134,16 @@ export function DefectsTab({ projectId }: { projectId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<DefectForm>(EMPTY);
+  const [initialForm, setInitialForm] = useState<DefectForm>(EMPTY);
+  const [formErrors, setFormErrors] = useState<{
+    description?: string;
+    form?: string;
+  }>({});
+  const [discardOpen, setDiscardOpen] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+  const recordsReady = defectsSuccess && requirementsSuccess;
 
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -122,16 +151,21 @@ export function DefectsTab({ projectId }: { projectId: string }) {
     });
 
   const handleSuggest = () => {
+    if (!recordsReady) return;
     suggestDefects.mutate(
       { id: projectId },
       {
-        onSuccess: refresh,
+        onSuccess: () => {
+          refresh();
+          toast({ title: "Issue suggestions updated" });
+        },
         onError: mutationErrorToast(toast, "Defect suggestion failed"),
       },
     );
   };
 
   const patch = (d: Defect, data: Record<string, unknown>, verb: string) => {
+    if (!recordsReady) return;
     setActingId(d.id);
     updateDefect.mutate(
       { defect: d, data },
@@ -152,48 +186,102 @@ export function DefectsTab({ projectId }: { projectId: string }) {
   const openAdd = () => {
     setEditingId(null);
     setForm(EMPTY);
+    setInitialForm(EMPTY);
+    setFormErrors({});
     setDialogOpen(true);
   };
   const openEdit = (d: Defect) => {
     setEditingId(d.id);
-    setForm({
+    const nextForm: DefectForm = {
       type: d.type as DefectForm["type"],
       severity: d.severity as DefectForm["severity"],
       description: d.description,
       remediation: d.remediation ?? "",
       owner: d.owner ?? "",
       requirementId: d.requirementId ?? NONE,
-    });
+    };
+    setForm(nextForm);
+    setInitialForm(nextForm);
+    setFormErrors({});
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!form.description.trim()) {
-      toast({ variant: "destructive", title: "Description is required" });
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setFormErrors({});
+    setDiscardOpen(false);
+  };
+
+  const requestCloseDialog = () => {
+    if (saving) return;
+    if (JSON.stringify(form) !== JSON.stringify(initialForm)) {
+      setDiscardOpen(true);
       return;
     }
+    closeDialog();
+  };
+
+  const handleSave = () => {
+    if (!recordsReady) {
+      setFormErrors({
+        form: "Reload the issues and requirements before saving changes.",
+      });
+      return;
+    }
+    if (!form.description.trim()) {
+      setFormErrors({ description: "Enter a description of the issue." });
+      descriptionRef.current?.focus();
+      return;
+    }
+    setFormErrors({});
+    const optionalFields = editingId
+      ? {
+          remediation: form.remediation.trim() || null,
+          owner: form.owner.trim() || null,
+          requirementId:
+            form.requirementId === NONE ? null : form.requirementId,
+        }
+      : {
+          remediation: form.remediation.trim() || undefined,
+          owner: form.owner.trim() || undefined,
+          requirementId:
+            form.requirementId === NONE ? undefined : form.requirementId,
+        };
     const body = {
       type: form.type,
       ...(!editingId || canReviewDefects ? { severity: form.severity } : {}),
       description: form.description.trim(),
-      remediation: form.remediation.trim() || undefined,
-      owner: form.owner.trim() || undefined,
-      requirementId:
-        form.requirementId === NONE ? undefined : form.requirementId,
+      ...optionalFields,
     };
     const opts = {
       onSuccess: () => {
-        setDialogOpen(false);
+        closeDialog();
         refresh();
+        toast({ title: editingId ? "Issue updated" : "Issue added" });
       },
-      onError: mutationErrorToast(toast, "Could not save defect"),
+      onError: (err: unknown) => {
+        const message = errorMessage(
+          err,
+          "The issue was not saved. Reload the register and try again.",
+        );
+        setFormErrors({ form: message });
+        toast({
+          variant: "destructive",
+          title: "Could not save issue",
+          description: message,
+        });
+      },
     };
     if (editingId) {
       const current = defects?.find((defect) => defect.id === editingId);
       if (!current) {
+        const message =
+          "This issue changed or disappeared. Reload it before editing.";
+        setFormErrors({ form: message });
         toast({
           variant: "destructive",
           title: "Reload the defect before editing",
+          description: message,
         });
         return;
       }
@@ -256,11 +344,13 @@ export function DefectsTab({ projectId }: { projectId: string }) {
     );
   };
 
-  const openFatalCount = (defects ?? []).filter(
-    (d) =>
-      d.status === "open" &&
-      (d.severity === "fatal" || d.severity === "likely_fatal"),
-  ).length;
+  const openFatalCount = recordsReady
+    ? (defects ?? []).filter(
+        (d) =>
+          d.status === "open" &&
+          (d.severity === "fatal" || d.severity === "likely_fatal"),
+      ).length
+    : 0;
 
   return (
     <div className="space-y-4">
@@ -270,14 +360,18 @@ export function DefectsTab({ projectId }: { projectId: string }) {
         </h2>
         <div className="flex gap-2">
           {canWriteDefects && (
-            <Button onClick={openAdd} variant="outline">
+            <Button
+              onClick={openAdd}
+              variant="outline"
+              disabled={!recordsReady}
+            >
               <Plus className="w-4 h-4 mr-2" /> Add issue
             </Button>
           )}
           {canWriteDefects && (
             <Button
               onClick={handleSuggest}
-              disabled={suggestDefects.isPending}
+              disabled={!recordsReady || suggestDefects.isPending}
               variant="secondary"
             >
               {suggestDefects.isPending ? (
@@ -303,11 +397,23 @@ export function DefectsTab({ projectId }: { projectId: string }) {
       )}
 
       <div className="bg-card border border-border rounded-lg shadow-xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {defectsLoading ||
+        requirementsLoading ||
+        defectsPending ||
+        requirementsPending ? (
+          <LoadingPanel label="Loading issues and linked requirements" />
+        ) : defectsError || requirementsError || !recordsReady ? (
+          <div className="p-4">
+            <DataErrorPanel
+              title="We couldn't load the issue register"
+              description="Issues or their linked requirements are unavailable. Review and editing actions stay disabled until both current records load."
+              onRetry={() => {
+                void refetchDefects();
+                void refetchRequirements();
+              }}
+            />
           </div>
-        ) : defects && defects.length > 0 ? (
+        ) : defects.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -367,7 +473,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                             variant="ghost"
                             size="icon"
                             title="Confirm and mark open"
-                            disabled={actingId === defect.id}
+                            disabled={!recordsReady || actingId === defect.id}
                             onClick={() => confirm(defect)}
                           >
                             <Check className="w-4 h-4 text-emerald-600" />
@@ -379,6 +485,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                           size="icon"
                           title="Edit defect details"
                           onClick={() => openEdit(defect)}
+                          disabled={!recordsReady}
                         >
                           <Pencil className="w-4 h-4 text-muted-foreground" />
                         </Button>
@@ -399,7 +506,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
 
       <Dialog
         open={(canWriteDefects || canReviewDefects) && dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => !open && requestCloseDialog()}
       >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
@@ -408,9 +515,17 @@ export function DefectsTab({ projectId }: { projectId: string }) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <FormErrorSummary
+              id="defect-form-errors"
+              errors={[formErrors.description, formErrors.form]}
+              title="The issue was not saved"
+            />
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="defect-type"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Type
                 </label>
                 <Select
@@ -419,7 +534,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                     setForm({ ...form, type: v as DefectForm["type"] })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="defect-type">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -432,7 +547,10 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="defect-severity"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Severity
                 </label>
                 {!editingId || canReviewDefects ? (
@@ -445,7 +563,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                       })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="defect-severity">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -457,29 +575,56 @@ export function DefectsTab({ projectId }: { projectId: string }) {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm capitalize">
+                  <div
+                    id="defect-severity"
+                    className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm capitalize"
+                  >
                     {form.severity.replace("_", " ")}
                   </div>
                 )}
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="defect-description"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Description
               </label>
               <Textarea
+                ref={descriptionRef}
+                id="defect-description"
                 value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
+                onChange={(e) => {
+                  setForm({ ...form, description: e.target.value });
+                  if (formErrors.description) {
+                    setFormErrors((current) => ({
+                      ...current,
+                      description: undefined,
+                    }));
+                  }
+                }}
                 className="min-h-[80px]"
+                aria-invalid={!!formErrors.description}
+                aria-describedby={
+                  formErrors.description
+                    ? "defect-description-error"
+                    : undefined
+                }
               />
+              <FieldErrorMessage id="defect-description-error">
+                {formErrors.description}
+              </FieldErrorMessage>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="defect-remediation"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Remediation
               </label>
               <Textarea
+                id="defect-remediation"
                 value={form.remediation}
                 onChange={(e) =>
                   setForm({ ...form, remediation: e.target.value })
@@ -490,24 +635,31 @@ export function DefectsTab({ projectId }: { projectId: string }) {
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="defect-owner"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Owner
                 </label>
                 <Input
+                  id="defect-owner"
                   value={form.owner}
                   onChange={(e) => setForm({ ...form, owner: e.target.value })}
                   placeholder="Who fixes it"
                 />
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="defect-requirement"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Related Requirement
                 </label>
                 <Select
                   value={form.requirementId}
                   onValueChange={(v) => setForm({ ...form, requirementId: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="defect-requirement">
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
@@ -523,7 +675,7 @@ export function DefectsTab({ projectId }: { projectId: string }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={requestCloseDialog}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -533,6 +685,13 @@ export function DefectsTab({ projectId }: { projectId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UnsavedChangesAlert
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onDiscard={closeDialog}
+        subject={editingId ? "this issue" : "this new issue"}
+      />
     </div>
   );
 }

@@ -2688,10 +2688,10 @@ export const updateVaultItemBodyRenewalLeadDaysMin = 0;
 
 export const UpdateVaultItemBody = zod.object({
   "artefactType": zod.string().min(1).optional(),
-  "issuer": zod.string().optional(),
-  "issueDate": zod.string().optional(),
-  "expiryDate": zod.string().optional(),
-  "renewalLeadDays": zod.number().min(updateVaultItemBodyRenewalLeadDaysMin).optional(),
+  "issuer": zod.string().nullish(),
+  "issueDate": zod.string().nullish(),
+  "expiryDate": zod.string().nullish(),
+  "renewalLeadDays": zod.number().min(updateVaultItemBodyRenewalLeadDaysMin).nullish(),
   "status": zod.string().optional(),
   "sourceDocumentId": zod.string().nullish()
 })
@@ -2830,7 +2830,7 @@ export const UpdateCapabilityItemParams = zod.object({
 
 export const UpdateCapabilityItemBody = zod.object({
   "claimType": zod.enum(['project', 'personnel', 'equipment', 'certification', 'past_performance', 'other']).optional(),
-  "description": zod.string().optional(),
+  "description": zod.string().nullish(),
   "evidenceDocId": zod.string().nullish(),
   "approvedStatus": zod.enum(['pending', 'approved', 'rejected']).optional()
 })
@@ -3475,15 +3475,15 @@ export const UpdateRequirementParams = zod.object({
 
 
 export const UpdateRequirementBody = zod.object({
-  "pageRef": zod.string().optional(),
-  "clauseRef": zod.string().optional(),
+  "pageRef": zod.string().nullish(),
+  "clauseRef": zod.string().nullish(),
   "text": zod.string().min(1).optional(),
   "category": zod.enum(['eligibility', 'administrative', 'technical', 'financial_format', 'other']).optional(),
-  "expectedEvidence": zod.string().optional(),
+  "expectedEvidence": zod.string().nullish(),
   "isMandatory": zod.boolean().optional(),
   "confidence": zod.enum(['high', 'medium', 'low', 'unclear']).optional(),
   "reviewStatus": zod.enum(['suggested', 'confirmed', 'edited', 'rejected', 'pending']).optional(),
-  "reviewerNotes": zod.string().optional()
+  "reviewerNotes": zod.string().nullish()
 })
 
 export const UpdateRequirementResponse = zod.object({
@@ -3603,10 +3603,10 @@ export const UpdateEvidenceParams = zod.object({
 })
 
 export const UpdateEvidenceBody = zod.object({
-  "documentId": zod.string().optional(),
+  "documentId": zod.string().nullish(),
   "evidenceStatus": zod.enum(['present', 'missing', 'expired', 'unclear', 'not_applicable', 'pending']).optional(),
-  "excerpt": zod.string().optional(),
-  "notes": zod.string().optional(),
+  "excerpt": zod.string().nullish(),
+  "notes": zod.string().nullish(),
   "suggested": zod.boolean().optional()
 })
 
@@ -3745,13 +3745,13 @@ export const UpdateDefectHeader = zod.object({
 
 
 export const UpdateDefectBody = zod.object({
-  "requirementId": zod.string().optional(),
+  "requirementId": zod.string().nullish(),
   "type": zod.enum(['omission', 'expiry', 'arithmetic', 'formatting', 'responsiveness', 'eligibility', 'unsupported_claim', 'validity']).optional(),
   "severity": zod.enum(['fatal', 'likely_fatal', 'scoring_risk', 'cosmetic']).optional(),
   "description": zod.string().min(1).optional(),
-  "evidenceSnapshot": zod.string().optional(),
-  "remediation": zod.string().optional(),
-  "owner": zod.string().optional(),
+  "evidenceSnapshot": zod.string().nullish(),
+  "remediation": zod.string().nullish(),
+  "owner": zod.string().nullish(),
   "status": zod.enum(['open', 'remediated', 'waived', 'suggested']).optional(),
   "suggested": zod.boolean().optional()
 })
@@ -4999,6 +4999,48 @@ export const GetTenderContextCentreParams = zod.object({
 })
 
 
+export const getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsItemFilenameMax = 1000;
+
+
+export const getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsItemVerifiedByNameMax = 200;
+
+export const getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsMax = 100;
+
+export const getTenderContextCentreResponseSelectionOptionsRulePacksItemLabelMax = 500;
+
+export const getTenderContextCentreResponseSelectionOptionsRulePacksItemPackKeyMax = 200;
+
+export const getTenderContextCentreResponseSelectionOptionsRulePacksItemVersionMax = 100;
+
+export const getTenderContextCentreResponseSelectionOptionsRulePacksItemJurisdictionRegExp = new RegExp('^NG(?:-[A-Z0-9]{1,12})?$');
+export const getTenderContextCentreResponseSelectionOptionsRulePacksItemApprovedByNameMax = 200;
+
+export const getTenderContextCentreResponseSelectionOptionsRulePacksMax = 100;
+
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsItemSourceDocumentNameMax = 1000;
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsItemSourceSnippetMax = 20000;
+
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsItemParagraphRefMax = 500;
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsItemSuggestedEvidenceKindMax = 120;
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsItemReviewedByNameMax = 200;
+
+export const getTenderContextCentreResponseSelectionOptionsRequirementsMax = 500;
+
+
+export const getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemLabelMax = 500;
+
+export const getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemIssuerMax = 500;
+
+export const getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemApprovedByNameMax = 200;
+
+export const getTenderContextCentreResponseSelectionOptionsCompanyEvidenceMax = 500;
+
+
 export const getTenderContextCentreResponseContextsItemLegalEntityNameMax = 300;
 
 export const getTenderContextCentreResponseContextsItemSourceManifestSha256RegExp = new RegExp('^[a-f0-9]{64}$');
@@ -5106,6 +5148,47 @@ export const GetTenderContextCentreResponse = zod.object({
   "id": zod.string().uuid(),
   "title": zod.string()
 }).strict(),
+  "selectionOptions": zod.object({
+  "freshnessNote": zod.string().min(1),
+  "primaryDocuments": zod.array(zod.object({
+  "documentId": zod.string().uuid(),
+  "documentVersionId": zod.string().uuid(),
+  "filename": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsItemFilenameMax),
+  "versionNumber": zod.number().int().safe().min(1),
+  "verifiedByName": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsItemVerifiedByNameMax)
+}).strict()).max(getTenderContextCentreResponseSelectionOptionsPrimaryDocumentsMax),
+  "rulePacks": zod.array(zod.object({
+  "id": zod.string().uuid(),
+  "label": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRulePacksItemLabelMax),
+  "packKey": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRulePacksItemPackKeyMax),
+  "version": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRulePacksItemVersionMax),
+  "jurisdiction": zod.string().regex(getTenderContextCentreResponseSelectionOptionsRulePacksItemJurisdictionRegExp),
+  "approvedByName": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRulePacksItemApprovedByNameMax)
+}).strict()).max(getTenderContextCentreResponseSelectionOptionsRulePacksMax),
+  "requirements": zod.array(zod.object({
+  "requirementId": zod.string().uuid(),
+  "requirementCitationId": zod.string().uuid(),
+  "description": zod.string().min(1),
+  "sourceDocumentName": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRequirementsItemSourceDocumentNameMax),
+  "sourceSnippet": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRequirementsItemSourceSnippetMax),
+  "pageNumber": zod.number().int().safe().min(1).nullable(),
+  "paragraphRef": zod.string().max(getTenderContextCentreResponseSelectionOptionsRequirementsItemParagraphRefMax).nullable(),
+  "suggestedEvidenceKind": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRequirementsItemSuggestedEvidenceKindMax),
+  "mandatoryByDefault": zod.boolean(),
+  "reviewedByName": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsRequirementsItemReviewedByNameMax)
+}).strict()).max(getTenderContextCentreResponseSelectionOptionsRequirementsMax),
+  "companyEvidence": zod.array(zod.object({
+  "vaultItemVersionId": zod.string().uuid(),
+  "sourceDocumentId": zod.string().uuid(),
+  "documentVersionId": zod.string().uuid(),
+  "versionNumber": zod.number().int().safe().min(1),
+  "label": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemLabelMax),
+  "issuer": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemIssuerMax),
+  "validFrom": zod.string().date().nullable(),
+  "validUntil": zod.string().date().nullable(),
+  "approvedByName": zod.string().min(1).max(getTenderContextCentreResponseSelectionOptionsCompanyEvidenceItemApprovedByNameMax)
+}).strict()).max(getTenderContextCentreResponseSelectionOptionsCompanyEvidenceMax)
+}).strict().describe('Permission-scoped, bounded, point-in-time candidates. The create transaction authoritatively revalidates every selected record.'),
   "contexts": zod.array(zod.object({
   "id": zod.string().uuid(),
   "projectId": zod.string().uuid(),
@@ -7060,8 +7143,10 @@ export const ListProjectPackageVersionsParams = zod.object({
 
 
 export const listProjectPackageVersionsResponseItemsItemManifestSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+export const listProjectPackageVersionsResponseItemsItemSourceSnapshotSha256RegExp = new RegExp('^[a-f0-9]{64}$');
 export const listProjectPackageVersionsResponseItemsMax = 100;
 
+export const listProjectPackageVersionsResponseExportScopeSha256RegExp = new RegExp('^[a-f0-9]{64}$');
 
 
 export const ListProjectPackageVersionsResponse = zod.object({
@@ -7071,11 +7156,13 @@ export const ListProjectPackageVersionsResponse = zod.object({
   "packageType": zod.literal("project_export"),
   "versionNumber": zod.number().min(1),
   "manifestSha256": zod.string().regex(listProjectPackageVersionsResponseItemsItemManifestSha256RegExp),
+  "sourceSnapshotSha256": zod.string().regex(listProjectPackageVersionsResponseItemsItemSourceSnapshotSha256RegExp),
   "renderQaStatus": zod.enum(['pending', 'passed', 'failed']),
   "createdAt": zod.coerce.date()
 }).strict().describe('Metadata-only identity for the current canonical project-export package version. Archive contents and storage locations are excluded.')).max(listProjectPackageVersionsResponseItemsMax),
   "limit": zod.literal(100),
-  "truncated": zod.boolean()
+  "truncated": zod.boolean(),
+  "exportScopeSha256": zod.string().regex(listProjectPackageVersionsResponseExportScopeSha256RegExp)
 }).strict()
 
 
@@ -7084,6 +7171,29 @@ export const ListProjectPackageVersionsResponse = zod.object({
  */
 export const ExportProjectParams = zod.object({
   "id": zod.coerce.string().uuid()
+})
+
+export const exportProjectHeaderIfMatchRegExp = new RegExp('^"[a-f0-9]{64}"$');
+
+
+export const ExportProjectHeader = zod.object({
+  "Idempotency-Key": zod.string().uuid().describe('A fresh UUID for this exact confirmed export scope. Reuse is safe only with the identical body.'),
+  "If-Match": zod.string().regex(exportProjectHeaderIfMatchRegExp).describe('The exact report\/package provenance fingerprint returned by the package-version projection and confirmed by the user.')
+})
+
+
+
+export const exportProjectBodyPackageManifestSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+export const exportProjectBodyPackageSourceSnapshotSha256RegExp = new RegExp('^[a-f0-9]{64}$');
+
+
+export const ExportProjectBody = zod.object({
+  "reportId": zod.string().uuid(),
+  "reportVersion": zod.number().min(1),
+  "packageVersionId": zod.string().uuid().nullable(),
+  "packageVersionNumber": zod.number().min(1).nullable(),
+  "packageManifestSha256": zod.string().regex(exportProjectBodyPackageManifestSha256RegExp).nullable(),
+  "packageSourceSnapshotSha256": zod.string().regex(exportProjectBodyPackageSourceSnapshotSha256RegExp).nullable()
 })
 
 export const ExportProjectResponse = zod.unknown()

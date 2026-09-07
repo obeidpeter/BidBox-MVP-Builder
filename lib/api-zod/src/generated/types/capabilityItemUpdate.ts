@@ -20,7 +20,9 @@ import type { CapabilityItemUpdateClaimType } from './capabilityItemUpdateClaimT
 
 export interface CapabilityItemUpdate {
   claimType?: CapabilityItemUpdateClaimType;
-  description?: string;
+  /** @nullable */
+  description?: string | null;
+  /** @nullable */
   evidenceDocId?: string | null;
   approvedStatus?: CapabilityItemUpdateApprovedStatus;
 }

@@ -1,22 +1,22 @@
-# Deployment record
+# Deployment evidence template and historical dossier record
 
-## Current status
+Status: repository-safe template; not the current live-release ledger.
 
-| Field                    | Value                                                                                                                                  |
-| ------------------------ | -------------------------------------------------------------------------------------------------------------------------------------- |
-| Deployment state         | **Not deployed by this implementation dossier**                                                                                        |
-| Authorised target        | Not supplied/confirmed                                                                                                                 |
-| Production domain        | Not supplied/confirmed                                                                                                                 |
-| Infrastructure budget    | Not supplied/confirmed                                                                                                                 |
-| Release artefact/version | Pending                                                                                                                                |
-| Database migration       | Not performed/recorded                                                                                                                 |
-| Staging URL              | None recorded                                                                                                                          |
-| Production URL           | None recorded                                                                                                                          |
-| Post-deploy smoke        | Not run                                                                                                                                |
-| Rollback exercise        | Not run                                                                                                                                |
-| Blocker                  | Deployment requires authorised environment, credentials/secrets mechanism, provider/region/budget decisions and accepted release gates |
+Last reconciled: 2026-08-31. The current topology is documented in [`../architecture/DEPLOYMENT.md`](../architecture/DEPLOYMENT.md). Exact deployment identity, approvals, smoke results and operational observations belong to immutable release evidence and must be matched to the running `/api/healthz` and `/api/readyz` identity; they are never inferred from this file.
 
-The repository contains Replit-oriented configuration, but that does not establish authorisation, environment security, domain, production version or successful deployment. Candidate and verification tooling is documented in `RELEASE_PROVENANCE.md`; generated evidence remains external to the repository.
+## Current repository deployment contract
+
+| Field                    | Source-controlled fact                                                                                                                                |
+| ------------------------ | ----------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Deployment target        | Replit autoscale application declared in `.replit`                                                                                                    |
+| Production domain        | `https://valo-mvp-builder.replit.app` is the configured allowed origin and deployment URL                                                             |
+| Runtime shape            | One Node production process serves `/api` and the built Workbench; PostgreSQL and object storage are external dependencies                            |
+| Build/promotion boundary | Replit rebuilds the authorised source snapshot; source/SBOM/provenance controls exist, but this file does not claim independent live byte attestation |
+| Database migration       | Source-controlled migrations and production startup safety checks exist; completion for a release requires retained runtime evidence                  |
+| Worker activation        | Durable job/outbox foundations exist; the external worker-control plane remains unmounted until its activation gates are evidenced                    |
+| Live release and smoke   | External evidence only; query the deployment and match its reported release identity to the authorised workflow                                       |
+
+The earlier 2026-08-08 statement that the dossier had not deployed anything remains historically true for that snapshot, but it is not a current platform status. Candidate and verification tooling is documented in `RELEASE_PROVENANCE.md`; generated evidence remains external to the repository.
 
 ## Evidence required for a future deployment
 

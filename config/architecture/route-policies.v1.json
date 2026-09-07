@@ -1,0 +1,723 @@
+{
+  "schemaVersion": 1,
+  "catalogueId": "valo.architecture.route-policies.v1",
+  "status": "active_current_mounts_and_high_risk_overrides",
+  "lastReviewed": "2026-08-31",
+  "lastReviewedAt": "2026-08-31",
+  "sourceReviewedThrough": "2026-08-31",
+  "owner": "API and application security (@obeidpeter)",
+  "backupOwner": "UNASSIGNED (AR-001)",
+  "executableSources": [
+    "artifacts/api-server/src/app.ts",
+    "artifacts/api-server/src/routes/index.ts",
+    "artifacts/api-server/src/lib/projectRoutePolicy.ts"
+  ],
+  "statusVocabulary": [
+    "implemented",
+    "implemented_external_evidence_required",
+    "implemented_activation_gated",
+    "activation_gated",
+    "unmounted"
+  ],
+  "defaults": [
+    {
+      "id": "route-default-tenant-plane",
+      "module": "api-server",
+      "pathPrefix": "/",
+      "status": "implemented",
+      "policyClass": "authenticated_tenant_plane",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "server_resolved_access_context_required",
+        "transactionMode": "request_scoped_tenant_transaction",
+        "rateLimit": "durable_tenant_actor_operation_bucket",
+        "database": "SET_LOCAL_organisation_plus_FORCE_RLS",
+        "response": "private_no_store_for_sensitive_modules"
+      }
+    },
+    {
+      "id": "route-default-health",
+      "module": "api-server",
+      "pathPrefix": "/healthz",
+      "methods": ["GET"],
+      "status": "implemented",
+      "policyClass": "public_health",
+      "controls": {
+        "authentication": "none_exact_probe_only",
+        "tenantScope": "none",
+        "transactionMode": "none_dependency_free",
+        "rateLimit": "probe_exempt",
+        "response": "bounded_liveness_and_optional_release_identity"
+      }
+    },
+    {
+      "id": "route-default-readiness",
+      "module": "api-server",
+      "pathPrefix": "/readyz",
+      "methods": ["GET"],
+      "status": "implemented",
+      "policyClass": "public_health",
+      "controls": {
+        "authentication": "none_exact_probe_only",
+        "tenantScope": "none",
+        "transactionMode": "bounded_single_flight_database_probe",
+        "rateLimit": "probe_exempt",
+        "response": "private_no_store_lifecycle_database_delivery_status"
+      }
+    },
+    {
+      "id": "route-default-clerk-proxy",
+      "module": "api-server",
+      "pathPrefix": "/__clerk",
+      "status": "implemented_external_evidence_required",
+      "policyClass": "identity_proxy",
+      "controls": {
+        "authentication": "clerk_frontend_api_transport_not_application_auth",
+        "tenantScope": "none",
+        "transactionMode": "none_stream_or_bounded_buffer",
+        "rateLimit": "global_edge_limit_after_exact_proxy_mount",
+        "hostPolicy": "exact_CORS_origin_host_allowlist",
+        "upstream": "fixed_Clerk_frontend_API"
+      }
+    },
+    {
+      "id": "route-default-public-intake",
+      "module": "api-server",
+      "pathPrefix": "/public/",
+      "status": "implemented_external_evidence_required",
+      "policyClass": "public_intake",
+      "controls": {
+        "authentication": "none",
+        "tenantScope": "none_public_intake_schema",
+        "transactionMode": "security_definer_intake_function",
+        "rateLimit": "durable_shared_privacy_preserving_bucket",
+        "origin": "approved_exact_origin_required",
+        "body": "strict_JSON_16KiB_no_documents",
+        "idempotency": "UUID_header_bound_to_normalized_payload"
+      }
+    },
+    {
+      "id": "route-default-me-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/me",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "none_for_identity_bootstrap",
+        "transactionMode": "root_database_projection",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "server_derived_only"
+      }
+    },
+    {
+      "id": "route-default-organisations-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/organisations",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane_explicit_tenant",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "handler_attaches_and_verifies_selected_organisation_when_required",
+        "transactionMode": "explicit_withTenantDatabase_for_tenant_sensitive_handlers",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "direct_membership_or_restricted_platform_bootstrap"
+      }
+    },
+    {
+      "id": "route-default-partner-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/partner-relationships",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane_explicit_tenant",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "handler_attaches_current_tenant",
+        "transactionMode": "explicit_tenant_transaction",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "current_permission_and_relationship_state"
+      }
+    },
+    {
+      "id": "route-default-break-glass-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/break-glass",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "session_request_names_scope_but_server_approves_and_audits",
+        "transactionMode": "control_plane_transaction",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "requester_approver_separation_and_expiry"
+      }
+    },
+    {
+      "id": "route-default-platform-flags-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/platform/organisations",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane_explicit_tenant",
+      "controls": {
+        "authentication": "clerk_session_plus_active_restricted_platform_administrator",
+        "tenantScope": "explicit_target_organisation_validated_server_side",
+        "transactionMode": "explicit_tenant_transaction",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "restricted_platform_administrator_plus_expected_version"
+      }
+    },
+    {
+      "id": "route-default-tenant-flags-control-plane",
+      "module": "api-server",
+      "pathPrefix": "/feature-flags",
+      "status": "implemented",
+      "policyClass": "authenticated_control_plane_explicit_tenant",
+      "controls": {
+        "authentication": "clerk_session_plus_active_local_user",
+        "tenantScope": "handler_attaches_current_tenant",
+        "transactionMode": "explicit_tenant_transaction",
+        "rateLimit": "actor_mutation_bucket",
+        "authority": "feature_flag_permission_plus_expected_version"
+      }
+    },
+    {
+      "id": "route-default-unmounted-worker",
+      "module": "api-server",
+      "pathPrefix": "/__unmounted/durable-worker/",
+      "status": "unmounted",
+      "policyClass": "unmounted_workload",
+      "controls": {
+        "authentication": "no_runtime_mount",
+        "tenantScope": "injected_trusted_scope_only_in_tests_or_future_workload",
+        "transactionMode": "service_owned_tenant_transactions",
+        "rateLimit": "not_applicable_unmounted",
+        "activation": "ADR-0012_required"
+      }
+    }
+  ],
+  "routeModuleGroups": [
+    {
+      "id": "control-plane-modules",
+      "status": "implemented",
+      "defaultPolicyClass": "authenticated_control_plane",
+      "source": "artifacts/api-server/src/routes/index.ts",
+      "modules": [
+        "me.ts",
+        "organisations.ts",
+        "partnerRelationships.ts",
+        "breakGlass.ts",
+        "featureFlags.ts"
+      ]
+    },
+    {
+      "id": "tenant-plane-modules",
+      "status": "implemented",
+      "defaultPolicyClass": "authenticated_tenant_plane",
+      "source": "artifacts/api-server/src/routes/index.ts",
+      "modules": [
+        "users.ts",
+        "clients.ts",
+        "dashboard.ts",
+        "workInbox.ts",
+        "projects.ts",
+        "documents.ts",
+        "documentVersionSnapshots.ts",
+        "canonicalEvidenceOptions.ts",
+        "requirements.ts",
+        "evidence.ts",
+        "defects.ts",
+        "boq.ts",
+        "boqVerification.ts",
+        "risk.ts",
+        "reports.ts",
+        "audit.ts",
+        "vault.ts",
+        "capability.ts",
+        "sbd.ts",
+        "retentionCompletion.ts",
+        "operations.ts",
+        "operationsSuite.ts",
+        "growthSuite.ts",
+        "commercialRetainer.ts",
+        "clientActionPortal.ts",
+        "clientActionUpload.ts",
+        "partnerConsortiumRoom.ts",
+        "reconciledCommunications.ts",
+        "opportunitySourceNetwork.ts",
+        "opportunityPursuitHandoff.ts",
+        "evidenceRenewal.ts",
+        "productionAcceptance.ts",
+        "privacyOperationsCentre.ts",
+        "claimsDesk.ts",
+        "analytics.ts",
+        "aiOperations.ts",
+        "aiShadowProgramme.ts",
+        "intelligence.ts",
+        "addendumImpact.ts",
+        "deliveryStudio.ts",
+        "tenderContext.ts",
+        "config.ts",
+        "storage.ts"
+      ]
+    },
+    {
+      "id": "unmounted-workload-module",
+      "status": "activation_gated",
+      "defaultPolicyClass": "unmounted_workload",
+      "source": "artifacts/api-server/src/routes/durableWorkerFoundation.ts",
+      "modules": ["durableWorkerFoundation.ts"]
+    }
+  ],
+  "overrides": [
+    {
+      "id": "claims-desk-record-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{projectId}/claims-desk/records",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_direct_membership",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "bounded_record_identity_and_repository_receipt",
+        "concurrency": "exact_project_lock",
+        "audit": "append_only_claims_ledger_receipt"
+      }
+    },
+    {
+      "id": "claims-desk-transition-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{projectId}/claims-desk/records/{recordId}/transitions",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_direct_membership",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "bounded_transition_identity_and_receipt",
+        "concurrency": "If-Match_version_plus_exact_project_lock",
+        "audit": "append_only_maker_checker_transition_receipt"
+      }
+    },
+    {
+      "id": "operations-submission-war-room-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/operations-suite/submission-war-rooms",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "package:export",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "domain_record_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "operations_record_receipt"
+      }
+    },
+    {
+      "id": "operations-submission-war-room-advance",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/operations-suite/submission-war-rooms/{recordId}/advance",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "package:export",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "domain_transition_receipt",
+        "concurrency": "record_version_plus_exact_project_lock",
+        "audit": "operations_transition_receipt"
+      }
+    },
+    {
+      "id": "operations-visual-qa-report-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/operations-suite/visual-qa-reports",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "package:generate",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "domain_record_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "operations_record_receipt"
+      }
+    },
+    {
+      "id": "operations-post-award-item-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/operations-suite/post-award-items",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "domain_record_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "operations_record_receipt"
+      }
+    },
+    {
+      "id": "operations-post-award-item-update",
+      "module": "api-server",
+      "method": "PATCH",
+      "path": "/projects/{id}/operations-suite/post-award-items/{recordId}",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "record_version_bound",
+        "concurrency": "record_version_plus_exact_project_lock",
+        "audit": "operations_update_receipt"
+      }
+    },
+    {
+      "id": "client-package-delivery-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/client-actions/package-deliveries",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "package:export",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "package_delivery_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "delivery_receipt_recorded_not_dispatched"
+      }
+    },
+    {
+      "id": "client-package-delivery-acknowledge",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/client-actions/package-deliveries/{recordId}/acknowledgements",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "package:read",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "acknowledgement_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "acknowledgement_receipt"
+      }
+    },
+    {
+      "id": "communication-intent-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/communications/intents",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "intent_identity_and_content_hash",
+        "concurrency": "exact_project_lock",
+        "audit": "record_only_intent_no_delivery_claim"
+      }
+    },
+    {
+      "id": "communication-attempt-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/communications/intents/{eventId}/attempts",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "attempt_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "attempt_record_does_not_claim_delivery"
+      }
+    },
+    {
+      "id": "communication-reconciliation-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/communications/intents/{eventId}/reconciliations",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update",
+        "releasedProjectPolicy": "released_append_only_ledger",
+        "idempotency": "reconciliation_identity",
+        "concurrency": "exact_project_lock",
+        "audit": "reconciliation_receipt_with_bounded_outcome"
+      }
+    },
+    {
+      "id": "addendum-impact-review",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/addendum-impact/review",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user_direct_membership",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "intelligence:review_plus_read_bundle",
+        "releasedProjectPolicy": "released_addendum_command",
+        "idempotency": "assessment_and_expected_version_bound",
+        "concurrency": "current_direct_authority_plus_exact_project_lock",
+        "audit": "versioned_review_receipt"
+      }
+    },
+    {
+      "id": "addendum-impact-apply",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/addendum-impact/apply",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user_direct_membership",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "project:update+requirement:review+package:generate+report:generate",
+        "releasedProjectPolicy": "released_addendum_command",
+        "idempotency": "approved_assessment_and_expected_versions_bound",
+        "concurrency": "current_direct_authority_plus_exact_project_lock",
+        "audit": "versioned_apply_receipt"
+      }
+    },
+    {
+      "id": "project-package-export",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/export",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user_membership_or_partner_context",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction_commit_before_bytes",
+        "permission": "report:export",
+        "releasedProjectPolicy": "released_export_command",
+        "idempotency": "UUID_key_bound_to_exact_export_scope_and_receipt",
+        "concurrency": "membership_authority_lock_plus_partner_relationship_share_lock_if_applicable_plus_project_lock_plus_final_NDA_and_second_DB_clock_authority_recheck",
+        "audit": "package_receipt_state_transition_and_audits_atomic"
+      }
+    },
+    {
+      "id": "project-retention-request-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/projects/{id}/retention-requests",
+      "status": "implemented",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant_project",
+        "transactionMode": "request_transaction",
+        "permission": "retention:manage",
+        "releasedProjectPolicy": "retention_lifecycle",
+        "idempotency": "active_request_scope_guard",
+        "concurrency": "exact_project_lock_and_legal_hold_check",
+        "audit": "retention_request_receipt"
+      }
+    },
+    {
+      "id": "retention-request-complete",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/retention-requests/{id}/complete",
+      "status": "implemented_activation_gated",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "server_resolved_retention_subject",
+        "transactionMode": "request_transaction",
+        "permission": "retention:manage",
+        "releasedProjectPolicy": "retention_lifecycle",
+        "idempotency": "request_phase_and_fence_bound",
+        "concurrency": "exact_project_lock_plus_activation_manifest",
+        "audit": "detach_phase_receipt"
+      }
+    },
+    {
+      "id": "retention-action-reconcile",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/retention-actions/{id}/reconcile",
+      "status": "implemented_activation_gated",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "server_resolved_retention_subject",
+        "transactionMode": "request_transaction",
+        "permission": "retention:manage",
+        "releasedProjectPolicy": "retention_lifecycle",
+        "idempotency": "action_phase_and_fence_bound",
+        "concurrency": "exact_project_lock_plus_object_reconciliation",
+        "audit": "reconciliation_phase_receipt"
+      }
+    },
+    {
+      "id": "retention-action-certify",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/retention-actions/{id}/certify",
+      "status": "implemented_activation_gated",
+      "runtimePolicySource": "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "server_resolved_retention_subject",
+        "transactionMode": "request_transaction_commit_before_receipt",
+        "permission": "retention:manage",
+        "releasedProjectPolicy": "retention_lifecycle",
+        "idempotency": "action_phase_and_fence_bound",
+        "concurrency": "exact_project_lock_all_actions_reconciled_no_legal_hold",
+        "audit": "completion_certificate_and_audit_atomic"
+      }
+    },
+    {
+      "id": "report-sign-off",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/reports/{id}/sign-off",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/reports.ts",
+      "controls": {
+        "authentication": "clerk_local_user_direct_membership",
+        "tenantScope": "report_bound_current_organisation",
+        "transactionMode": "request_transaction_commit_before_receipt",
+        "permission": "report:sign_off",
+        "releasedProjectPolicy": "draft_latest_report_reporting_project_only",
+        "idempotency": "report_status_and_project_version_CAS",
+        "concurrency": "membership_advisory_lock+client_share+project_update+report_update+timestamp_authority_recheck",
+        "audit": "sign_off_and_project_transition_atomic"
+      }
+    },
+    {
+      "id": "membership-create",
+      "module": "api-server",
+      "method": "POST",
+      "path": "/organisations/{organisationId}/memberships",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/organisations.ts",
+      "controls": {
+        "authentication": "clerk_local_user_direct_membership",
+        "tenantScope": "exact_selected_organisation",
+        "transactionMode": "explicit_tenant_transaction",
+        "permission": "membership:manage",
+        "releasedProjectPolicy": "not_applicable_control_plane",
+        "idempotency": "membership_identity_uniqueness_no_generic_key",
+        "concurrency": "organisation_membership_advisory_lock",
+        "audit": "membership_and_grants_audited"
+      }
+    },
+    {
+      "id": "membership-update",
+      "module": "api-server",
+      "method": "PATCH",
+      "path": "/organisations/{organisationId}/memberships/{membershipId}",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/organisations.ts",
+      "controls": {
+        "authentication": "clerk_local_user_direct_membership",
+        "tenantScope": "exact_selected_organisation",
+        "transactionMode": "explicit_tenant_transaction",
+        "permission": "membership:manage",
+        "releasedProjectPolicy": "not_applicable_control_plane",
+        "idempotency": "expected_version_bound",
+        "concurrency": "If-Match_plus_organisation_membership_advisory_lock",
+        "audit": "membership_and_grant_change_audited"
+      }
+    },
+    {
+      "id": "platform-feature-flag-update",
+      "module": "api-server",
+      "method": "PATCH",
+      "path": "/platform/organisations/{organisationId}/feature-flags/{key}",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/featureFlags.ts",
+      "controls": {
+        "authentication": "restricted_platform_administrator",
+        "tenantScope": "exact_target_organisation",
+        "transactionMode": "explicit_tenant_transaction",
+        "permission": "restricted_platform_administrator",
+        "releasedProjectPolicy": "cannot_bypass_permission_or_readiness_invariants",
+        "idempotency": "expected_version_bound",
+        "concurrency": "If-Match_required",
+        "audit": "feature_flag_change_audited"
+      }
+    },
+    {
+      "id": "tenant-feature-flag-update",
+      "module": "api-server",
+      "method": "PATCH",
+      "path": "/feature-flags/{key}",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/featureFlags.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "current_tenant",
+        "transactionMode": "explicit_tenant_transaction",
+        "permission": "feature_flag:manage",
+        "releasedProjectPolicy": "cannot_bypass_permission_or_readiness_invariants",
+        "idempotency": "expected_version_bound",
+        "concurrency": "If-Match_required",
+        "audit": "feature_flag_change_audited"
+      }
+    },
+    {
+      "id": "registered-storage-object-download",
+      "module": "api-server",
+      "method": "GET",
+      "path": "/storage/objects/{objectPath}",
+      "status": "implemented",
+      "evidence": "artifacts/api-server/src/routes/storage.ts",
+      "controls": {
+        "authentication": "clerk_local_user",
+        "tenantScope": "path_must_match_current_tenant_and_registered_reference",
+        "transactionMode": "request_transaction_authorize_and_audit_before_stream",
+        "permission": "document:read",
+        "releasedProjectPolicy": "controlled_report_and_package_outputs_denied",
+        "idempotency": "safe_read",
+        "concurrency": "current_reference_and_quarantine_state_checked_before_provider_read",
+        "audit": "authorized_before_stream_without_completion_overclaim"
+      }
+    }
+  ]
+}

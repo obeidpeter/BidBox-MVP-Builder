@@ -1,7 +1,16 @@
 # ADR-0005: Provider-neutral adapters and fail-closed environments
 
-Status: Accepted
+Status: Accepted; adapter coverage varies by provider and activation remains fail-closed
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Platform integrations (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Security/privacy, product and operations role holders for new production providers; named alternates are not yet recorded
+Drivers: `AD-006`, `AD-009`, `AD-011`
+Evidence: `lib/integrations-openai-ai-server/src/index.ts`; `artifacts/api-server/src/lib/aiRuntime.ts`; `artifacts/api-server/src/lib/reconciledCommunications/service.ts`; `docs/ai-overhaul/TARGET_ARCHITECTURE.md`; `docs/implementation-v2.5/RELEASE_PROVENANCE.md`
+Supersedes: Direct provider calls without a governed adapter boundary
+Superseded by: None
 
 ## Context
 

@@ -28,10 +28,12 @@ import {
   gt,
   inArray,
   isNull,
+  isNotNull,
   lte,
   ne,
   or,
   sql,
+  type SQLWrapper,
 } from "drizzle-orm";
 import {
   evaluateJurisdictionRules,
@@ -81,6 +83,7 @@ import {
   TENDER_CONTEXT_AUTHORITY_NOTE,
   TENDER_CONTEXT_BOUNDS,
   TENDER_CONTEXT_POLICY_VERSION,
+  TENDER_CONTEXT_SELECTION_FRESHNESS_NOTE,
   TENDER_ELIGIBILITY_POLICY_VERSION,
   TenderContextRepositoryUnavailableError,
   type TenderContextArtifactRecord,
@@ -127,6 +130,17 @@ const REVIEW_PERMISSIONS = [
   "intelligence:review",
 ] as const satisfies readonly Permission[];
 const MAX_RULES = 1_000;
+const SELECTION_OPTION_TEXT_BOUNDS = Object.freeze({
+  description: 20_000,
+  filename: 1_000,
+  issuer: 500,
+  label: 500,
+  paragraphReference: 2_000,
+  rulePackKey: 200,
+  rulePackLabel: 500,
+  rulePackVersion: 100,
+  jurisdiction: 32,
+});
 
 type ContextRow = typeof tenderContextVersions.$inferSelect;
 type PassportRow = typeof tenderEligibilityPassports.$inferSelect;
@@ -854,6 +868,144 @@ function jsonStrings(value: string, maximum: number): string[] | null {
   return stringArray(json(value, 50_000), maximum, 2_000);
 }
 
+/**
+ * A conservative database-side equivalent of `jsonStrings`. UTF-8 byte bounds
+ * are deliberately used here: a value admitted by this predicate can never
+ * exceed the JavaScript UTF-16 limits applied again on the authoritative path.
+ */
+function boundedJsonStringArraySql(column: SQLWrapper) {
+  return sql<boolean>`(
+    pg_catalog.octet_length(pg_catalog.convert_to(${column}, 'UTF8')) BETWEEN 2 AND 50000
+    AND CASE
+      WHEN pg_catalog.pg_input_is_valid(${column}, 'jsonb') THEN
+        CASE
+          WHEN pg_catalog.jsonb_typeof((${column})::jsonb) = 'array' THEN (
+            SELECT
+              pg_catalog.count(*) <= 100
+              AND pg_catalog.count(*) = pg_catalog.count(
+                DISTINCT (entry.value #>> '{}') COLLATE "C"
+              )
+              AND coalesce(
+                pg_catalog.bool_and(
+                  pg_catalog.jsonb_typeof(entry.value) = 'string'
+                  AND
+                  pg_catalog.octet_length(
+                    pg_catalog.convert_to(entry.value #>> '{}', 'UTF8')
+                  ) BETWEEN 1 AND 2000
+                ),
+                true
+              )
+            FROM pg_catalog.jsonb_array_elements((${column})::jsonb) AS entry(value)
+          )
+          ELSE false
+        END
+      ELSE false
+    END
+  )`;
+}
+
+/** Shared rule eligibility for both advertised options and final loading. */
+function jurisdictionRuleEligibilitySql() {
+  return sql<boolean>`(
+    ${jurisdictionRules.ruleKey} ~ '^[A-Za-z0-9][A-Za-z0-9._:-]{0,127}$'
+    AND pg_catalog.octet_length(
+      pg_catalog.convert_to(pg_catalog.btrim(${jurisdictionRules.domain}), 'UTF8')
+    ) BETWEEN 1 AND 500
+    AND ${jurisdictionRules.domain} ~ '[[:alnum:]]'
+    AND pg_catalog.octet_length(
+      pg_catalog.convert_to(pg_catalog.btrim(${jurisdictionRules.jurisdiction}), 'UTF8')
+    ) BETWEEN 2 AND ${SELECTION_OPTION_TEXT_BOUNDS.jurisdiction}
+    AND ${jurisdictionRules.jurisdiction} ~ '^NG(?:-[A-Z0-9]{1,12})?$'
+    AND ${boundedJsonStringArraySql(jurisdictionRules.sourceUrls)}
+    AND ${boundedJsonStringArraySql(jurisdictionRules.entityScope)}
+    AND ${boundedJsonStringArraySql(jurisdictionRules.categoryScope)}
+  )`;
+}
+
+function canonicalSnapshotSelectionEligibilitySql() {
+  return sql<boolean>`(
+    ${documents.redactionStatus} IN ('included', 'redacted')
+    AND ${documentVersions.malwareStatus} = 'clean'
+    AND ${documentVersions.quarantineStatus} = 'cleared'
+    AND ${documentVersionSnapshots.status} = 'verified'
+    AND ${documentVersionSnapshots.capturedRedactionStatus} = ${documents.redactionStatus}
+    AND ${documentVersionSnapshots.verifiedByUserId} IS NOT NULL
+    AND ${documentVersionSnapshots.verifiedAt} IS NOT NULL
+    AND pg_catalog.octet_length(
+      pg_catalog.convert_to(
+        pg_catalog.btrim(${documentVersionSnapshots.verifiedByName}),
+        'UTF8'
+      )
+    ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.reviewerNameCharacters}
+    AND ${documentVersions.sha256} ~ '^[0-9a-f]{64}$'
+    AND ${documentVersionSnapshots.documentVersionSha256} = ${documentVersions.sha256}
+    AND ${documentVersionSnapshots.canonicalTextSha256} ~ '^[0-9a-f]{64}$'
+    AND pg_catalog.encode(
+      pg_catalog.sha256(
+        pg_catalog.convert_to(${documentVersionSnapshots.canonicalText}, 'UTF8')
+      ),
+      'hex'
+    ) = ${documentVersionSnapshots.canonicalTextSha256}
+    AND pg_catalog.char_length(${documentVersionSnapshots.canonicalText}) BETWEEN 1 AND 5000000
+  )`;
+}
+
+function uniqueVerifiedRequirementSnippetSql() {
+  return sql<boolean>`(
+    pg_catalog.octet_length(
+      pg_catalog.convert_to(${requirementCitations.sourceSnippet}, 'UTF8')
+    ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.citationCharacters}
+    AND ${requirementCitations.sourceSnippetHash} ~ '^[0-9a-f]{64}$'
+    AND pg_catalog.encode(
+      pg_catalog.sha256(
+        pg_catalog.convert_to(${requirementCitations.sourceSnippet}, 'UTF8')
+      ),
+      'hex'
+    ) = ${requirementCitations.sourceSnippetHash}
+    AND pg_catalog.strpos(
+      ${documentVersionSnapshots.canonicalText},
+      ${requirementCitations.sourceSnippet}
+    ) > 0
+    AND pg_catalog.strpos(
+      pg_catalog.substr(
+        ${documentVersionSnapshots.canonicalText},
+        pg_catalog.strpos(
+          ${documentVersionSnapshots.canonicalText},
+          ${requirementCitations.sourceSnippet}
+        ) + 1
+      ),
+      ${requirementCitations.sourceSnippet}
+    ) = 0
+  )`;
+}
+
+function rulePackMetadataIsEligible(
+  pack: typeof jurisdictionRulePacks.$inferSelect,
+  approverName: string | null,
+): boolean {
+  const namedApprover = approverName?.trim();
+  const label = `${pack.packKey} — version ${pack.version}`;
+  return Boolean(
+    pack.status === "approved" &&
+    pack.advisoryOnly === true &&
+    pack.approvedByUserId &&
+    pack.approvedAt &&
+    SHA256.test(pack.sourceManifestHash) &&
+    /^NG(?:-[A-Z0-9]{1,12})?$/u.test(pack.jurisdiction) &&
+    pack.packKey.trim().length > 0 &&
+    Buffer.byteLength(pack.packKey, "utf8") <=
+      SELECTION_OPTION_TEXT_BOUNDS.rulePackKey &&
+    pack.version.trim().length > 0 &&
+    Buffer.byteLength(pack.version, "utf8") <=
+      SELECTION_OPTION_TEXT_BOUNDS.rulePackVersion &&
+    Buffer.byteLength(label, "utf8") <=
+      SELECTION_OPTION_TEXT_BOUNDS.rulePackLabel &&
+    namedApprover &&
+    Buffer.byteLength(namedApprover, "utf8") <=
+      TENDER_CONTEXT_BOUNDS.reviewerNameCharacters,
+  );
+}
+
 async function loadRulePack(
   transaction: Transaction,
   draft: Pick<
@@ -893,20 +1045,27 @@ async function loadRulePack(
   if (
     approvers.length !== 1 ||
     approvers[0]?.status !== "active" ||
-    !approvers[0]?.name?.trim()
+    !rulePackMetadataIsEligible(pack, approvers[0]?.name ?? null)
   ) {
     throw new TenderContextPersistenceConflict("conflict");
   }
   const rows = await transaction
-    .select()
+    .select({
+      rule: jurisdictionRules,
+      eligibleForTenderContext: jurisdictionRuleEligibilitySql(),
+    })
     .from(jurisdictionRules)
     .where(eq(jurisdictionRules.rulePackId, pack.id))
     .limit(MAX_RULES + 1)
     .for("share");
-  if (rows.length === 0 || rows.length > MAX_RULES) {
+  if (
+    rows.length === 0 ||
+    rows.length > MAX_RULES ||
+    rows.some(({ eligibleForTenderContext }) => !eligibleForTenderContext)
+  ) {
     throw new TenderContextPersistenceConflict("conflict");
   }
-  const rules: JurisdictionRule[] = rows.map((rule) => {
+  const rules: JurisdictionRule[] = rows.map(({ rule }) => {
     const sourceUrls = jsonStrings(rule.sourceUrls, 100);
     const entityScope = jsonStrings(rule.entityScope, 100);
     const categoryScope = jsonStrings(rule.categoryScope, 100);
@@ -970,6 +1129,10 @@ async function resolveContextMaterial(
         eq(documents.organisationId, scope.organisationId),
         eq(documents.projectId, project.id),
         eq(documents.type, "tender"),
+        eq(documents.extractionStatus, "extracted"),
+        eq(documentVersions.objectPath, documents.objectPath),
+        eq(documentVersions.sha256, documents.sha256),
+        eq(documentVersions.sizeBytes, documents.size),
         eq(documentVersionSnapshots.organisationId, scope.organisationId),
       ),
     )
@@ -1300,13 +1463,351 @@ async function resolveContextMaterial(
   };
 }
 
+async function loadSelectionOptions(
+  transaction: Transaction,
+  scope: TenderContextScope,
+  project: typeof projects.$inferSelect,
+): Promise<TenderContextCentre["selectionOptions"]> {
+  const [primaryRows, rulePackRows, requirementRows, artifactRows] =
+    await Promise.all([
+      transaction
+        .select({
+          documentId: documents.id,
+          documentVersionId: documentVersions.id,
+          filename: documents.filename,
+          versionNumber: documentVersions.versionNumber,
+          verifiedByName: sql<string>`pg_catalog.btrim(${documentVersionSnapshots.verifiedByName})`,
+        })
+        .from(documents)
+        .innerJoin(
+          documentVersions,
+          and(
+            eq(documentVersions.documentId, documents.id),
+            eq(documentVersions.organisationId, scope.organisationId),
+            eq(documentVersions.objectPath, documents.objectPath),
+            eq(documentVersions.sha256, documents.sha256),
+            eq(documentVersions.sizeBytes, documents.size),
+          ),
+        )
+        .innerJoin(
+          documentVersionSnapshots,
+          and(
+            eq(documentVersionSnapshots.documentVersionId, documentVersions.id),
+            eq(documentVersionSnapshots.organisationId, scope.organisationId),
+            eq(documentVersionSnapshots.status, "verified"),
+          ),
+        )
+        .where(
+          and(
+            eq(documents.organisationId, scope.organisationId),
+            eq(documents.projectId, project.id),
+            eq(documents.type, "tender"),
+            eq(documents.extractionStatus, "extracted"),
+            canonicalSnapshotSelectionEligibilitySql(),
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(${documents.filename}, 'UTF8')
+            ) BETWEEN 1 AND ${SELECTION_OPTION_TEXT_BOUNDS.filename}`,
+          ),
+        )
+        .orderBy(desc(documentVersions.createdAt))
+        .limit(TENDER_CONTEXT_BOUNDS.primaryDocumentOptions + 1),
+      transaction
+        .select({ pack: jurisdictionRulePacks, approverName: users.name })
+        .from(jurisdictionRulePacks)
+        .innerJoin(
+          users,
+          and(
+            eq(users.id, jurisdictionRulePacks.approvedByUserId),
+            eq(users.status, "active"),
+          ),
+        )
+        .innerJoin(
+          jurisdictionRules,
+          eq(jurisdictionRules.rulePackId, jurisdictionRulePacks.id),
+        )
+        .where(
+          and(
+            eq(jurisdictionRulePacks.status, "approved"),
+            eq(jurisdictionRulePacks.advisoryOnly, true),
+            isNotNull(jurisdictionRulePacks.approvedAt),
+            sql`${jurisdictionRulePacks.sourceManifestHash} ~ '^[0-9a-f]{64}$'`,
+            sql`${jurisdictionRulePacks.jurisdiction} ~ '^NG(?:-[A-Z0-9]{1,12})?$'`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(${jurisdictionRulePacks.jurisdiction}, 'UTF8')
+            ) BETWEEN 2 AND ${SELECTION_OPTION_TEXT_BOUNDS.jurisdiction}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${jurisdictionRulePacks.packKey}), 'UTF8')
+            ) >= 1`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(${jurisdictionRulePacks.packKey}, 'UTF8')
+            ) <= ${SELECTION_OPTION_TEXT_BOUNDS.rulePackKey}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${jurisdictionRulePacks.version}), 'UTF8')
+            ) >= 1`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(${jurisdictionRulePacks.version}, 'UTF8')
+            ) <= ${SELECTION_OPTION_TEXT_BOUNDS.rulePackVersion}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(
+                ${jurisdictionRulePacks.packKey} || ' — version ' || ${jurisdictionRulePacks.version},
+                'UTF8'
+              )
+            ) <= ${SELECTION_OPTION_TEXT_BOUNDS.rulePackLabel}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${users.name}), 'UTF8')
+            ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.reviewerNameCharacters}`,
+          ),
+        )
+        .groupBy(jurisdictionRulePacks.id, users.id)
+        .having(
+          sql`pg_catalog.count(${jurisdictionRules.id}) BETWEEN 1 AND ${MAX_RULES}
+            AND pg_catalog.bool_and(${jurisdictionRuleEligibilitySql()})`,
+        )
+        .orderBy(desc(jurisdictionRulePacks.approvedAt))
+        .limit(TENDER_CONTEXT_BOUNDS.rulePackOptions + 1),
+      transaction
+        .select({
+          requirementId: requirements.id,
+          requirementCitationId: requirementCitations.id,
+          description: requirements.text,
+          sourceDocumentName: documents.filename,
+          sourceSnippet: requirementCitations.sourceSnippet,
+          pageNumber: requirementCitations.pageNumber,
+          paragraphRef: requirementCitations.paragraphRef,
+          suggestedEvidenceKind: sql<string>`pg_catalog.btrim(
+            coalesce(
+              nullif(pg_catalog.btrim(${requirements.expectedEvidence}), ''),
+              nullif(pg_catalog.btrim(${requirements.category}), ''),
+              'documentary evidence'
+            )
+          )`,
+          mandatoryByDefault: requirements.isMandatory,
+          reviewedByName: sql<string>`pg_catalog.btrim(${requirements.reviewedByName})`,
+        })
+        .from(requirementCitations)
+        .innerJoin(
+          requirements,
+          eq(requirements.id, requirementCitations.requirementId),
+        )
+        .innerJoin(
+          documentVersions,
+          eq(documentVersions.id, requirementCitations.documentVersionId),
+        )
+        .innerJoin(documents, eq(documents.id, documentVersions.documentId))
+        .innerJoin(
+          documentVersionSnapshots,
+          and(
+            eq(documentVersionSnapshots.documentVersionId, documentVersions.id),
+            eq(documentVersionSnapshots.status, "verified"),
+          ),
+        )
+        .where(
+          and(
+            eq(requirements.organisationId, scope.organisationId),
+            eq(requirements.projectId, project.id),
+            inArray(requirements.reviewStatus, ["confirmed", "edited"]),
+            isNotNull(requirements.reviewedBy),
+            isNotNull(requirements.reviewedAt),
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${requirements.reviewedByName}), 'UTF8')
+            ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.reviewerNameCharacters}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${requirements.text}), 'UTF8')
+            ) BETWEEN 1 AND ${SELECTION_OPTION_TEXT_BOUNDS.description}`,
+            eq(requirementCitations.organisationId, scope.organisationId),
+            eq(requirementCitations.verificationStatus, "verified"),
+            isNotNull(requirementCitations.verifiedByUserId),
+            isNotNull(requirementCitations.verifiedAt),
+            or(
+              isNull(requirementCitations.pageNumber),
+              gt(requirementCitations.pageNumber, 0),
+            ),
+            or(
+              isNull(requirementCitations.paragraphRef),
+              sql`pg_catalog.octet_length(
+                pg_catalog.convert_to(${requirementCitations.paragraphRef}, 'UTF8')
+              ) <= ${SELECTION_OPTION_TEXT_BOUNDS.paragraphReference}`,
+            ),
+            eq(documentVersions.organisationId, scope.organisationId),
+            eq(documents.organisationId, scope.organisationId),
+            eq(documents.projectId, project.id),
+            eq(documents.type, "tender"),
+            eq(documentVersionSnapshots.organisationId, scope.organisationId),
+            canonicalSnapshotSelectionEligibilitySql(),
+            uniqueVerifiedRequirementSnippetSql(),
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(${documents.filename}, 'UTF8')
+            ) BETWEEN 1 AND ${SELECTION_OPTION_TEXT_BOUNDS.filename}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(
+                pg_catalog.btrim(
+                  coalesce(
+                    nullif(
+                      pg_catalog.btrim(${requirements.expectedEvidence}),
+                      ''
+                    ),
+                    nullif(pg_catalog.btrim(${requirements.category}), ''),
+                    'documentary evidence'
+                  )
+                ),
+                'UTF8'
+              )
+            ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.evidenceKindCharacters}`,
+          ),
+        )
+        .orderBy(desc(requirementCitations.updatedAt))
+        .limit(TENDER_CONTEXT_BOUNDS.requirementOptions + 1),
+      transaction
+        .select({
+          vaultItemVersionId: vaultItemVersions.id,
+          sourceDocumentId: documents.id,
+          documentVersionId: documentVersions.id,
+          versionNumber: vaultItemVersions.versionNumber,
+          label: sql<string>`pg_catalog.btrim(${vaultItems.artefactType})`,
+          issuer: sql<string>`pg_catalog.btrim(
+            coalesce(
+              ${vaultItemVersions.issuingAuthority},
+              ${vaultItems.issuer}
+            )
+          )`,
+          validFrom: vaultItemVersions.issueDate,
+          validUntil: vaultItemVersions.expiryDate,
+          approvedByName: sql<string>`pg_catalog.btrim(${users.name})`,
+        })
+        .from(vaultItemVersions)
+        .innerJoin(vaultItems, eq(vaultItems.id, vaultItemVersions.vaultItemId))
+        .innerJoin(
+          documentVersions,
+          eq(documentVersions.id, vaultItemVersions.documentVersionId),
+        )
+        .innerJoin(
+          documents,
+          and(
+            eq(documents.id, documentVersions.documentId),
+            eq(documentVersions.objectPath, documents.objectPath),
+            eq(documentVersions.sha256, documents.sha256),
+            eq(documentVersions.sizeBytes, documents.size),
+          ),
+        )
+        .innerJoin(
+          documentVersionSnapshots,
+          and(
+            eq(documentVersionSnapshots.documentVersionId, documentVersions.id),
+            eq(documentVersionSnapshots.status, "verified"),
+          ),
+        )
+        .innerJoin(
+          users,
+          and(
+            eq(users.id, vaultItemVersions.approvedByUserId),
+            eq(users.status, "active"),
+          ),
+        )
+        .where(
+          and(
+            eq(vaultItemVersions.organisationId, scope.organisationId),
+            eq(vaultItemVersions.verificationState, "approved"),
+            isNull(vaultItemVersions.withdrawnAt),
+            isNotNull(vaultItemVersions.approvedByUserId),
+            isNotNull(vaultItemVersions.approvedAt),
+            eq(vaultItems.organisationId, scope.organisationId),
+            eq(vaultItems.clientId, project.clientId),
+            eq(vaultItems.status, "active"),
+            eq(vaultItems.sourceDocumentId, documents.id),
+            eq(documentVersions.organisationId, scope.organisationId),
+            eq(documents.organisationId, scope.organisationId),
+            eq(documents.extractionStatus, "extracted"),
+            eq(documentVersionSnapshots.organisationId, scope.organisationId),
+            canonicalSnapshotSelectionEligibilitySql(),
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${vaultItems.artefactType}), 'UTF8')
+            ) BETWEEN 1 AND ${SELECTION_OPTION_TEXT_BOUNDS.label}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(
+                pg_catalog.btrim(
+                  coalesce(
+                    ${vaultItemVersions.issuingAuthority},
+                    ${vaultItems.issuer}
+                  )
+                ),
+                'UTF8'
+              )
+            ) BETWEEN 1 AND ${SELECTION_OPTION_TEXT_BOUNDS.issuer}`,
+            sql`pg_catalog.octet_length(
+              pg_catalog.convert_to(pg_catalog.btrim(${users.name}), 'UTF8')
+            ) BETWEEN 1 AND ${TENDER_CONTEXT_BOUNDS.reviewerNameCharacters}`,
+          ),
+        )
+        .orderBy(desc(vaultItemVersions.createdAt))
+        .limit(TENDER_CONTEXT_BOUNDS.companyEvidenceOptions + 1),
+    ]);
+
+  return {
+    freshnessNote: TENDER_CONTEXT_SELECTION_FRESHNESS_NOTE,
+    primaryDocuments: primaryRows
+      .slice(0, TENDER_CONTEXT_BOUNDS.primaryDocumentOptions)
+      .map((row) => ({
+        documentId: row.documentId,
+        documentVersionId: row.documentVersionId,
+        filename: row.filename,
+        versionNumber: row.versionNumber,
+        verifiedByName: row.verifiedByName,
+      })),
+    rulePacks: rulePackRows
+      .slice(0, TENDER_CONTEXT_BOUNDS.rulePackOptions)
+      .flatMap(({ pack, approverName }) => {
+        const label = `${pack.packKey} — version ${pack.version}`;
+        const namedApprover = approverName?.trim();
+        return rulePackMetadataIsEligible(pack, approverName) && namedApprover
+          ? [
+              {
+                id: pack.id,
+                label,
+                packKey: pack.packKey,
+                version: pack.version,
+                jurisdiction: pack.jurisdiction,
+                approvedByName: namedApprover,
+              },
+            ]
+          : [];
+      }),
+    requirements: requirementRows
+      .slice(0, TENDER_CONTEXT_BOUNDS.requirementOptions)
+      .map((row) => ({
+        requirementId: row.requirementId,
+        requirementCitationId: row.requirementCitationId,
+        description: row.description,
+        sourceDocumentName: row.sourceDocumentName,
+        sourceSnippet: row.sourceSnippet,
+        pageNumber: row.pageNumber,
+        paragraphRef: row.paragraphRef,
+        suggestedEvidenceKind: row.suggestedEvidenceKind,
+        mandatoryByDefault: row.mandatoryByDefault,
+        reviewedByName: row.reviewedByName,
+      })),
+    companyEvidence: artifactRows
+      .slice(0, TENDER_CONTEXT_BOUNDS.companyEvidenceOptions)
+      .map((row) => ({
+        vaultItemVersionId: row.vaultItemVersionId,
+        sourceDocumentId: row.sourceDocumentId,
+        documentVersionId: row.documentVersionId,
+        versionNumber: row.versionNumber,
+        label: row.label,
+        issuer: row.issuer,
+        validFrom: dateOnly(row.validFrom),
+        validUntil: dateOnly(row.validUntil),
+        approvedByName: row.approvedByName,
+      })),
+  };
+}
+
 async function readCentreTx(
   transaction: Transaction,
   scope: TenderContextScope,
   projectId: string,
 ): Promise<TenderContextCentre | null> {
   const [project] = await transaction
-    .select({ id: projects.id, title: projects.tenderTitle })
+    .select()
     .from(projects)
     .where(
       and(
@@ -1317,7 +1818,7 @@ async function readCentreTx(
     )
     .limit(1);
   if (!project) return null;
-  const [contextRows, passportRows] = await Promise.all([
+  const [contextRows, passportRows, selectionOptions] = await Promise.all([
     transaction
       .select()
       .from(tenderContextVersions)
@@ -1340,6 +1841,7 @@ async function readCentreTx(
       )
       .orderBy(desc(tenderEligibilityPassports.createdAt))
       .limit(TENDER_CONTEXT_BOUNDS.passportsPerProject + 1),
+    loadSelectionOptions(transaction, scope, project),
   ]);
   if (
     contextRows.length > TENDER_CONTEXT_BOUNDS.contextVersionsPerProject ||
@@ -1351,7 +1853,8 @@ async function readCentreTx(
     policyVersion: TENDER_CONTEXT_POLICY_VERSION,
     eligibilityPolicyVersion: TENDER_ELIGIBILITY_POLICY_VERSION,
     authorityNote: TENDER_CONTEXT_AUTHORITY_NOTE,
-    project,
+    project: { id: project.id, title: project.tenderTitle },
+    selectionOptions,
     contexts: contextRows.map(contextRecord),
     passports: passportRows.map(passportRecord),
   };

@@ -191,8 +191,14 @@ async function lockAuthorityAndProject(
   scope: GovernedClientUploadScope,
 ): Promise<Date> {
   assertRepositoryScope(scope);
-  // This helper takes the membership-administration lock before any other
-  // upload lock and re-derives current permissions from durable grants.
+  // Project -> membership is the repository-wide advisory-lock order. The
+  // normal route middleware already holds this project lock, so this call is
+  // reentrant there and also keeps any future direct caller safe.
+  await db.execute(
+    sql`SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(${scope.projectId}, 0))`,
+  );
+  // Re-derive current permissions from durable grants under the shared
+  // membership-administration lock before taking narrower upload locks.
   const authority = await resolveCurrentDirectAuthority(
     scope.accessContext,
     scope.actor.id,
@@ -204,9 +210,6 @@ async function lockAuthorityAndProject(
   ) {
     fail("scope_denied", "Current direct document-upload authority denied.");
   }
-  await db.execute(
-    sql`SELECT pg_catalog.pg_advisory_xact_lock(pg_catalog.hashtextextended(${scope.projectId}, 0))`,
-  );
   await db.execute(sql`
     SELECT pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(

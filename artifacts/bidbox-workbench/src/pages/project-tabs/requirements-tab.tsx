@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useListRequirements,
   useExtractRequirements,
@@ -53,6 +53,13 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import { DataErrorPanel, LoadingPanel } from "@/components/platform-states";
+import {
+  FieldErrorMessage,
+  FormErrorSummary,
+  UnsavedChangesAlert,
+} from "@/components/form-feedback";
+import { errorMessage } from "@/lib/errors";
 
 const CATEGORIES = [
   "eligibility",
@@ -70,11 +77,33 @@ interface EditForm {
   reviewerNotes: string;
 }
 
+const EMPTY_FORM: EditForm = {
+  text: "",
+  category: "other",
+  expectedEvidence: "",
+  isMandatory: true,
+  reviewerNotes: "",
+};
+
 export function RequirementsTab({ projectId }: { projectId: string }) {
   const canWriteRequirements = useOrganisationPermission("requirement:write");
   const canReviewRequirements = useOrganisationPermission("requirement:review");
-  const { data: requirements, isLoading } = useListRequirements(projectId);
-  const { data: scorecard } = useGetProjectScorecard(projectId);
+  const {
+    data: requirements,
+    isLoading: requirementsLoading,
+    isPending: requirementsPending,
+    isError: requirementsError,
+    isSuccess: requirementsSuccess,
+    refetch: refetchRequirements,
+  } = useListRequirements(projectId);
+  const {
+    data: scorecard,
+    isLoading: scorecardLoading,
+    isPending: scorecardPending,
+    isError: scorecardError,
+    isSuccess: scorecardSuccess,
+    refetch: refetchScorecard,
+  } = useGetProjectScorecard(projectId);
   const extractReqs = useExtractRequirements();
   const createReq = useCreateRequirement();
   const updateReq = useUpdateRequirement();
@@ -88,14 +117,18 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
   const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [survivorId, setSurvivorId] = useState<string | null>(null);
   const [mergeOpen, setMergeOpen] = useState(false);
-  const [form, setForm] = useState<EditForm>({
-    text: "",
-    category: "other",
-    expectedEvidence: "",
-    isMandatory: true,
-    reviewerNotes: "",
-  });
+  const [form, setForm] = useState<EditForm>(EMPTY_FORM);
+  const [initialForm, setInitialForm] = useState<EditForm>(EMPTY_FORM);
+  const [formErrors, setFormErrors] = useState<{
+    text?: string;
+    form?: string;
+  }>({});
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [mergeError, setMergeError] = useState<string | null>(null);
   const [actingId, setActingId] = useState<string | null>(null);
+  const requirementTextRef = useRef<HTMLTextAreaElement>(null);
+
+  const recordsReady = requirementsSuccess && scorecardSuccess;
 
   const refresh = () => {
     queryClient.invalidateQueries({
@@ -107,7 +140,25 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
   };
 
   const handleExtract = () => {
-    extractReqs.mutate({ id: projectId }, { onSuccess: refresh });
+    if (!recordsReady) return;
+    extractReqs.mutate(
+      { id: projectId },
+      {
+        onSuccess: () => {
+          refresh();
+          toast({ title: "Requirement extraction complete" });
+        },
+        onError: (err) =>
+          toast({
+            variant: "destructive",
+            title: "Could not extract requirements",
+            description: errorMessage(
+              err,
+              "Try again after reloading the register.",
+            ),
+          }),
+      },
+    );
   };
 
   const exitSelectMode = () => {
@@ -137,11 +188,13 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
     // Default the survivor to the first selected row so the reviewer can just
     // confirm, but let them change it in the dialog.
     setSurvivorId((cur) => cur ?? selectedReqs[0]?.id ?? null);
+    setMergeError(null);
     setMergeOpen(true);
   };
 
   const handleMerge = () => {
-    if (!survivorId || selectedIds.size < 2) return;
+    if (!recordsReady || !survivorId || selectedIds.size < 2) return;
+    setMergeError(null);
     mergeReqs.mutate(
       {
         id: projectId,
@@ -154,11 +207,18 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
           refresh();
           toast({ title: "Requirements merged" });
         },
-        onError: () =>
+        onError: (err) => {
+          const message = errorMessage(
+            err,
+            "The requirements were not merged. Reload the register and try again.",
+          );
+          setMergeError(message);
           toast({
             variant: "destructive",
             title: "Could not merge requirements",
-          }),
+            description: message,
+          });
+        },
       },
     );
   };
@@ -168,6 +228,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
     (r.sourceDocName ?? "no citation");
 
   const rule = (req: Requirement, reviewStatus: "confirmed" | "rejected") => {
+    if (!recordsReady) return;
     setActingId(req.id);
     updateReq.mutate(
       { id: req.id, data: { reviewStatus } },
@@ -184,44 +245,75 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
   };
 
   const openEdit = (req: Requirement) => {
-    setForm({
+    const nextForm: EditForm = {
       text: req.text,
       category: req.category,
       expectedEvidence: req.expectedEvidence ?? "",
       isMandatory: req.isMandatory,
       reviewerNotes: req.reviewerNotes ?? "",
-    });
+    };
+    setForm(nextForm);
+    setInitialForm(nextForm);
+    setFormErrors({});
     setEditing(req);
   };
 
   const openAdd = () => {
-    setForm({
-      text: "",
-      category: "other",
-      expectedEvidence: "",
-      isMandatory: true,
-      reviewerNotes: "",
-    });
+    setForm(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
+    setFormErrors({});
     setAdding(true);
   };
 
   const closeDialog = () => {
     setEditing(null);
     setAdding(false);
+    setFormErrors({});
+    setDiscardOpen(false);
+  };
+
+  const requestCloseDialog = () => {
+    if (saving) return;
+    if (JSON.stringify(form) !== JSON.stringify(initialForm)) {
+      setDiscardOpen(true);
+      return;
+    }
+    closeDialog();
   };
 
   const handleSave = () => {
-    if (!form.text.trim()) {
-      toast({ variant: "destructive", title: "Requirement text is required" });
+    if (!recordsReady) {
+      setFormErrors({
+        form: "Reload the requirements register before saving changes.",
+      });
       return;
     }
+    if (!form.text.trim()) {
+      setFormErrors({ text: "Enter the requirement text." });
+      requirementTextRef.current?.focus();
+      return;
+    }
+    setFormErrors({});
     const common = {
       onSuccess: () => {
         closeDialog();
         refresh();
+        toast({
+          title: editing ? "Requirement updated" : "Requirement added",
+        });
       },
-      onError: () =>
-        toast({ variant: "destructive", title: "Could not save requirement" }),
+      onError: (err: unknown) => {
+        const message = errorMessage(
+          err,
+          "The requirement was not saved. Reload the register and try again.",
+        );
+        setFormErrors({ form: message });
+        toast({
+          variant: "destructive",
+          title: "Could not save requirement",
+          description: message,
+        });
+      },
     };
     if (editing) {
       // Saving an edit both applies the changes and rules the row "edited"
@@ -232,9 +324,9 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
           data: {
             text: form.text.trim(),
             category: form.category,
-            expectedEvidence: form.expectedEvidence.trim() || undefined,
+            expectedEvidence: form.expectedEvidence.trim() || null,
             isMandatory: form.isMandatory,
-            reviewerNotes: form.reviewerNotes.trim() || undefined,
+            reviewerNotes: form.reviewerNotes.trim() || null,
             reviewStatus:
               form.text.trim() === editing.text &&
               editing.reviewStatus !== "suggested"
@@ -262,6 +354,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
 
   const totals = scorecard?.totals;
   const reviewedAny =
+    recordsReady &&
     !!totals &&
     totals.engineConfirmed +
       totals.engineEdited +
@@ -323,7 +416,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
               </span>
               <Button
                 onClick={openMerge}
-                disabled={selectedIds.size < 2}
+                disabled={!recordsReady || selectedIds.size < 2}
                 variant="default"
               >
                 <GitMerge className="w-4 h-4 mr-2" />
@@ -340,13 +433,19 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                   <Button
                     onClick={() => setSelectMode(true)}
                     variant="outline"
-                    disabled={!requirements || requirements.length < 2}
+                    disabled={
+                      !recordsReady || !requirements || requirements.length < 2
+                    }
                     title="Fold near-duplicate requirements into one"
                   >
                     <GitMerge className="w-4 h-4 mr-2" />
                     Merge
                   </Button>
-                  <Button onClick={openAdd} variant="outline">
+                  <Button
+                    onClick={openAdd}
+                    variant="outline"
+                    disabled={!recordsReady}
+                  >
                     <Plus className="w-4 h-4 mr-2" />
                     Add requirement
                   </Button>
@@ -355,7 +454,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
               {canWriteRequirements && (
                 <Button
                   onClick={handleExtract}
-                  disabled={extractReqs.isPending}
+                  disabled={!recordsReady || extractReqs.isPending}
                   variant="secondary"
                 >
                   {extractReqs.isPending ? (
@@ -420,11 +519,23 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
       )}
 
       <div className="bg-card border border-border rounded-lg shadow-xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {requirementsLoading ||
+        scorecardLoading ||
+        requirementsPending ||
+        scorecardPending ? (
+          <LoadingPanel label="Loading requirements and readiness results" />
+        ) : requirementsError || scorecardError || !recordsReady ? (
+          <div className="p-4">
+            <DataErrorPanel
+              title="We couldn't load the requirements register"
+              description="The register or its readiness totals are unavailable. Review and editing actions stay disabled until both current records load."
+              onRetry={() => {
+                void refetchRequirements();
+                void refetchScorecard();
+              }}
+            />
           </div>
-        ) : requirements && requirements.length > 0 ? (
+        ) : requirements.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -605,7 +716,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                               variant="ghost"
                               size="icon"
                               title="Confirm as-is"
-                              disabled={actingId === req.id}
+                              disabled={!recordsReady || actingId === req.id}
                               onClick={() => rule(req, "confirmed")}
                             >
                               <Check className="w-4 h-4 text-emerald-600" />
@@ -614,7 +725,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                               variant="ghost"
                               size="icon"
                               title="Reject (false positive)"
-                              disabled={actingId === req.id}
+                              disabled={!recordsReady || actingId === req.id}
                               onClick={() => rule(req, "rejected")}
                             >
                               <X className="w-4 h-4 text-destructive" />
@@ -627,6 +738,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                           size="icon"
                           title="Edit and confirm with changes"
                           onClick={() => openEdit(req)}
+                          disabled={!recordsReady}
                         >
                           <Pencil className="w-4 h-4 text-muted-foreground" />
                         </Button>
@@ -646,7 +758,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                 variant="outline"
                 className="mt-4"
                 onClick={handleExtract}
-                disabled={extractReqs.isPending}
+                disabled={!recordsReady || extractReqs.isPending}
               >
                 Find requirements with AI
               </Button>
@@ -657,7 +769,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
 
       <Dialog
         open={canReviewRequirements && (!!editing || adding)}
-        onOpenChange={(open) => !open && closeDialog()}
+        onOpenChange={(open) => !open && requestCloseDialog()}
       >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
@@ -666,6 +778,11 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <FormErrorSummary
+              id="requirement-form-errors"
+              errors={[formErrors.text, formErrors.form]}
+              title="The requirement was not saved"
+            />
             {editing?.engineText && (
               <div className="rounded-md bg-muted/40 border border-border px-3 py-2 text-xs text-muted-foreground">
                 <span className="font-medium">AI suggestion:</span>{" "}
@@ -673,18 +790,41 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
               </div>
             )}
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="requirement-text"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Requirement text
               </label>
               <Textarea
+                ref={requirementTextRef}
+                id="requirement-text"
                 value={form.text}
-                onChange={(e) => setForm({ ...form, text: e.target.value })}
+                onChange={(e) => {
+                  setForm({ ...form, text: e.target.value });
+                  if (formErrors.text) {
+                    setFormErrors((current) => ({
+                      ...current,
+                      text: undefined,
+                    }));
+                  }
+                }}
                 className="min-h-[90px]"
+                aria-invalid={!!formErrors.text}
+                aria-describedby={
+                  formErrors.text ? "requirement-text-error" : undefined
+                }
               />
+              <FieldErrorMessage id="requirement-text-error">
+                {formErrors.text}
+              </FieldErrorMessage>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="requirement-category"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Category
                 </label>
                 <Select
@@ -693,7 +833,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                     setForm({ ...form, category: val as EditForm["category"] })
                   }
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="requirement-category">
                     <SelectValue />
                   </SelectTrigger>
                   <SelectContent>
@@ -706,10 +846,14 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="requirement-expected-evidence"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Expected evidence
                 </label>
                 <Input
+                  id="requirement-expected-evidence"
                   value={form.expectedEvidence}
                   onChange={(e) =>
                     setForm({ ...form, expectedEvidence: e.target.value })
@@ -718,8 +862,12 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
                 />
               </div>
             </div>
-            <label className="flex items-center gap-2 text-sm">
+            <label
+              htmlFor="requirement-mandatory"
+              className="flex items-center gap-2 text-sm"
+            >
               <Checkbox
+                id="requirement-mandatory"
                 checked={form.isMandatory}
                 onCheckedChange={(v) =>
                   setForm({ ...form, isMandatory: v === true })
@@ -729,10 +877,14 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
             </label>
             {editing && (
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="requirement-reviewer-notes"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Reviewer notes
                 </label>
                 <Textarea
+                  id="requirement-reviewer-notes"
                   value={form.reviewerNotes}
                   onChange={(e) =>
                     setForm({ ...form, reviewerNotes: e.target.value })
@@ -744,7 +896,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
             )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={closeDialog}>
+            <Button variant="outline" onClick={requestCloseDialog}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -757,13 +909,24 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
 
       <Dialog
         open={canReviewRequirements && mergeOpen}
-        onOpenChange={(open) => setMergeOpen(open)}
+        onOpenChange={(open) => {
+          setMergeOpen(open);
+          if (!open) setMergeError(null);
+        }}
       >
         <DialogContent className="sm:max-w-[600px]">
           <DialogHeader>
             <DialogTitle className="font-serif">Merge requirements</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            {mergeError ? (
+              <p
+                role="alert"
+                className="rounded-md border border-destructive/30 bg-destructive/10 px-3 py-2 text-sm text-destructive"
+              >
+                {mergeError}
+              </p>
+            ) : null}
             <p className="text-sm text-muted-foreground">
               Choose which requirement survives. The others are folded into it
               and their source citations are preserved on the surviving row.
@@ -820,7 +983,7 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
             </Button>
             <Button
               onClick={handleMerge}
-              disabled={!survivorId || mergeReqs.isPending}
+              disabled={!recordsReady || !survivorId || mergeReqs.isPending}
             >
               {mergeReqs.isPending && (
                 <Loader2 className="w-4 h-4 mr-2 animate-spin" />
@@ -830,6 +993,13 @@ export function RequirementsTab({ projectId }: { projectId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UnsavedChangesAlert
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onDiscard={closeDialog}
+        subject={editing ? "this requirement" : "this new requirement"}
+      />
     </div>
   );
 }

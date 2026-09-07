@@ -1,20 +1,18 @@
 import { CLAIMS_DESK_NAMESPACE } from "./contracts";
+import { PROJECT_ROUTE_POLICIES } from "../projectRoutePolicy";
 
 /**
  * Exact append-only mutation exceptions that the shared project immutability
  * guard must opt into before signed-off/exported Claims Desk writes are live.
  * Archived projects are deliberately absent and remain terminal.
  */
-export const CLAIMS_DESK_RELEASED_LEDGER_ROUTE_EXCEPTIONS = Object.freeze([
-  {
-    method: "POST" as const,
-    path: /^\/projects\/[^/]+\/claims-desk\/records$/u,
-  },
-  {
-    method: "POST" as const,
-    path: /^\/projects\/[^/]+\/claims-desk\/records\/[^/]+\/transitions$/u,
-  },
-]);
+export const CLAIMS_DESK_RELEASED_LEDGER_ROUTE_EXCEPTIONS = Object.freeze(
+  PROJECT_ROUTE_POLICIES.filter(
+    ({ id }) =>
+      id === "claims-desk-record-create" ||
+      id === "claims-desk-transition-create",
+  ).map(({ method, path }) => ({ method, path })),
+);
 
 export function isClaimsDeskReleasedLedgerMutation(
   projectStatus: string,

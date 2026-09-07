@@ -278,6 +278,7 @@ import type {
   ProjectCost,
   ProjectCreate,
   ProjectExportPackageVersionListResponse,
+  ProjectExportRequest,
   ProjectSummary,
   ProjectUpdate,
   QueueCommunicationInput,
@@ -9428,71 +9429,65 @@ export const getExportProjectUrl = (id: string,) => {
 /**
  * @summary Export project data as a ZIP (admin only)
  */
-export const exportProject = async (id: string, options?: RequestInit): Promise<Blob> => {
+export const exportProject = async (id: string,
+    projectExportRequest: ProjectExportRequest, idempotencyKey: string, ifMatch: string, options?: RequestInit): Promise<Blob> => {
 
   return customFetch<Blob>(getExportProjectUrl(id),
   {
     ...options,
-    method: 'GET'
-
-
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json', 'Idempotency-Key': idempotencyKey, 'If-Match': ifMatch, ...options?.headers },
+    body: JSON.stringify(projectExportRequest)
   }
 );}
 
 
 
 
+export const getExportProjectMutationOptions = <TError = ErrorType<ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exportProject>>, TError,{id: string;data: BodyType<ProjectExportRequest>;idempotencyKey: string;ifMatch: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+): UseMutationOptions<Awaited<ReturnType<typeof exportProject>>, TError,{id: string;data: BodyType<ProjectExportRequest>;idempotencyKey: string;ifMatch: string}, TContext> => {
 
-export const getExportProjectQueryKey = (id: string,) => {
-    return [
-    `/api/projects/${id}/export`
-    ] as const;
-    }
-
-
-export const getExportProjectQueryOptions = <TData = Awaited<ReturnType<typeof exportProject>>, TError = ErrorType<ForbiddenResponse>>(id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportProject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-) => {
-
-const {query: queryOptions, request: requestOptions} = options ?? {};
-
-  const queryKey =  queryOptions?.queryKey ?? getExportProjectQueryKey(id);
-
-
-
-    const queryFn: QueryFunction<Awaited<ReturnType<typeof exportProject>>> = ({ signal }) => exportProject(id, { signal, ...requestOptions });
+const mutationKey = ['exportProject'];
+const {mutation: mutationOptions, request: requestOptions} = options ?
+      options.mutation && 'mutationKey' in options.mutation && options.mutation.mutationKey ?
+      options
+      : {...options, mutation: {...options.mutation, mutationKey}}
+      : {mutation: { mutationKey, }, request: undefined};
 
 
 
 
+      const mutationFn: MutationFunction<Awaited<ReturnType<typeof exportProject>>, {id: string;data: BodyType<ProjectExportRequest>;idempotencyKey: string;ifMatch: string}> = (props) => {
+          const {id,data,idempotencyKey,ifMatch} = props ?? {};
 
-   return  { queryKey, queryFn, enabled: id !== null && id !== undefined, ...queryOptions} as UseQueryOptions<Awaited<ReturnType<typeof exportProject>>, TError, TData> & { queryKey: QueryKey }
-}
-
-export type ExportProjectQueryResult = NonNullable<Awaited<ReturnType<typeof exportProject>>>
-export type ExportProjectQueryError = ErrorType<ForbiddenResponse>
+          return  exportProject(id,data,idempotencyKey,ifMatch,requestOptions)
+        }
 
 
-/**
+
+
+
+
+  return  { mutationFn, ...mutationOptions }}
+
+    export type ExportProjectMutationResult = NonNullable<Awaited<ReturnType<typeof exportProject>>>
+    export type ExportProjectMutationBody = BodyType<ProjectExportRequest>
+    export type ExportProjectMutationError = ErrorType<ForbiddenResponse | ConflictResponse>
+
+    /**
  * @summary Export project data as a ZIP (admin only)
  */
-
-export function useExportProject<TData = Awaited<ReturnType<typeof exportProject>>, TError = ErrorType<ForbiddenResponse>>(
- id: string, options?: { query?:UseQueryOptions<Awaited<ReturnType<typeof exportProject>>, TError, TData>, request?: SecondParameter<typeof customFetch>}
-
- ):  UseQueryResult<TData, TError> & { queryKey: QueryKey } {
-
-  const queryOptions = getExportProjectQueryOptions(id,options)
-
-  const query = useQuery(queryOptions) as  UseQueryResult<TData, TError> & { queryKey: QueryKey };
-
-  return withQueryKey(query, queryOptions.queryKey);
-}
-
-
-
-
-
-
+export const useExportProject = <TError = ErrorType<ForbiddenResponse | ConflictResponse>,
+    TContext = unknown>(options?: { mutation?:UseMutationOptions<Awaited<ReturnType<typeof exportProject>>, TError,{id: string;data: BodyType<ProjectExportRequest>;idempotencyKey: string;ifMatch: string}, TContext>, request?: SecondParameter<typeof customFetch>}
+ ): UseMutationResult<
+        Awaited<ReturnType<typeof exportProject>>,
+        TError,
+        {id: string;data: BodyType<ProjectExportRequest>;idempotencyKey: string;ifMatch: string},
+        TContext
+      > => {
+      return useMutation(getExportProjectMutationOptions(options));
+    }
 
 export const getGetProjectCostUrl = (id: string,) => {
 

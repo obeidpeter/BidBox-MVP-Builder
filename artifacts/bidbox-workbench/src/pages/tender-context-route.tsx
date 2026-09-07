@@ -1,4 +1,4 @@
-import { useEffect, useId, useState } from "react";
+import { useCallback, useEffect, useId, useMemo, useState } from "react";
 import { useMutation, useQueryClient } from "@tanstack/react-query";
 import { Link, useParams } from "wouter";
 import {
@@ -16,6 +16,7 @@ import {
   useGetTenderContextCentre,
   useListDocuments,
   type DocumentStructuredSnapshotV2,
+  type TenderContextCompanyEvidenceOption,
   type TenderArtifactBindingCreate,
   type TenderContextVersion,
   type TenderEligibilityPassport,
@@ -48,7 +49,10 @@ import { Textarea } from "@/components/ui/textarea";
 import { useOrganisationAccess } from "@/contexts/organisation-context";
 import { useToast } from "@/hooks/use-toast";
 import { errorMessage } from "@/lib/errors";
-import { queryDisplayState } from "./tender-context-route-state";
+import {
+  isRulePackJurisdictionCompatible,
+  queryDisplayState,
+} from "./tender-context-route-state";
 
 const READ_PERMISSIONS = [
   "project:read",
@@ -68,17 +72,6 @@ function directMembership(
     organisation.membershipOrganisationId === organisation.id &&
     organisation.partnerRelationshipId === null,
   );
-}
-
-function parseJsonArray<T>(raw: string, label: string): T[] {
-  let value: unknown;
-  try {
-    value = JSON.parse(raw);
-  } catch {
-    throw new Error(`${label} must be valid JSON.`);
-  }
-  if (!Array.isArray(value)) throw new Error(`${label} must be a JSON list.`);
-  return value as T[];
 }
 
 function parseStructuredSnapshot(raw: string): DocumentStructuredSnapshotV2 {
@@ -111,6 +104,38 @@ function parseStructuredSnapshot(raw: string): DocumentStructuredSnapshotV2 {
     );
   }
   return value as DocumentStructuredSnapshotV2;
+}
+
+export type UniqueQuoteResolution =
+  | { readonly status: "empty" | "missing" | "repeated" }
+  | {
+      readonly status: "unique";
+      readonly citation: {
+        readonly startOffset: number;
+        readonly endOffset: number;
+        readonly quote: string;
+      };
+    };
+
+/** JavaScript string indexes are UTF-16 code-unit offsets, matching the API. */
+export function deriveUniqueUtf16Citation(
+  canonicalText: string,
+  exactQuote: string,
+): UniqueQuoteResolution {
+  if (!exactQuote.trim()) return { status: "empty" };
+  const startOffset = canonicalText.indexOf(exactQuote);
+  if (startOffset < 0) return { status: "missing" };
+  if (canonicalText.indexOf(exactQuote, startOffset + 1) >= 0) {
+    return { status: "repeated" };
+  }
+  return {
+    status: "unique",
+    citation: {
+      startOffset,
+      endOffset: startOffset + exactQuote.length,
+      quote: exactQuote,
+    },
+  };
 }
 
 function splitScopes(value: string): string[] {
@@ -194,6 +219,203 @@ function ReviewActions({
           record the decision.
         </p>
       ) : null}
+    </div>
+  );
+}
+
+function CompanyEvidenceBindingRow({
+  option,
+  organisationId,
+  actorUserId,
+  capabilityKey,
+  disabled,
+  onBindingChange,
+  onRemove,
+}: {
+  option: TenderContextCompanyEvidenceOption;
+  organisationId: string;
+  actorUserId: string;
+  capabilityKey: string;
+  disabled: boolean;
+  onBindingChange: (
+    vaultItemVersionId: string,
+    binding: TenderArtifactBindingCreate | null,
+  ) => void;
+  onRemove: () => void;
+}) {
+  const [evidenceKind, setEvidenceKind] = useState(option.label);
+  const [legalEntityName, setLegalEntityName] = useState("");
+  const [exactQuote, setExactQuote] = useState("");
+  const queryKey = [
+    ...getGetCurrentDocumentVersionSnapshotQueryKey(option.sourceDocumentId),
+    organisationId,
+    actorUserId,
+    capabilityKey,
+    "tender-context-company-evidence",
+  ] as const;
+  const snapshotQuery = useGetCurrentDocumentVersionSnapshot(
+    option.sourceDocumentId,
+    {
+      query: {
+        enabled: Boolean(organisationId && actorUserId),
+        queryKey,
+        staleTime: 0,
+        gcTime: 0,
+        retry: false,
+      },
+    },
+  );
+  const queryState = queryDisplayState({
+    isLoading: snapshotQuery.isLoading,
+    isPending: snapshotQuery.isPending,
+    isError: snapshotQuery.isError,
+    isSuccess: snapshotQuery.isSuccess,
+    hasData: snapshotQuery.data !== undefined,
+  });
+  const current = snapshotQuery.data;
+  const isExactVerifiedSnapshot = Boolean(
+    current &&
+    current.documentVersionId === option.documentVersionId &&
+    current.snapshot?.status === "verified",
+  );
+  const quoteResolution = useMemo(
+    () =>
+      current
+        ? deriveUniqueUtf16Citation(current.canonicalText, exactQuote)
+        : ({ status: "empty" } as const),
+    [current, exactQuote],
+  );
+  const binding = useMemo<TenderArtifactBindingCreate | null>(() => {
+    if (
+      queryState !== "ready" ||
+      !isExactVerifiedSnapshot ||
+      !evidenceKind.trim() ||
+      quoteResolution.status !== "unique"
+    ) {
+      return null;
+    }
+    return {
+      vaultItemVersionId: option.vaultItemVersionId,
+      evidenceKind: evidenceKind.trim(),
+      ...(legalEntityName.trim()
+        ? { legalEntityName: legalEntityName.trim() }
+        : {}),
+      citation: quoteResolution.citation,
+    };
+  }, [
+    evidenceKind,
+    isExactVerifiedSnapshot,
+    legalEntityName,
+    option.vaultItemVersionId,
+    queryState,
+    quoteResolution,
+  ]);
+  useEffect(() => {
+    onBindingChange(option.vaultItemVersionId, binding);
+  }, [binding, onBindingChange, option.vaultItemVersionId]);
+
+  const quoteError =
+    quoteResolution.status === "missing"
+      ? "That exact quote does not occur in the verified current snapshot."
+      : quoteResolution.status === "repeated"
+        ? "That quote occurs more than once. Select a longer unique passage."
+        : null;
+
+  return (
+    <div className="space-y-4 rounded-lg border border-border p-4">
+      <div className="flex flex-wrap items-start justify-between gap-3">
+        <div>
+          <p className="font-medium">
+            {option.label} — version {option.versionNumber}
+          </p>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Issuer: {option.issuer} · approved by {option.approvedByName}
+          </p>
+        </div>
+        <Button
+          type="button"
+          size="sm"
+          variant="outline"
+          disabled={disabled}
+          onClick={onRemove}
+        >
+          Remove evidence
+        </Button>
+      </div>
+      {queryState === "loading" ? (
+        <LoadingPanel
+          label={`Checking the verified snapshot for ${option.label}`}
+        />
+      ) : queryState === "error" || queryState === "unavailable" || !current ? (
+        <DataErrorPanel
+          title={`The snapshot for ${option.label} could not be checked`}
+          description="This evidence remains blocked. Retry before proposing the Tender Context."
+          onRetry={() => void snapshotQuery.refetch()}
+        />
+      ) : !isExactVerifiedSnapshot ? (
+        <DataErrorPanel
+          title={`The approved version for ${option.label} is no longer current`}
+          description="Refresh the eligible options. No citation can be created from a different or unverified version."
+          onRetry={() => void snapshotQuery.refetch()}
+        />
+      ) : (
+        <div className="grid gap-4 md:grid-cols-2">
+          <div className="grid gap-2">
+            <Label htmlFor={`artifact-kind-${option.vaultItemVersionId}`}>
+              Evidence kind
+            </Label>
+            <Input
+              id={`artifact-kind-${option.vaultItemVersionId}`}
+              value={evidenceKind}
+              onChange={(event) => setEvidenceKind(event.target.value)}
+              maxLength={120}
+              disabled={disabled}
+              aria-invalid={!evidenceKind.trim()}
+            />
+          </div>
+          <div className="grid gap-2">
+            <Label htmlFor={`artifact-entity-${option.vaultItemVersionId}`}>
+              Legal entity in this evidence (optional)
+            </Label>
+            <Input
+              id={`artifact-entity-${option.vaultItemVersionId}`}
+              value={legalEntityName}
+              onChange={(event) => setLegalEntityName(event.target.value)}
+              maxLength={300}
+              disabled={disabled}
+            />
+          </div>
+          <div className="grid gap-2 md:col-span-2">
+            <Label htmlFor={`artifact-quote-${option.vaultItemVersionId}`}>
+              Exact quote from the verified snapshot
+            </Label>
+            <Textarea
+              id={`artifact-quote-${option.vaultItemVersionId}`}
+              value={exactQuote}
+              onChange={(event) => setExactQuote(event.target.value)}
+              rows={4}
+              maxLength={20_000}
+              disabled={disabled}
+              aria-invalid={Boolean(quoteError)}
+              aria-describedby={`artifact-quote-help-${option.vaultItemVersionId}`}
+              placeholder="Paste an exact, unique passage that supports this evidence."
+            />
+            <p
+              id={`artifact-quote-help-${option.vaultItemVersionId}`}
+              className={
+                quoteError
+                  ? "text-xs text-destructive"
+                  : "text-xs text-muted-foreground"
+              }
+            >
+              {quoteError ??
+                (quoteResolution.status === "unique"
+                  ? "Unique match found; the UTF-16 citation boundary is derived automatically."
+                  : "Offsets and source IDs are derived automatically after one unique match is found.")}
+            </p>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
@@ -365,38 +587,106 @@ export default function TenderContextRoute() {
   });
 
   const [contextDraft, setContextDraft] = useState({
-    primaryDocumentVersionId: "",
     jurisdictionRulePackId: "",
     legalEntityName: "",
     submissionDate: "",
     jurisdiction: "NG",
     entityScopes: "bidder",
     categoryScopes: "eligibility",
-    requirements: "[]",
-    artifacts: "[]",
   });
-  useEffect(() => {
-    if (!currentVersion?.documentVersionId) return;
-    setContextDraft((current) => ({
-      ...current,
-      primaryDocumentVersionId: currentVersion.documentVersionId,
-    }));
-  }, [currentVersion?.documentVersionId]);
+  const [selectedRequirements, setSelectedRequirements] = useState<
+    TenderRequirementBindingCreate[]
+  >([]);
+  const [selectedArtifactIds, setSelectedArtifactIds] = useState<string[]>([]);
+  const [artifactBindings, setArtifactBindings] = useState<
+    Record<string, TenderArtifactBindingCreate | null>
+  >({});
+  const updateArtifactBinding = useCallback(
+    (
+      vaultItemVersionId: string,
+      binding: TenderArtifactBindingCreate | null,
+    ) => {
+      setArtifactBindings((current) => {
+        if (
+          JSON.stringify(current[vaultItemVersionId]) ===
+          JSON.stringify(binding)
+        ) {
+          return current;
+        }
+        return { ...current, [vaultItemVersionId]: binding };
+      });
+    },
+    [],
+  );
   const createContext = useMutation({
     mutationFn: async () => {
-      const requirements = parseJsonArray<TenderRequirementBindingCreate>(
-        contextDraft.requirements,
-        "Requirements",
+      const options = centreQuery.data?.selectionOptions;
+      if (
+        !options ||
+        !snapshotQuery.isSuccess ||
+        !currentVersion ||
+        currentVersion.snapshot?.status !== "verified"
+      ) {
+        throw new Error(
+          "Eligible options and the exact source must finish loading.",
+        );
+      }
+      const primaryDocument = options.primaryDocuments.find(
+        (option) =>
+          option.documentId === currentVersion.documentId &&
+          option.documentVersionId === currentVersion.documentVersionId,
       );
-      const artifacts = parseJsonArray<TenderArtifactBindingCreate>(
-        contextDraft.artifacts,
-        "Evidence bindings",
+      if (!primaryDocument) {
+        throw new Error(
+          "The selected document is not an eligible verified primary source. Refresh and choose a verified current tender document.",
+        );
+      }
+      const rulePack = options.rulePacks.find(
+        (option) => option.id === contextDraft.jurisdictionRulePackId,
       );
-      if (requirements.length === 0) {
+      if (!rulePack) {
+        throw new Error("Choose an eligible approved Nigeria rule pack.");
+      }
+      if (
+        !isRulePackJurisdictionCompatible(
+          rulePack.jurisdiction,
+          contextDraft.jurisdiction,
+        )
+      ) {
+        throw new Error(
+          "Choose a rule pack that applies to the entered Nigeria jurisdiction.",
+        );
+      }
+      const requirements = selectedRequirements.filter((binding) =>
+        options.requirements.some(
+          (option) =>
+            option.requirementId === binding.requirementId &&
+            option.requirementCitationId === binding.requirementCitationId,
+        ),
+      );
+      if (
+        requirements.length === 0 ||
+        requirements.length !== selectedRequirements.length ||
+        requirements.some((binding) => !binding.evidenceKind.trim())
+      ) {
         throw new Error("Select at least one reviewed tender requirement.");
       }
+      const artifacts = selectedArtifactIds.map((id) => artifactBindings[id]);
+      if (
+        artifacts.some((binding) => !binding) ||
+        selectedArtifactIds.some(
+          (id) =>
+            !options.companyEvidence.some(
+              (option) => option.vaultItemVersionId === id,
+            ),
+        )
+      ) {
+        throw new Error(
+          "Every selected company-evidence item needs one verified, unique exact quote.",
+        );
+      }
       return createTenderContextVersion(projectId, {
-        primaryDocumentVersionId: contextDraft.primaryDocumentVersionId.trim(),
+        primaryDocumentVersionId: primaryDocument.documentVersionId,
         jurisdictionRulePackId: contextDraft.jurisdictionRulePackId.trim(),
         legalEntityName: contextDraft.legalEntityName.trim(),
         submissionDate: contextDraft.submissionDate,
@@ -404,7 +694,7 @@ export default function TenderContextRoute() {
         entityScopes: splitScopes(contextDraft.entityScopes),
         categoryScopes: splitScopes(contextDraft.categoryScopes),
         requirements,
-        artifacts,
+        artifacts: artifacts as TenderArtifactBindingCreate[],
       });
     },
   });
@@ -535,6 +825,55 @@ export default function TenderContextRoute() {
     );
   }
   const centre = centreQuery.data;
+  const selectionOptions = centre.selectionOptions;
+  const primaryDocumentOption = selectionOptions.primaryDocuments.find(
+    (option) =>
+      option.documentId === currentVersion?.documentId &&
+      option.documentVersionId === currentVersion?.documentVersionId,
+  );
+  const selectedRulePackOption = selectionOptions.rulePacks.find(
+    (option) => option.id === contextDraft.jurisdictionRulePackId,
+  );
+  const jurisdictionMismatch = Boolean(
+    selectedRulePackOption &&
+    contextDraft.jurisdiction.trim() &&
+    !isRulePackJurisdictionCompatible(
+      selectedRulePackOption.jurisdiction,
+      contextDraft.jurisdiction,
+    ),
+  );
+  const requirementsReady =
+    selectedRequirements.length > 0 &&
+    selectedRequirements.every(
+      (binding) =>
+        Boolean(binding.evidenceKind.trim()) &&
+        selectionOptions.requirements.some(
+          (option) =>
+            option.requirementId === binding.requirementId &&
+            option.requirementCitationId === binding.requirementCitationId,
+        ),
+    );
+  const artifactsReady = selectedArtifactIds.every(
+    (id) =>
+      Boolean(artifactBindings[id]) &&
+      selectionOptions.companyEvidence.some(
+        (option) => option.vaultItemVersionId === id,
+      ),
+  );
+  const contextSelectionReady = Boolean(
+    snapshotState === "ready" &&
+    currentVersion?.snapshot?.status === "verified" &&
+    primaryDocumentOption &&
+    selectedRulePackOption &&
+    !jurisdictionMismatch &&
+    contextDraft.legalEntityName.trim() &&
+    contextDraft.submissionDate &&
+    contextDraft.jurisdiction.trim() &&
+    contextDraft.entityScopes.trim() &&
+    contextDraft.categoryScopes.trim() &&
+    requirementsReady &&
+    artifactsReady,
+  );
 
   return (
     <main className="mx-auto w-full max-w-7xl space-y-6 p-5 sm:p-8">
@@ -857,37 +1196,72 @@ export default function TenderContextRoute() {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-5">
+          <StatusPanel
+            state="partial"
+            title="Eligible options are a point-in-time projection"
+            description={selectionOptions.freshnessNote}
+          />
           <div className="grid gap-4 md:grid-cols-2">
             <div className="grid gap-2">
-              <Label htmlFor="primary-version">
-                Primary verified document version ID
-              </Label>
-              <Input
-                id="primary-version"
-                value={contextDraft.primaryDocumentVersionId}
-                onChange={(event) =>
-                  setContextDraft({
-                    ...contextDraft,
-                    primaryDocumentVersionId: event.target.value,
-                  })
-                }
-                disabled={!canPropose}
-              />
+              <Label>Primary verified tender source</Label>
+              <div className="min-h-10 rounded-md border border-input bg-muted/40 px-3 py-2 text-sm">
+                {snapshotState === "loading"
+                  ? "Checking the selected document…"
+                  : primaryDocumentOption
+                    ? `${primaryDocumentOption.filename} — version ${primaryDocumentOption.versionNumber} · verified by ${primaryDocumentOption.verifiedByName}`
+                    : "The selected document is not an eligible verified current tender source."}
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Derived from the Step 1 current verified version; no version ID
+                is entered here.
+              </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="rule-pack">Approved Nigeria rule-pack ID</Label>
-              <Input
+              <Label htmlFor="rule-pack">Approved Nigeria rule pack</Label>
+              <select
                 id="rule-pack"
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
                 value={contextDraft.jurisdictionRulePackId}
+                aria-invalid={jurisdictionMismatch}
+                aria-describedby={
+                  jurisdictionMismatch
+                    ? "jurisdiction-rule-pack-error"
+                    : undefined
+                }
                 onChange={(event) =>
                   setContextDraft({
                     ...contextDraft,
                     jurisdictionRulePackId: event.target.value,
                   })
                 }
-                placeholder="Exact approved rule-pack UUID"
                 disabled={!canPropose}
-              />
+              >
+                <option value="">Select a currently eligible rule pack</option>
+                {selectionOptions.rulePacks.map((option) => (
+                  <option key={option.id} value={option.id}>
+                    {option.label} · {option.jurisdiction} · approved by{" "}
+                    {option.approvedByName}
+                  </option>
+                ))}
+              </select>
+              {selectionOptions.rulePacks.length === 0 ? (
+                <p className="text-xs text-destructive">
+                  No approved Nigeria rule pack with a current named approver is
+                  available.
+                </p>
+              ) : null}
+              {jurisdictionMismatch ? (
+                <p
+                  id="jurisdiction-rule-pack-error"
+                  className="text-xs text-destructive"
+                  role="alert"
+                >
+                  This rule pack applies to{" "}
+                  {selectedRulePackOption?.jurisdiction}, not the entered
+                  jurisdiction. Choose a compatible pack or correct the
+                  jurisdiction code.
+                </p>
+              ) : null}
             </div>
             <div className="grid gap-2">
               <Label htmlFor="legal-entity">Tendering legal entity</Label>
@@ -924,6 +1298,12 @@ export default function TenderContextRoute() {
               <Input
                 id="jurisdiction"
                 value={contextDraft.jurisdiction}
+                aria-invalid={jurisdictionMismatch}
+                aria-describedby={
+                  jurisdictionMismatch
+                    ? "jurisdiction-rule-pack-error"
+                    : undefined
+                }
                 onChange={(event) =>
                   setContextDraft({
                     ...contextDraft,
@@ -967,57 +1347,352 @@ export default function TenderContextRoute() {
               />
             </div>
           </div>
-          <div className="grid gap-4 lg:grid-cols-2">
-            <div className="grid gap-2">
-              <Label htmlFor="requirement-bindings">
-                Reviewed requirement bindings
-              </Label>
-              <Textarea
-                id="requirement-bindings"
-                rows={10}
-                className="font-mono text-xs"
-                value={contextDraft.requirements}
-                onChange={(event) =>
-                  setContextDraft({
-                    ...contextDraft,
-                    requirements: event.target.value,
-                  })
-                }
-                disabled={!canPropose}
-              />
-              <p className="text-xs leading-5 text-muted-foreground">
-                JSON list of exact requirementId, requirementCitationId,
-                evidenceKind and the three review flags. At least one reviewed
-                citation is required.
+          <div className="space-y-4 rounded-lg border border-border p-4">
+            <div>
+              <h3 className="font-medium">Reviewed tender requirements</h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose by requirement description and verified source. Evidence
+                behavior remains visible and editable before submission.
               </p>
             </div>
             <div className="grid gap-2">
-              <Label htmlFor="artifact-bindings">
-                Approved company-evidence bindings
-              </Label>
-              <Textarea
-                id="artifact-bindings"
-                rows={10}
-                className="font-mono text-xs"
-                value={contextDraft.artifacts}
-                onChange={(event) =>
-                  setContextDraft({
-                    ...contextDraft,
-                    artifacts: event.target.value,
-                  })
+              <Label htmlFor="add-requirement">Add reviewed requirement</Label>
+              <select
+                id="add-requirement"
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value=""
+                disabled={
+                  !canPropose || selectionOptions.requirements.length === 0
                 }
-                disabled={!canPropose}
+                onChange={(event) => {
+                  const option = selectionOptions.requirements.find(
+                    (candidate) =>
+                      `${candidate.requirementId}:${candidate.requirementCitationId}` ===
+                      event.target.value,
+                  );
+                  if (
+                    !option ||
+                    selectedRequirements.some(
+                      (binding) =>
+                        binding.requirementId === option.requirementId,
+                    )
+                  ) {
+                    return;
+                  }
+                  setSelectedRequirements((current) => [
+                    ...current,
+                    {
+                      requirementId: option.requirementId,
+                      requirementCitationId: option.requirementCitationId,
+                      evidenceKind: option.suggestedEvidenceKind,
+                      mandatory: option.mandatoryByDefault,
+                      requiresCurrentOnSubmissionDate: true,
+                      requiresExactLegalEntityMatch: false,
+                    },
+                  ]);
+                }}
+              >
+                <option value="">Select by description and source</option>
+                {selectionOptions.requirements.map((option) => (
+                  <option
+                    key={`${option.requirementId}:${option.requirementCitationId}`}
+                    value={`${option.requirementId}:${option.requirementCitationId}`}
+                    disabled={selectedRequirements.some(
+                      (binding) =>
+                        binding.requirementId === option.requirementId,
+                    )}
+                  >
+                    {option.description} — {option.sourceDocumentName}
+                    {option.pageNumber ? `, page ${option.pageNumber}` : ""}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectionOptions.requirements.length === 0 &&
+            selectedRequirements.length === 0 ? (
+              <StatusPanel
+                state="unavailable"
+                title="No eligible reviewed requirement citations"
+                description="Confirm or edit a requirement and verify its immutable source citation before proposing a context."
               />
-              <p className="text-xs leading-5 text-muted-foreground">
-                Optional JSON list of exact vaultItemVersionId, evidenceKind and
-                immutable citation offset, end and quote. A typed legal entity
-                only matches when the verified quote says the same name.
+            ) : selectedRequirements.length === 0 ? (
+              <p className="text-sm text-muted-foreground">
+                Add at least one reviewed requirement.
+              </p>
+            ) : (
+              <div className="space-y-3">
+                {selectedRequirements.map((binding, index) => {
+                  const option = selectionOptions.requirements.find(
+                    (candidate) =>
+                      candidate.requirementId === binding.requirementId &&
+                      candidate.requirementCitationId ===
+                        binding.requirementCitationId,
+                  );
+                  if (!option) {
+                    return (
+                      <StatusPanel
+                        key={`${binding.requirementId}:${binding.requirementCitationId}`}
+                        state="error"
+                        title="A selected requirement is no longer eligible"
+                        description="Refresh the server-derived options to check again, or remove this unavailable selection before submitting."
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void refreshCentre()}
+                          >
+                            <RefreshCw
+                              className="mr-2 size-4"
+                              aria-hidden="true"
+                            />
+                            Retry options
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            aria-label="Remove unavailable requirement selection"
+                            disabled={!canPropose || createContext.isPending}
+                            onClick={() =>
+                              setSelectedRequirements((current) =>
+                                current.filter(
+                                  (_, itemIndex) => itemIndex !== index,
+                                ),
+                              )
+                            }
+                          >
+                            Remove selection
+                          </Button>
+                        </div>
+                      </StatusPanel>
+                    );
+                  }
+                  const update = (
+                    change: Partial<TenderRequirementBindingCreate>,
+                  ) =>
+                    setSelectedRequirements((current) =>
+                      current.map((item, itemIndex) =>
+                        itemIndex === index ? { ...item, ...change } : item,
+                      ),
+                    );
+                  return (
+                    <div
+                      key={`${binding.requirementId}:${binding.requirementCitationId}`}
+                      className="space-y-4 rounded-md border border-border bg-muted/20 p-4"
+                    >
+                      <div className="flex flex-wrap items-start justify-between gap-3">
+                        <div>
+                          <p className="font-medium">{option.description}</p>
+                          <p className="mt-1 text-xs text-muted-foreground">
+                            {option.sourceDocumentName}
+                            {option.pageNumber
+                              ? ` · page ${option.pageNumber}`
+                              : ""}
+                            {option.paragraphRef
+                              ? ` · ${option.paragraphRef}`
+                              : ""}
+                            {` · reviewed by ${option.reviewedByName}`}
+                          </p>
+                          <blockquote className="mt-2 border-l-2 border-border pl-3 text-xs text-muted-foreground">
+                            {option.sourceSnippet}
+                          </blockquote>
+                        </div>
+                        <Button
+                          type="button"
+                          size="sm"
+                          variant="outline"
+                          disabled={!canPropose}
+                          onClick={() =>
+                            setSelectedRequirements((current) =>
+                              current.filter(
+                                (_, itemIndex) => itemIndex !== index,
+                              ),
+                            )
+                          }
+                        >
+                          Remove requirement
+                        </Button>
+                      </div>
+                      <div className="grid gap-2">
+                        <Label htmlFor={`requirement-kind-${index}`}>
+                          Evidence kind
+                        </Label>
+                        <Input
+                          id={`requirement-kind-${index}`}
+                          value={binding.evidenceKind}
+                          onChange={(event) =>
+                            update({ evidenceKind: event.target.value })
+                          }
+                          maxLength={120}
+                          disabled={!canPropose}
+                          aria-invalid={!binding.evidenceKind.trim()}
+                        />
+                      </div>
+                      <div className="grid gap-3 sm:grid-cols-3">
+                        {[
+                          ["mandatory", "Mandatory"],
+                          [
+                            "requiresCurrentOnSubmissionDate",
+                            "Must be current on submission date",
+                          ],
+                          [
+                            "requiresExactLegalEntityMatch",
+                            "Must match the legal entity exactly",
+                          ],
+                        ].map(([field, label]) => (
+                          <label
+                            key={field}
+                            className="flex items-start gap-2 text-sm"
+                          >
+                            <Checkbox
+                              checked={Boolean(
+                                binding[
+                                  field as keyof TenderRequirementBindingCreate
+                                ],
+                              )}
+                              disabled={!canPropose}
+                              onCheckedChange={(checked) =>
+                                update({
+                                  [field]: checked === true,
+                                } as Partial<TenderRequirementBindingCreate>)
+                              }
+                            />
+                            <span>{label}</span>
+                          </label>
+                        ))}
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+          </div>
+          <div className="space-y-4 rounded-lg border border-border p-4">
+            <div>
+              <h3 className="font-medium">
+                Approved company evidence (optional)
+              </h3>
+              <p className="mt-1 text-xs text-muted-foreground">
+                Choose by label and issuer. For each item, quote the exact
+                verified current snapshot; source IDs and UTF-16 offsets are
+                derived automatically.
               </p>
             </div>
+            <div className="grid gap-2">
+              <Label htmlFor="add-company-evidence">
+                Add approved company evidence
+              </Label>
+              <select
+                id="add-company-evidence"
+                className="h-10 rounded-md border border-input bg-background px-3 text-sm"
+                value=""
+                disabled={
+                  !canPropose || selectionOptions.companyEvidence.length === 0
+                }
+                onChange={(event) => {
+                  const id = event.target.value;
+                  if (id && !selectedArtifactIds.includes(id)) {
+                    setSelectedArtifactIds((current) => [...current, id]);
+                  }
+                }}
+              >
+                <option value="">Select by label and issuer</option>
+                {selectionOptions.companyEvidence.map((option) => (
+                  <option
+                    key={option.vaultItemVersionId}
+                    value={option.vaultItemVersionId}
+                    disabled={selectedArtifactIds.includes(
+                      option.vaultItemVersionId,
+                    )}
+                  >
+                    {option.label} — {option.issuer} · version{" "}
+                    {option.versionNumber}
+                  </option>
+                ))}
+              </select>
+            </div>
+            {selectedArtifactIds.length > 0 ? (
+              <div className="space-y-3">
+                {selectedArtifactIds.map((id) => {
+                  const option = selectionOptions.companyEvidence.find(
+                    (candidate) => candidate.vaultItemVersionId === id,
+                  );
+                  if (!option) {
+                    return (
+                      <StatusPanel
+                        key={id}
+                        state="error"
+                        title="Selected company evidence is no longer eligible"
+                        description="Refresh the server-derived options to check again, or remove this unavailable selection before submitting."
+                      >
+                        <div className="flex flex-wrap gap-2">
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            onClick={() => void refreshCentre()}
+                          >
+                            <RefreshCw
+                              className="mr-2 size-4"
+                              aria-hidden="true"
+                            />
+                            Retry options
+                          </Button>
+                          <Button
+                            type="button"
+                            size="sm"
+                            variant="outline"
+                            aria-label="Remove unavailable company evidence selection"
+                            disabled={!canPropose || createContext.isPending}
+                            onClick={() => {
+                              setSelectedArtifactIds((current) =>
+                                current.filter((candidate) => candidate !== id),
+                              );
+                              setArtifactBindings((current) => {
+                                const next = { ...current };
+                                delete next[id];
+                                return next;
+                              });
+                            }}
+                          >
+                            Remove selection
+                          </Button>
+                        </div>
+                      </StatusPanel>
+                    );
+                  }
+                  return (
+                    <CompanyEvidenceBindingRow
+                      key={id}
+                      option={option}
+                      organisationId={organisationId}
+                      actorUserId={actorUserId}
+                      capabilityKey={capabilityKey}
+                      disabled={!canPropose || createContext.isPending}
+                      onBindingChange={updateArtifactBinding}
+                      onRemove={() => {
+                        setSelectedArtifactIds((current) =>
+                          current.filter((candidate) => candidate !== id),
+                        );
+                        setArtifactBindings((current) => {
+                          const next = { ...current };
+                          delete next[id];
+                          return next;
+                        });
+                      }}
+                    />
+                  );
+                })}
+              </div>
+            ) : null}
           </div>
           <Button
             type="button"
-            disabled={!canPropose || createContext.isPending}
+            disabled={
+              !canPropose || !contextSelectionReady || createContext.isPending
+            }
             onClick={() =>
               void runCritical(async () => {
                 try {

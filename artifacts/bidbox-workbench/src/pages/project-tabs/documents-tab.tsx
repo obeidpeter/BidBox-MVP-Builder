@@ -39,6 +39,8 @@ import { useState } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { errorMessage, mutationErrorToast } from "@/lib/errors";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import { DataErrorPanel, LoadingPanel } from "@/components/platform-states";
+import { DestructiveConfirmation } from "@/components/destructive-confirmation";
 
 const NDA_ALLOWED = new Set(["signed", "not_required"]);
 const DOC_TYPES = [
@@ -51,6 +53,11 @@ const DOC_TYPES = [
 ] as const;
 const REDACTION = ["excluded", "redacted", "included"] as const;
 const PENDING_EXTRACTION = new Set(["pending", "extracting"]);
+
+function documentDeleteTarget(document: Document): string {
+  const recordedAt = document.dateReceived ?? document.createdAt;
+  return `${document.filename} — ${document.type.replaceAll("_", " ")} document; ID ${document.id}; recorded ${recordedAt}`;
+}
 
 export function DocumentsTab({
   projectId,
@@ -70,7 +77,14 @@ export function DocumentsTab({
   const intakeBlockedByConflict =
     conflictStatus === "blocked" || conflictStatus === "declined";
   // Poll while any document is still extracting so the status flips live.
-  const { data: documents, isLoading } = useListDocuments(projectId, {
+  const {
+    data: documents,
+    isLoading,
+    isPending: documentsPending,
+    isError,
+    isSuccess,
+    refetch,
+  } = useListDocuments(projectId, {
     query: {
       refetchInterval: (query: { state: { data?: Document[] } }) =>
         query.state.data?.some((d) =>
@@ -91,6 +105,10 @@ export function DocumentsTab({
     {},
   );
   const [verifyingIds, setVerifyingIds] = useState<Set<string>>(new Set());
+  const [documentToDelete, setDocumentToDelete] = useState<Document | null>(
+    null,
+  );
+  const [deleteError, setDeleteError] = useState<string | null>(null);
 
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -102,6 +120,7 @@ export function DocumentsTab({
     data: { type?: string; redactionStatus?: string },
     label: string,
   ) => {
+    if (!isSuccess) return;
     updateDocument.mutate(
       { id, data: data as never },
       {
@@ -111,21 +130,39 @@ export function DocumentsTab({
     );
   };
 
-  const handleDelete = (id: string) => {
+  const handleDelete = () => {
+    if (!documentToDelete || !isSuccess) return;
     deleteDocument.mutate(
-      { id },
+      { id: documentToDelete.id },
       {
-        onSuccess: refresh,
-        onError: mutationErrorToast(
-          toast,
-          "Could not delete document",
-          "Only an admin can delete documents.",
-        ),
+        onSuccess: () => {
+          const filename = documentToDelete.filename;
+          setDocumentToDelete(null);
+          setDeleteError(null);
+          refresh();
+          toast({
+            title: "Document deleted",
+            description: `${filename} was permanently removed.`,
+          });
+        },
+        onError: (err) => {
+          const message = errorMessage(
+            err,
+            "The document was not deleted. Only an admin can delete documents.",
+          );
+          setDeleteError(message);
+          toast({
+            variant: "destructive",
+            title: "Could not delete document",
+            description: message,
+          });
+        },
       },
     );
   };
 
   const handleReextract = (id: string) => {
+    if (!isSuccess) return;
     extractDocument.mutate(
       { id },
       {
@@ -143,6 +180,7 @@ export function DocumentsTab({
   };
 
   const handleVerify = async (id: string, filename: string) => {
+    if (!isSuccess) return;
     setVerifyingIds((prev) => new Set(prev).add(id));
     try {
       const result = await verifyDocument.mutateAsync({ id });
@@ -333,11 +371,17 @@ export function DocumentsTab({
       )}
 
       <div className="bg-card border border-border rounded-lg shadow-xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {isLoading || documentsPending ? (
+          <LoadingPanel label="Loading pursuit documents" />
+        ) : isError || !isSuccess ? (
+          <div className="p-4">
+            <DataErrorPanel
+              title="We couldn't load the pursuit documents"
+              description="Document records and their current security status are unavailable. Actions stay disabled until the latest records load."
+              onRetry={() => void refetch()}
+            />
           </div>
-        ) : documents && documents.length > 0 ? (
+        ) : documents.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -368,7 +412,10 @@ export function DocumentsTab({
                           patchDoc(doc.id, { type: v }, "type")
                         }
                       >
-                        <SelectTrigger className="h-7 text-xs capitalize">
+                        <SelectTrigger
+                          aria-label={`${doc.filename} document type`}
+                          className="h-7 text-xs capitalize"
+                        >
                           <SelectValue />
                         </SelectTrigger>
                         <SelectContent>
@@ -401,6 +448,7 @@ export function DocumentsTab({
                         }
                       >
                         <SelectTrigger
+                          aria-label={`${doc.filename} redaction status`}
                           className={`h-7 text-xs capitalize ${doc.redactionStatus === "excluded" ? "text-amber-700" : ""}`}
                         >
                           <SelectValue />
@@ -493,8 +541,12 @@ export function DocumentsTab({
                       <Button
                         variant="ghost"
                         size="icon"
-                        aria-label={`Delete ${doc.filename}`}
-                        onClick={() => handleDelete(doc.id)}
+                        aria-label={`Delete ${documentDeleteTarget(doc)}`}
+                        onClick={() => {
+                          setDeleteError(null);
+                          setDocumentToDelete(doc);
+                        }}
+                        disabled={deleteDocument.isPending}
                       >
                         <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                       </Button>
@@ -511,6 +563,28 @@ export function DocumentsTab({
           </div>
         )}
       </div>
+
+      <DestructiveConfirmation
+        open={!!documentToDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDocumentToDelete(null);
+            setDeleteError(null);
+          }
+        }}
+        itemName={
+          documentToDelete
+            ? documentDeleteTarget(documentToDelete)
+            : "Selected document"
+        }
+        title="Permanently delete this document?"
+        consequence="This removes the stored document record and can break extraction, evidence links and later report review. This action cannot be undone."
+        confirmLabel="Delete document"
+        pendingLabel="Deleting document…"
+        pending={deleteDocument.isPending}
+        error={deleteError}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

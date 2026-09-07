@@ -3,7 +3,14 @@ import { readFile } from "node:fs/promises";
 import { describe, test } from "node:test";
 
 const routesIndex = new URL("./index.ts", import.meta.url);
-const tenancy = new URL("../middlewares/tenancy.ts", import.meta.url);
+const projectRoutePolicy = new URL(
+  "../lib/projectRoutePolicy.ts",
+  import.meta.url,
+);
+const claimsActivation = new URL(
+  "../lib/claimsDesk/activation.ts",
+  import.meta.url,
+);
 const retentionRoute = new URL("./retentionCompletion.ts", import.meta.url);
 const retentionService = new URL(
   "../lib/retentionCompletion/service.ts",
@@ -38,22 +45,25 @@ describe("Claims Desk shared integration", () => {
     assert.doesNotMatch(source, /createTransactionalOutboxService/u);
   });
 
-  test("uses exported released-route exceptions and leaves claims content untouched while retention is gated", async () => {
+  test("uses the shared released-route catalogue and leaves claims content untouched while retention is gated", async () => {
     const [
-      tenancySource,
+      projectRoutePolicySource,
+      claimsActivationSource,
       retentionRouteSource,
       retentionServiceSource,
       retentionActivationSource,
     ] = await Promise.all([
-      readFile(tenancy, "utf8"),
+      readFile(projectRoutePolicy, "utf8"),
+      readFile(claimsActivation, "utf8"),
       readFile(retentionRoute, "utf8"),
       readFile(retentionService, "utf8"),
       readFile(retentionActivation, "utf8"),
     ]);
     assert.match(
-      tenancySource,
-      /\.\.\.CLAIMS_DESK_RELEASED_LEDGER_ROUTE_EXCEPTIONS/u,
+      projectRoutePolicySource,
+      /id: "claims-desk-record-create"[\s\S]*id: "claims-desk-transition-create"/u,
     );
+    assert.match(claimsActivationSource, /PROJECT_ROUTE_POLICIES\.filter/u);
     assert.match(retentionRouteSource, /RETENTION_COMPLETION_NOT_ACTIVATED/u);
     assert.match(retentionRouteSource, /sideEffectsApplied: false/u);
     assert.match(

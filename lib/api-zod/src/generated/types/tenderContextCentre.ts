@@ -16,6 +16,7 @@
  * OpenAPI spec version: 2.5.0
  */
 import type { TenderContextCentreProject } from './tenderContextCentreProject';
+import type { TenderContextSelectionOptions } from './tenderContextSelectionOptions';
 import type { TenderContextVersion } from './tenderContextVersion';
 import type { TenderEligibilityPassport } from './tenderEligibilityPassport';
 
@@ -24,6 +25,7 @@ export interface TenderContextCentre {
   eligibilityPolicyVersion: 'valo.tender-eligibility-passport/v1';
   authorityNote: string;
   project: TenderContextCentreProject;
+  selectionOptions: TenderContextSelectionOptions;
   /** @maxItems 50 */
   contexts: TenderContextVersion[];
   /** @maxItems 100 */

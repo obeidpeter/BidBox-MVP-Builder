@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useListEvidence,
   useMapEvidence,
@@ -46,8 +46,15 @@ import {
   Trash2,
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { mutationErrorToast } from "@/lib/errors";
+import { errorMessage, mutationErrorToast } from "@/lib/errors";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import { DataErrorPanel, LoadingPanel } from "@/components/platform-states";
+import { DestructiveConfirmation } from "@/components/destructive-confirmation";
+import {
+  FieldErrorMessage,
+  FormErrorSummary,
+  UnsavedChangesAlert,
+} from "@/components/form-feedback";
 
 const STATUSES = [
   "present",
@@ -82,12 +89,39 @@ const EMPTY: MapForm = {
   notes: "",
 };
 
+function evidenceDeleteTarget(item: EvidenceItem): string {
+  const requirement = item.requirementText?.trim() || "Unnamed requirement";
+  const document = item.documentName?.trim() || "no linked document";
+  return `Evidence link for ${requirement} — ${document}; mapping ID ${item.id}; recorded ${item.createdAt}`;
+}
+
 export function EvidenceTab({ projectId }: { projectId: string }) {
   const canWriteEvidence = useOrganisationPermission("evidence:write");
   const canApproveEvidence = useOrganisationPermission("evidence:approve");
-  const { data: evidence, isLoading } = useListEvidence(projectId);
-  const { data: requirements } = useListRequirements(projectId);
-  const { data: documents } = useListDocuments(projectId);
+  const {
+    data: evidence,
+    isLoading: evidenceLoading,
+    isPending: evidencePending,
+    isError: evidenceError,
+    isSuccess: evidenceSuccess,
+    refetch: refetchEvidence,
+  } = useListEvidence(projectId);
+  const {
+    data: requirements,
+    isLoading: requirementsLoading,
+    isPending: requirementsPending,
+    isError: requirementsError,
+    isSuccess: requirementsSuccess,
+    refetch: refetchRequirements,
+  } = useListRequirements(projectId);
+  const {
+    data: documents,
+    isLoading: documentsLoading,
+    isPending: documentsPending,
+    isError: documentsError,
+    isSuccess: documentsSuccess,
+    refetch: refetchDocuments,
+  } = useListDocuments(projectId);
   const mapEvidence = useMapEvidence();
   const createEvidence = useCreateEvidence();
   const updateEvidence = useUpdateEvidence();
@@ -98,7 +132,21 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
   const [form, setForm] = useState<MapForm>(EMPTY);
+  const [initialForm, setInitialForm] = useState<MapForm>(EMPTY);
+  const [formErrors, setFormErrors] = useState<{
+    requirementId?: string;
+    form?: string;
+  }>({});
+  const [discardOpen, setDiscardOpen] = useState(false);
   const [actingId, setActingId] = useState<string | null>(null);
+  const [evidenceToDelete, setEvidenceToDelete] = useState<EvidenceItem | null>(
+    null,
+  );
+  const [deleteError, setDeleteError] = useState<string | null>(null);
+  const requirementTriggerRef = useRef<HTMLButtonElement>(null);
+
+  const recordsReady =
+    evidenceSuccess && requirementsSuccess && documentsSuccess;
 
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -106,16 +154,21 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
     });
 
   const handleMap = () => {
+    if (!recordsReady) return;
     mapEvidence.mutate(
       { id: projectId },
       {
-        onSuccess: refresh,
+        onSuccess: () => {
+          refresh();
+          toast({ title: "Evidence suggestions updated" });
+        },
         onError: mutationErrorToast(toast, "Auto-map failed"),
       },
     );
   };
 
   const setStatus = (item: EvidenceItem, evidenceStatus: string) => {
+    if (!recordsReady) return;
     setActingId(item.id);
     updateEvidence.mutate(
       { id: item.id, data: { evidenceStatus } as never },
@@ -128,6 +181,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
   };
 
   const confirmItem = (item: EvidenceItem) => {
+    if (!recordsReady) return;
     setActingId(item.id);
     updateEvidence.mutate(
       { id: item.id, data: { suggested: false } as never },
@@ -139,65 +193,127 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
     );
   };
 
-  const handleDelete = (item: EvidenceItem) => {
-    setActingId(item.id);
+  const handleDelete = () => {
+    if (!recordsReady || !evidenceToDelete) return;
+    const item = evidenceToDelete;
+    setDeleteError(null);
     deleteEvidence.mutate(
       { id: item.id },
       {
-        onSuccess: refresh,
-        onError: mutationErrorToast(toast, "Could not delete evidence"),
-        onSettled: () => setActingId(null),
+        onSuccess: () => {
+          setEvidenceToDelete(null);
+          refresh();
+          toast({
+            title: "Evidence link deleted",
+            description: `The link for ${item.requirementText} was permanently removed.`,
+          });
+        },
+        onError: (err) => {
+          const message = errorMessage(
+            err,
+            "The evidence link was not deleted. Reload the register and try again.",
+          );
+          setDeleteError(message);
+          toast({
+            variant: "destructive",
+            title: "Could not delete evidence",
+            description: message,
+          });
+        },
       },
     );
   };
 
   const openMap = () => {
     setEditingId(null);
-    setForm({
+    const nextForm: MapForm = {
       ...EMPTY,
       requirementId: requirements?.[0]?.id ?? "",
       evidenceStatus:
         canWriteEvidence && canApproveEvidence
           ? EMPTY.evidenceStatus
           : "pending",
-    });
+    };
+    setForm(nextForm);
+    setInitialForm(nextForm);
+    setFormErrors({});
     setDialogOpen(true);
   };
   const openEdit = (item: EvidenceItem) => {
     setEditingId(item.id);
-    setForm({
+    const nextForm: MapForm = {
       requirementId: item.requirementId,
       documentId: item.documentId ?? NONE,
       evidenceStatus: item.evidenceStatus as MapForm["evidenceStatus"],
       excerpt: item.excerpt ?? "",
       notes: item.notes ?? "",
-    });
+    };
+    setForm(nextForm);
+    setInitialForm(nextForm);
+    setFormErrors({});
     setDialogOpen(true);
   };
 
-  const handleSave = () => {
-    if (!form.requirementId) {
-      toast({ variant: "destructive", title: "Pick a requirement" });
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setFormErrors({});
+    setDiscardOpen(false);
+  };
+
+  const requestCloseDialog = () => {
+    if (saving) return;
+    if (JSON.stringify(form) !== JSON.stringify(initialForm)) {
+      setDiscardOpen(true);
       return;
     }
+    closeDialog();
+  };
+
+  const handleSave = () => {
+    if (!recordsReady) {
+      setFormErrors({
+        form: "Reload the evidence, requirements and documents before saving.",
+      });
+      return;
+    }
+    if (!form.requirementId) {
+      setFormErrors({ requirementId: "Select a requirement." });
+      requirementTriggerRef.current?.focus();
+      return;
+    }
+    setFormErrors({});
     const common = {
       onSuccess: () => {
-        setDialogOpen(false);
+        closeDialog();
         refresh();
+        toast({
+          title: editingId ? "Evidence link updated" : "Evidence linked",
+        });
       },
-      onError: mutationErrorToast(toast, "Could not save evidence"),
+      onError: (err: unknown) => {
+        const message = errorMessage(
+          err,
+          "The evidence link was not saved. Reload the records and try again.",
+        );
+        setFormErrors({ form: message });
+        toast({
+          variant: "destructive",
+          title: "Could not save evidence",
+          description: message,
+        });
+      },
     };
     if (editingId) {
       updateEvidence.mutate(
         {
           id: editingId,
           data: {
-            documentId: form.documentId === NONE ? undefined : form.documentId,
+            documentId: form.documentId === NONE ? null : form.documentId,
             ...(canWriteEvidence && canApproveEvidence
               ? { evidenceStatus: form.evidenceStatus }
               : {}),
-            excerpt: form.excerpt.trim() || undefined,
-            notes: form.notes.trim() || undefined,
+            excerpt: form.excerpt.trim() || null,
+            notes: form.notes.trim() || null,
           } as never,
         },
         common,
@@ -231,12 +347,16 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
         <div className="flex gap-2">
           {canWriteEvidence && (
             <>
-              <Button onClick={openMap} variant="outline">
+              <Button
+                onClick={openMap}
+                variant="outline"
+                disabled={!recordsReady}
+              >
                 <Plus className="w-4 h-4 mr-2" /> Link evidence
               </Button>
               <Button
                 onClick={handleMap}
-                disabled={mapEvidence.isPending}
+                disabled={!recordsReady || mapEvidence.isPending}
                 variant="secondary"
               >
                 {mapEvidence.isPending ? (
@@ -252,11 +372,29 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
       </div>
 
       <div className="bg-card border border-border rounded-lg shadow-xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {evidenceLoading ||
+        requirementsLoading ||
+        documentsLoading ||
+        evidencePending ||
+        requirementsPending ||
+        documentsPending ? (
+          <LoadingPanel label="Loading evidence links and source records" />
+        ) : evidenceError ||
+          requirementsError ||
+          documentsError ||
+          !recordsReady ? (
+          <div className="p-4">
+            <DataErrorPanel
+              title="We couldn't load the evidence register"
+              description="Evidence links or their requirement and document sources are unavailable. Mapping, review and deletion stay disabled until all current records load."
+              onRetry={() => {
+                void refetchEvidence();
+                void refetchRequirements();
+                void refetchDocuments();
+              }}
+            />
           </div>
-        ) : evidence && evidence.length > 0 ? (
+        ) : evidence.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -285,7 +423,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                       <Select
                         value={item.evidenceStatus}
                         onValueChange={(v) => setStatus(item, v)}
-                        disabled={actingId === item.id}
+                        disabled={!recordsReady || actingId === item.id}
                       >
                         <SelectTrigger
                           className={`h-7 text-xs capitalize ${statusClass(item.evidenceStatus)}`}
@@ -334,7 +472,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                             variant="ghost"
                             size="icon"
                             title="Confirm mapping"
-                            disabled={actingId === item.id}
+                            disabled={!recordsReady || actingId === item.id}
                             onClick={() => confirmItem(item)}
                           >
                             <Check className="w-4 h-4 text-emerald-600" />
@@ -353,15 +491,24 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                               size="icon"
                               title="Edit"
                               onClick={() => openEdit(item)}
+                              disabled={!recordsReady}
                             >
                               <Pencil className="w-4 h-4 text-muted-foreground" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              title="Delete"
-                              disabled={actingId === item.id}
-                              onClick={() => handleDelete(item)}
+                              aria-label={`Delete ${evidenceDeleteTarget(item)}`}
+                              title="Delete evidence link"
+                              disabled={
+                                !recordsReady ||
+                                actingId === item.id ||
+                                deleteEvidence.isPending
+                              }
+                              onClick={() => {
+                                setDeleteError(null);
+                                setEvidenceToDelete(item);
+                              }}
                             >
                               <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                             </Button>
@@ -383,7 +530,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
 
       <Dialog
         open={canWriteEvidence && dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => !open && requestCloseDialog()}
       >
         <DialogContent className="sm:max-w-[560px]">
           <DialogHeader>
@@ -392,16 +539,41 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <FormErrorSummary
+              id="evidence-form-errors"
+              errors={[formErrors.requirementId, formErrors.form]}
+              title="The evidence link was not saved"
+            />
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="evidence-requirement"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Requirement
               </label>
               <Select
                 value={form.requirementId}
-                onValueChange={(v) => setForm({ ...form, requirementId: v })}
+                onValueChange={(v) => {
+                  setForm({ ...form, requirementId: v });
+                  if (formErrors.requirementId) {
+                    setFormErrors((current) => ({
+                      ...current,
+                      requirementId: undefined,
+                    }));
+                  }
+                }}
                 disabled={!!editingId}
               >
-                <SelectTrigger>
+                <SelectTrigger
+                  ref={requirementTriggerRef}
+                  id="evidence-requirement"
+                  aria-invalid={!!formErrors.requirementId}
+                  aria-describedby={
+                    formErrors.requirementId
+                      ? "evidence-requirement-error"
+                      : undefined
+                  }
+                >
                   <SelectValue placeholder="Select a requirement" />
                 </SelectTrigger>
                 <SelectContent>
@@ -412,17 +584,23 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                   ))}
                 </SelectContent>
               </Select>
+              <FieldErrorMessage id="evidence-requirement-error">
+                {formErrors.requirementId}
+              </FieldErrorMessage>
             </div>
             <div className="grid grid-cols-2 gap-4">
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="evidence-document"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Document
                 </label>
                 <Select
                   value={form.documentId}
                   onValueChange={(v) => setForm({ ...form, documentId: v })}
                 >
-                  <SelectTrigger>
+                  <SelectTrigger id="evidence-document">
                     <SelectValue placeholder="None" />
                   </SelectTrigger>
                   <SelectContent>
@@ -436,7 +614,10 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                 </Select>
               </div>
               <div className="space-y-2">
-                <label className="text-xs font-medium text-muted-foreground uppercase">
+                <label
+                  htmlFor="evidence-status"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
                   Status
                 </label>
                 {canWriteEvidence && canApproveEvidence ? (
@@ -449,7 +630,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                       })
                     }
                   >
-                    <SelectTrigger>
+                    <SelectTrigger id="evidence-status">
                       <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
@@ -461,17 +642,24 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
                     </SelectContent>
                   </Select>
                 ) : (
-                  <div className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm">
+                  <div
+                    id="evidence-status"
+                    className="rounded-md border border-border bg-muted/30 px-3 py-2 text-sm"
+                  >
                     Pending review
                   </div>
                 )}
               </div>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="evidence-excerpt"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Excerpt
               </label>
               <Textarea
+                id="evidence-excerpt"
                 value={form.excerpt}
                 onChange={(e) => setForm({ ...form, excerpt: e.target.value })}
                 className="min-h-[60px]"
@@ -479,10 +667,14 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
               />
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="evidence-notes"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Notes
               </label>
               <Textarea
+                id="evidence-notes"
                 value={form.notes}
                 onChange={(e) => setForm({ ...form, notes: e.target.value })}
                 className="min-h-[50px]"
@@ -490,7 +682,7 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={requestCloseDialog}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -500,6 +692,35 @@ export function EvidenceTab({ projectId }: { projectId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UnsavedChangesAlert
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onDiscard={closeDialog}
+        subject={editingId ? "this evidence link" : "this new evidence link"}
+      />
+
+      <DestructiveConfirmation
+        open={!!evidenceToDelete}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEvidenceToDelete(null);
+            setDeleteError(null);
+          }
+        }}
+        itemName={
+          evidenceToDelete
+            ? evidenceDeleteTarget(evidenceToDelete)
+            : "Selected evidence link"
+        }
+        title="Permanently delete this evidence link?"
+        consequence="This removes the recorded mapping, excerpt, notes and review state from the evidence register. This action cannot be undone."
+        confirmLabel="Delete evidence link"
+        pendingLabel="Deleting evidence link…"
+        pending={deleteEvidence.isPending}
+        error={deleteError}
+        onConfirm={handleDelete}
+      />
     </div>
   );
 }

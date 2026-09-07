@@ -9,14 +9,17 @@ import { Dialog, DialogContent, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import type { PlatformNavItem } from "@/lib/platform-access";
 
-type AvailableNavigation = PlatformNavItem & {
+export type ShellNavigationItem = {
+  href: string;
+  label: string;
+  group: PlatformNavItem["group"] | "Support";
   state: "active" | "pending_activation" | "denied";
 };
 
 export function GlobalCommand({
   navigation,
 }: {
-  navigation: AvailableNavigation[];
+  navigation: ShellNavigationItem[];
 }) {
   const [, navigate] = useLocation();
   const [open, setOpen] = useState(false);

@@ -1,6 +1,6 @@
 import assert from "node:assert/strict";
 import { describe, test } from "node:test";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import type { GrowthSuiteScope } from "./contracts";
 import { deriveOnboardingJourney } from "./onboarding";
 import {

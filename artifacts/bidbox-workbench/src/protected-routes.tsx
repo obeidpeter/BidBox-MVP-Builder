@@ -4,6 +4,7 @@ import RequireAdmin from "@/components/require-admin";
 import RequireArea from "@/components/require-area";
 import { LoadingPanel } from "@/components/platform-states";
 import { platformFeatureFlags } from "@/lib/platform-access";
+import { ProtectedRouteAccessibility } from "@/components/protected-route-accessibility";
 
 const RoleHome = lazy(() => import("@/components/role-home"));
 const NotFound = lazy(() => import("@/pages/not-found"));
@@ -59,6 +60,7 @@ const EvidenceReadiness = lazy(() => import("@/pages/evidence-readiness"));
 const EvidenceRenewal = lazy(() => import("@/pages/evidence-renewal"));
 const ReportsIndex = lazy(() => import("@/pages/reports-index"));
 const AccountPage = lazy(() => import("@/pages/account"));
+const HelpPage = lazy(() => import("@/pages/help"));
 const OrganisationSettings = lazy(
   () => import("@/pages/organisation-settings"),
 );
@@ -73,6 +75,7 @@ export default function ProtectedRoutes() {
         </div>
       }
     >
+      <ProtectedRouteAccessibility />
       <Switch>
         <Route path="/app" component={RoleHome} />
         <Route path="/dashboard" component={RoleHome} />
@@ -241,6 +244,7 @@ export default function ProtectedRoutes() {
           </RequireAdmin>
         </Route>
         <Route path="/account" component={AccountPage} />
+        <Route path="/help" component={HelpPage} />
         <Route component={NotFound} />
       </Switch>
     </Suspense>

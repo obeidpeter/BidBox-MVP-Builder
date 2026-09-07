@@ -10,11 +10,16 @@ const mocks = vi.hoisted(() => ({
   createDocument: vi.fn(),
   discardUpload: vi.fn(),
   extractDocument: vi.fn(),
+  deleteDocument: vi.fn(),
+  refetchDocuments: vi.fn(),
   requestUploadUrl: vi.fn(),
   toast: vi.fn(),
   beginCriticalWorkflow: vi.fn(),
   releaseCriticalWorkflow: vi.fn(),
   documents: [] as Array<Record<string, unknown>>,
+  queryError: false,
+  queryPending: false,
+  querySuccess: true,
   permissions: new Set<string>(),
 }));
 
@@ -32,10 +37,20 @@ vi.mock("@/contexts/organisation-context", () => ({
 
 vi.mock("@workspace/api-client-react", () => ({
   getListDocumentsQueryKey: (id: string) => ["documents", id],
-  useListDocuments: () => ({ data: mocks.documents, isLoading: false }),
+  useListDocuments: () => ({
+    data: mocks.documents,
+    isLoading: false,
+    isPending: mocks.queryPending,
+    isError: mocks.queryError,
+    isSuccess: mocks.querySuccess,
+    refetch: mocks.refetchDocuments,
+  }),
   useCreateDocument: () => ({ mutateAsync: mocks.createDocument }),
   useDiscardUpload: () => ({ mutateAsync: mocks.discardUpload }),
-  useDeleteDocument: () => ({ mutate: vi.fn() }),
+  useDeleteDocument: () => ({
+    mutate: mocks.deleteDocument,
+    isPending: false,
+  }),
   useUpdateDocument: () => ({ mutate: vi.fn() }),
   useRequestUploadUrl: () => ({ mutateAsync: mocks.requestUploadUrl }),
   useVerifyDocument: () => ({ mutateAsync: vi.fn() }),
@@ -65,7 +80,12 @@ describe("DocumentsTab governed document intake", () => {
       quarantineMayRetainCopy: false,
     });
     mocks.extractDocument.mockReset();
+    mocks.deleteDocument.mockReset();
+    mocks.refetchDocuments.mockReset();
     mocks.documents = [];
+    mocks.queryError = false;
+    mocks.queryPending = false;
+    mocks.querySuccess = true;
     mocks.permissions = new Set([
       "document:upload",
       "document:delete",
@@ -125,6 +145,12 @@ describe("DocumentsTab governed document intake", () => {
     const user = userEvent.setup();
 
     renderDocumentsTab();
+    expect(
+      screen.getByRole("combobox", { name: "Tender.pdf document type" }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("combobox", { name: "Tender.pdf redaction status" }),
+    ).toBeInTheDocument();
     expect(screen.getByText(/ready to extract/i)).toBeInTheDocument();
     await user.click(
       screen.getByRole("button", {
@@ -213,5 +239,104 @@ describe("DocumentsTab governed document intake", () => {
     expect(
       screen.queryByRole("button", { name: /extraction for infected\.pdf/i }),
     ).not.toBeInTheDocument();
+  });
+
+  it("shows a retryable load failure instead of a verified empty state", async () => {
+    mocks.queryError = true;
+    mocks.querySuccess = false;
+    const user = userEvent.setup();
+
+    renderDocumentsTab();
+
+    expect(
+      screen.getByText(/couldn't load the pursuit documents/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/no documents uploaded yet/i),
+    ).not.toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: /try again/i }));
+    expect(mocks.refetchDocuments).toHaveBeenCalledTimes(1);
+  });
+
+  it("shows a named loading state for a cold paused query", () => {
+    mocks.queryPending = true;
+    mocks.querySuccess = false;
+
+    renderDocumentsTab();
+
+    expect(screen.getByText(/loading pursuit documents/i)).toBeInTheDocument();
+    expect(
+      screen.queryByText(/no documents uploaded yet/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("fails closed when a settled query has no successful data", () => {
+    mocks.querySuccess = false;
+
+    renderDocumentsTab();
+
+    expect(
+      screen.getByText(/couldn't load the pursuit documents/i),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByText(/no documents uploaded yet/i),
+    ).not.toBeInTheDocument();
+  });
+
+  it("disambiguates duplicate filenames before deleting the selected document", async () => {
+    mocks.documents = [
+      {
+        id: "document-1",
+        projectId: "project-1",
+        type: "tender",
+        filename: "Tender.pdf",
+        objectPath: "/objects/tenants/tenant-1/documents/document-1",
+        redactionStatus: "excluded",
+        extractionStatus: "skipped",
+        extractionMethod: "none",
+        createdAt: "2026-08-09T12:00:00Z",
+      },
+      {
+        id: "document-2",
+        projectId: "project-1",
+        type: "evidence",
+        filename: "Tender.pdf",
+        objectPath: "/objects/tenants/tenant-1/documents/document-2",
+        redactionStatus: "included",
+        extractionStatus: "completed",
+        extractionMethod: "text",
+        createdAt: "2026-08-10T12:00:00Z",
+      },
+    ];
+    const user = userEvent.setup();
+
+    renderDocumentsTab();
+    await user.click(
+      screen.getByRole("button", {
+        name: /delete tender\.pdf .* evidence document; id document-2/i,
+      }),
+    );
+
+    expect(mocks.deleteDocument).not.toHaveBeenCalled();
+    expect(
+      screen.getByRole("alertdialog", {
+        name: /permanently delete this document/i,
+      }),
+    ).toHaveTextContent(
+      "Tender.pdf — evidence document; ID document-2; recorded 2026-08-10T12:00:00Z",
+    );
+    expect(screen.getByText(/cannot be undone/i)).toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: /^delete document$/i }),
+    );
+    expect(mocks.deleteDocument).toHaveBeenCalledWith(
+      { id: "document-2" },
+      expect.objectContaining({
+        onSuccess: expect.any(Function),
+        onError: expect.any(Function),
+      }),
+    );
   });
 });

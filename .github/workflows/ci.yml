@@ -63,6 +63,9 @@ jobs:
       - name: Verify repository governance desired state
         run: pnpm run verify:governance
 
+      - name: Verify living architecture and dependency boundaries
+        run: pnpm run verify:architecture
+
       - name: Verify release provenance tooling
         run: pnpm run verify:release-provenance
 

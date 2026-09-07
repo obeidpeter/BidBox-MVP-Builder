@@ -5,11 +5,11 @@ import { getGetMeQueryKey, useGetMe } from "@workspace/api-client-react";
 import {
   Bell,
   BarChart3,
+  BookOpenText,
   BookOpenCheck,
   BriefcaseBusiness,
   Building2,
   CheckCircle2,
-  CircleHelp,
   ClipboardCheck,
   CreditCard,
   FileStack,
@@ -35,7 +35,6 @@ import {
   normalizePlatformRoles,
   platformFeatureFlags,
   platformRoleLabel,
-  type PlatformNavItem,
 } from "@/lib/platform-access";
 import {
   LoadingPanel,
@@ -52,8 +51,12 @@ import {
   OrganisationSwitcher,
 } from "@/components/organisation-switcher";
 import { BidBoxMark } from "@/components/bidbox-mark";
-import { GlobalCommand } from "@/components/global-command";
+import {
+  GlobalCommand,
+  type ShellNavigationItem,
+} from "@/components/global-command";
 import { BidBoxUserIdCard } from "@/components/bidbox-user-id-card";
+import { ContextualHelpDrawer } from "@/components/contextual-help-drawer";
 
 const ICONS: Record<string, LucideIcon> = {
   "/app": LayoutDashboard,
@@ -83,21 +86,30 @@ const ICONS: Record<string, LucideIcon> = {
   "/claims-desk": Scale,
   "/organisation-settings": Settings,
   "/settings": ScrollText,
+  "/help": BookOpenText,
 };
 
-const NAV_GROUPS: PlatformNavItem["group"][] = [
+const NAV_GROUPS: ShellNavigationItem["group"][] = [
   "Workspace",
   "Delivery",
   "Oversight",
   "Administration",
+  "Support",
 ];
+
+const HELP_NAV_ITEM: ShellNavigationItem = {
+  href: "/help",
+  label: "Help & user manual",
+  group: "Support",
+  state: "active",
+};
 
 function AppNavigation({
   items,
   location,
   onNavigate,
 }: {
-  items: ReturnType<typeof navigationForRole>;
+  items: ShellNavigationItem[];
   location: string;
   onNavigate?: () => void;
 }) {
@@ -179,6 +191,26 @@ function UtilityLink({
   );
 }
 
+function IdentityAccessLinks() {
+  return (
+    <div className="flex flex-wrap justify-center gap-2">
+      <Link
+        href="/help"
+        className="inline-flex min-h-10 items-center gap-2 rounded-md border border-border bg-card px-3 text-sm font-semibold text-foreground shadow-xs hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        <BookOpenText aria-hidden="true" className="size-4" />
+        Open user manual
+      </Link>
+      <Link
+        href="/account"
+        className="inline-flex min-h-10 items-center rounded-md px-3 text-sm font-semibold text-primary underline-offset-4 hover:underline focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+      >
+        Open profile
+      </Link>
+    </div>
+  );
+}
+
 function IdentityOnlyLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
@@ -197,11 +229,21 @@ function IdentityOnlyLayout({ children }: { children: ReactNode }) {
           >
             <BidBoxMark />
           </Link>
-          <UserButton
-            afterSignOutUrl="/"
-            userProfileMode="navigation"
-            userProfileUrl="/account"
-          />
+          <div className="flex items-center gap-2">
+            <Link
+              href="/help"
+              className="inline-flex min-h-10 items-center gap-2 rounded-md px-3 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
+            >
+              <BookOpenText aria-hidden="true" className="size-4" />
+              <span className="hidden sm:inline">Help & user manual</span>
+              <span className="sm:hidden">Help</span>
+            </Link>
+            <UserButton
+              afterSignOutUrl="/"
+              userProfileMode="navigation"
+              userProfileUrl="/account"
+            />
+          </div>
         </div>
       </header>
       <main id="main-content" tabIndex={-1}>
@@ -291,12 +333,21 @@ export default function Layout({ children }: { children: ReactNode }) {
       </div>
     );
   }
-  if (organisationAccess.isError) return <OrganisationLoadError />;
+  const currentPath = location.split(/[?#]/, 1)[0].replace(/\/$/, "");
+  const identityUtilityRoute =
+    currentPath === "/account" || currentPath === "/help";
+  if (organisationAccess.isError) {
+    return identityUtilityRoute ? (
+      <IdentityOnlyLayout>{children}</IdentityOnlyLayout>
+    ) : (
+      <OrganisationLoadError />
+    );
+  }
   const pendingRole =
     organisationAccess.effectiveRoles.length === 0 ||
     organisationAccess.effectiveRoles.every((role) => role === "none");
   if (
-    location === "/account" &&
+    identityUtilityRoute &&
     (!organisationAccess.activeOrganisation || pendingRole)
   ) {
     return <IdentityOnlyLayout>{children}</IdentityOnlyLayout>;
@@ -312,6 +363,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             description="Your sign-in worked, but this account is not linked to an active organisation membership. Ask an organisation administrator to add you."
           />
           <BidBoxUserIdCard userId={user.id} />
+          <IdentityAccessLinks />
           <UserButton afterSignOutUrl="/" />
         </div>
       </div>
@@ -329,6 +381,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             description="Your account belongs to this organisation, but it has no active role. Ask an organisation administrator to assign one."
           />
           <BidBoxUserIdCard userId={user.id} />
+          <IdentityAccessLinks />
           <UserButton afterSignOutUrl="/" />
         </div>
       </div>
@@ -337,6 +390,9 @@ export default function Layout({ children }: { children: ReactNode }) {
 
   const normalizedRoles = normalizePlatformRoles(effectiveRoles);
   if (normalizedRoles.length === 0) {
+    if (identityUtilityRoute) {
+      return <IdentityOnlyLayout>{children}</IdentityOnlyLayout>;
+    }
     return (
       <div className="flex min-h-screen items-center justify-center bg-background p-5">
         <div className="w-full max-w-lg">
@@ -345,20 +401,25 @@ export default function Layout({ children }: { children: ReactNode }) {
             title="This role isn't supported"
             description="This version of BidBox does not recognise the role returned by the server. No workspace was opened. Contact an administrator or support."
           />
+          <IdentityAccessLinks />
         </div>
       </div>
     );
   }
 
-  const navItems = navigationForRole(
+  const authorisedNavItems = navigationForRole(
     normalizedRoles,
     platformFeatureFlags(),
     organisationAccess.effectivePermissions,
     organisationAccess.activeOrganisation.accessSource,
   );
+  const navigation: ShellNavigationItem[] = [
+    ...authorisedNavItems,
+    HELP_NAV_ITEM,
+  ];
   const assignedRoleLabel = normalizedRoles.map(platformRoleLabel).join(" · ");
   const navIncludes = (href: string) =>
-    navItems.some((item) => item.href === href);
+    authorisedNavItems.some((item) => item.href === href);
 
   return (
     <div className="min-h-screen bg-background">
@@ -385,7 +446,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             </p>
           </div>
           <div className="flex-1 overflow-y-auto p-4">
-            <AppNavigation items={navItems} location={location} />
+            <AppNavigation items={navigation} location={location} />
           </div>
           <div className="border-t border-sidebar-border p-4">
             <div className="flex items-center gap-3 rounded-lg bg-sidebar-accent/70 p-3">
@@ -434,7 +495,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 </p>
               </div>
               <div className="hidden min-w-0 flex-1 justify-center sm:flex">
-                <GlobalCommand navigation={navItems} />
+                <GlobalCommand navigation={navigation} />
               </div>
               <div className="ml-auto flex shrink-0 items-center gap-0.5">
                 {navIncludes("/operations") ? (
@@ -451,10 +512,13 @@ export default function Layout({ children }: { children: ReactNode }) {
                     icon={Bell}
                   />
                 ) : null}
-                <UtilityLink
-                  href="/how-it-works"
-                  label="Help and workflow guide"
-                  icon={CircleHelp}
+                <ContextualHelpDrawer
+                  location={location}
+                  roles={normalizedRoles}
+                  permissions={organisationAccess.effectivePermissions}
+                  accessSource={
+                    organisationAccess.activeOrganisation.accessSource
+                  }
                 />
                 <div className="hidden px-2 xl:block">
                   <OrganisationSwitcher />
@@ -474,7 +538,7 @@ export default function Layout({ children }: { children: ReactNode }) {
               </div>
             </div>
             <div className="px-4 pb-3 sm:hidden">
-              <GlobalCommand navigation={navItems} />
+              <GlobalCommand navigation={navigation} />
             </div>
             {mobileOpen ? (
               <div
@@ -482,7 +546,7 @@ export default function Layout({ children }: { children: ReactNode }) {
                 className="max-h-[75dvh] overflow-y-auto border-t border-sidebar-border bg-sidebar p-4 text-sidebar-foreground lg:hidden"
               >
                 <AppNavigation
-                  items={navItems}
+                  items={navigation}
                   location={location}
                   onNavigate={() => setMobileOpen(false)}
                 />

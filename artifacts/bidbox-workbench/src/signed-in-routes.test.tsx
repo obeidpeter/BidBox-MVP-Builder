@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, it, expect, vi } from "vitest";
-import { render, screen } from "@testing-library/react";
+import { render, screen, waitFor } from "@testing-library/react";
 import { Router } from "wouter";
 import { memoryLocation } from "wouter/memory-location";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
@@ -244,6 +244,25 @@ describe("signed-in routing", () => {
         ROUTE_LOAD_WAIT,
       ),
     ).toBeInTheDocument();
+    expect(screen.getByText("Opened Dashboard")).toBeInTheDocument();
+    await waitFor(() => expect(document.title).toBe("Dashboard | BidBox"));
+  });
+
+  it("renders the identity-level Help and user manual route", async () => {
+    currentRole = "client_auditor";
+    renderAt("/help");
+
+    expect(
+      await screen.findByRole(
+        "heading",
+        { level: 1, name: "Help & user manual" },
+        ROUTE_LOAD_WAIT,
+      ),
+    ).toBeInTheDocument();
+    expect(screen.getByText("Opened Help & user manual")).toBeInTheDocument();
+    await waitFor(() =>
+      expect(document.title).toBe("Help & user manual | BidBox"),
+    );
   });
 
   it("renders the NotFound page for an unknown protected path", async () => {

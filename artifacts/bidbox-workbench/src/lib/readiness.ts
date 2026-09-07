@@ -412,6 +412,12 @@ export interface ReadinessSummary {
   nextCheck: GateCheck | undefined;
 }
 
+export type ReadinessAssessment =
+  | { status: "not_checked" }
+  | { status: "loading" }
+  | { status: "error" }
+  | { status: "ready"; summary: ReadinessSummary };
+
 export function summarizeReadiness(checks: GateCheck[]): ReadinessSummary {
   const requiredChecks = checks.filter((check) => check.required !== false);
   const passedRequired = requiredChecks.filter(

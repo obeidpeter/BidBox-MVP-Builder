@@ -1,7 +1,16 @@
 # ADR-0004: Externally anchored audit checkpoints
 
-Status: Accepted target; provider selection pending
+Status: Accepted target; provider selection and deployment evidence pending
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Security and compliance architecture (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Security/privacy, legal/compliance and operations role holders before provider activation; named alternates are not yet recorded
+Drivers: `AD-003`, `AD-009`, `AD-010`
+Evidence: `config/operations/schedules.v1.json`; `config/observability/alerts.v2.5.json`; `docs/implementation-v2.5/SECURITY_PRIVACY.md`; `docs/implementation-v2.5/runbooks/BACKUP.md`; `docs/implementation-v2.5/runbooks/RESTORE.md`
+Supersedes: Local hash-chain-only target
+Superseded by: None
 
 ## Context
 

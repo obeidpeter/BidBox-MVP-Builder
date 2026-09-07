@@ -35,15 +35,19 @@ import {
   normalizeLegacyRole,
   partnerDerivedPermissionsForRoles,
   permissionsForRoles,
-  type OrganisationRole,
   type OrganisationType,
   type Permission,
 } from "../lib/permissions";
+import type { AccessContext } from "../lib/accessContext";
+export type { AccessContext } from "../lib/accessContext";
 export { parseExpectedVersion } from "../lib/permissions";
 import { isTenantFeatureEnabled } from "../lib/featureFlags";
 import { writeAudit } from "../lib/audit";
 import { isProjectContentImmutable } from "../lib/reportPolicy";
-import { CLAIMS_DESK_RELEASED_LEDGER_ROUTE_EXCEPTIONS } from "../lib/claimsDesk/activation";
+import {
+  canUseReleasedProjectRoutePolicy,
+  matchesProjectRoutePolicyClass,
+} from "../lib/projectRoutePolicy";
 
 export const ORGANISATION_HEADER = "x-bidbox-organisation-id";
 export const BREAK_GLASS_HEADER = "x-bidbox-break-glass-session";
@@ -51,53 +55,6 @@ export const BREAK_GLASS_HEADER = "x-bidbox-break-glass-session";
 // running the previous bundle keep their tenant selection across the cutover.
 export const LEGACY_ORGANISATION_HEADER = "x-valo-organisation-id";
 export const LEGACY_BREAK_GLASS_HEADER = "x-valo-break-glass-session";
-
-const RELEASED_OPERATIONS_LEDGER_MUTATIONS: ReadonlyArray<{
-  method: "PATCH" | "POST";
-  path: RegExp;
-}> = Object.freeze([
-  ...CLAIMS_DESK_RELEASED_LEDGER_ROUTE_EXCEPTIONS,
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/operations-suite\/submission-war-rooms$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/operations-suite\/submission-war-rooms\/[^/]+\/advance$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/operations-suite\/visual-qa-reports$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/operations-suite\/post-award-items$/u,
-  },
-  {
-    method: "PATCH",
-    path: /^\/projects\/[^/]+\/operations-suite\/post-award-items\/[^/]+$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/client-actions\/package-deliveries$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/client-actions\/package-deliveries\/[^/]+\/acknowledgements$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/communications\/intents$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/communications\/intents\/[^/]+\/attempts$/u,
-  },
-  {
-    method: "POST",
-    path: /^\/projects\/[^/]+\/communications\/intents\/[^/]+\/reconciliations$/u,
-  },
-]);
 
 /**
  * Released tender/report/document content stays immutable, while these exact
@@ -109,19 +66,13 @@ export function canMutateReleasedOperationsLedger(
   method: string,
   path: string,
 ): boolean {
-  if (projectStatus !== "signed_off" && projectStatus !== "exported") {
-    return false;
-  }
-  const normalizedMethod = method.toUpperCase();
-  return RELEASED_OPERATIONS_LEDGER_MUTATIONS.some(
-    (route) => route.method === normalizedMethod && route.path.test(path),
+  return canUseReleasedProjectRoutePolicy(
+    projectStatus,
+    method,
+    path,
+    "released_append_only_ledger",
   );
 }
-
-const GOVERNED_ADDENDUM_IMPACT_MUTATIONS = Object.freeze([
-  /^\/projects\/[^/]+\/addendum-impact\/review$/u,
-  /^\/projects\/[^/]+\/addendum-impact\/apply$/u,
-]);
 
 /**
  * The append-only review and the separately authorised apply command are the
@@ -133,23 +84,31 @@ export function canMutateReleasedGovernedAddendumImpact(
   method: string,
   path: string,
 ): boolean {
-  return (
-    (projectStatus === "signed_off" || projectStatus === "exported") &&
-    method.toUpperCase() === "POST" &&
-    GOVERNED_ADDENDUM_IMPACT_MUTATIONS.some((route) => route.test(path))
+  return canUseReleasedProjectRoutePolicy(
+    projectStatus,
+    method,
+    path,
+    "released_addendum_command",
   );
 }
 
-export interface AccessContext {
-  organisationId: string;
-  membershipId: string | null;
-  membershipOrganisationId: string | null;
-  source: "membership" | "partner" | "break_glass";
-  roles: readonly OrganisationRole[];
-  permissions: ReadonlySet<Permission>;
-  breakGlassSessionId: string | null;
-  partnerRelationshipId: string | null;
-  partnerCoSigningRequired: boolean;
+/**
+ * Package export is a governed release command, not a mutation of the released
+ * source material. Admit only the exact POST endpoint used by the
+ * confirmation-bound export protocol. Archived projects and near-match paths
+ * stay behind the release immutability boundary.
+ */
+export function canRunReleasedGovernedProjectExport(
+  projectStatus: string,
+  method: string,
+  path: string,
+): boolean {
+  return canUseReleasedProjectRoutePolicy(
+    projectStatus,
+    method,
+    path,
+    "released_export_command",
+  );
 }
 
 type AccessRequest = Request & { accessContext?: AccessContext };
@@ -685,10 +644,11 @@ export async function enforceTenantResourceBoundary(
         sql`select pg_advisory_xact_lock(hashtextextended(${projectId}, 0))`,
       );
     }
-    const governedRetentionWorkflow =
-      /^\/projects\/[^/]+\/retention-requests$/.test(req.path) ||
-      /^\/retention-requests\/[^/]+\/complete$/.test(req.path) ||
-      /^\/retention-actions\/[^/]+\/(?:reconcile|certify)$/.test(req.path);
+    const governedRetentionWorkflow = matchesProjectRoutePolicyClass(
+      req.method,
+      req.path,
+      "retention_lifecycle",
+    );
     if (
       !governedRetentionWorkflow &&
       !new Set(["GET", "HEAD", "OPTIONS"]).has(req.method)
@@ -707,6 +667,11 @@ export async function enforceTenantResourceBoundary(
             req.path,
           ) &&
           !canMutateReleasedGovernedAddendumImpact(
+            project.status,
+            req.method,
+            req.path,
+          ) &&
+          !canRunReleasedGovernedProjectExport(
             project.status,
             req.method,
             req.path,

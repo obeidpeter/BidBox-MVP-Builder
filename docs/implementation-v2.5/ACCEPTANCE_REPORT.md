@@ -3,6 +3,8 @@
 Report date: 2026-08-08
 Overall status: **Not accepted as a complete production v2.5 platform**.
 
+> Historical report: this records the 2026-08-08 candidate only. It is not the acceptance status of the current repository or live deployment. Start at [`../architecture/README.md`](../architecture/README.md) and use retained release/deployment evidence for the exact commit being assessed.
+
 The candidate now contains material v2.5 tenancy, permission, release-governance and role-scoped UI work plus the source-controlled design/operations dossier. Focused backend and frontend verification passed. It is not deployed, and the remaining live-isolation, hostile-input, release-claim workflow, provider, package-integrity and operational evidence gaps prevent production acceptance. This status is intentionally conservative.
 
 ## Product and architectural decisions

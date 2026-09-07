@@ -190,7 +190,7 @@ const REQUIRED_WORKFLOW_ACTIONS = new Map([
 const REVIEWED_WORKFLOW_SHA256 = new Map([
   [
     ".github/workflows/ci.yml",
-    "686130cf5cc2603a1187f6ad6f02c64e790c7d4a6cff497cfe190a75ebc3c6ce",
+    "5f44322149b64331ee43eda613101a6be6612e3b0106b96016bea1ad9c0a732f",
   ],
   [
     ".github/workflows/codeql.yml",
@@ -202,7 +202,7 @@ const REVIEWED_WORKFLOW_SHA256 = new Map([
   ],
   [
     ".github/workflows/release-candidate.yml",
-    "4692b5bfdd1077afc82f62ad8302e0303992817ac2c3c01145e1c15bbea4c77e",
+    "9a96e0cf7f9d5adfd6154614024af6d6f60d4d27572b6b2ff04d78a4673e0cea",
   ],
   [
     ".github/workflows/deployment-verification.yml",

@@ -30,7 +30,9 @@ Every response carries a validated `X-Request-Id`; supplied IDs are accepted onl
 
 ## Commit-before-stream gate
 
-Tenant middleware currently holds one RLS transaction until the response finishes. This preserves authorisation, advisory-lock and audit atomicity, but a slow object or ZIP download also retains a pooled connection. Do not detach these transactions merely after setting headers or obtaining an object handle.
+Tenant middleware holds one RLS transaction until the response finishes by default and establishes the project advisory lock before project-scoped handlers. Exact high-risk commands may call `commitTenantDatabaseBeforeResponse` after all locked authority, state, audit and durable-evidence writes have completed and before exposing an irreversible capability, receipt, response header or byte. Package export currently holds that project lock while assembling the complete ZIP in memory, then revalidates report/package/NDA state plus current membership/grant and exact partner-relationship authority inside the locked transaction, repeats the authority check at a fresh database clock immediately before persistence, persists the canonical export evidence, awaits COMMIT, and only then sends the buffer. This project-lock duration is the explicit `AR-010` contention trade-off. Partner-edition activation is re-read but is not serialized by the membership/relationship lock protocol. Report sign-off and governed project-package export use the same commit-before-response primitive for their authoritative success response. Direct DOCX/PDF download routes retain the ordinary response-scoped transaction and are not claimed to satisfy this stronger gate.
+
+This is an exact route capability, not a general middleware bypass. Callers must perform no database work after the commit promise resolves. Ordinary routes and any route without complete ordering evidence retain the response-scoped transaction.
 
 A streaming route may move to commit-before-stream only when one focused change proves all of the following:
 
@@ -42,4 +44,4 @@ A streaming route may move to commit-before-stream only when one focused change 
 6. integration tests prove cross-tenant denial, audit-before-byte ordering, commit-before-byte ordering, client disconnect behavior and pool release during a deliberately slow stream; and
 7. any global transaction-middleware exception is an exact, named route allowlist - not a prefix or client-controlled bypass.
 
-Until that gate is met, the response-scoped transaction remains the safer behavior. The five-minute idle-transaction ceiling bounds abandoned/slow transactions; object-size and deployment-duration limits must keep authorised downloads inside that window.
+Routes that have not met this gate retain the response-scoped transaction. The five-minute idle-transaction ceiling bounds abandoned/slow transactions; object-size and deployment-duration limits must keep authorised downloads inside that window. The runtime route-policy catalogue and focused database integration tests are the evidence boundary for adding or changing an exception.

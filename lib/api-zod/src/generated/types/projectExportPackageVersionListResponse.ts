@@ -22,4 +22,6 @@ export interface ProjectExportPackageVersionListResponse {
   items: ProjectExportPackageVersionSummary[];
   limit: 100;
   truncated: boolean;
+  /** @pattern ^[a-f0-9]{64}$ */
+  exportScopeSha256: string;
 }

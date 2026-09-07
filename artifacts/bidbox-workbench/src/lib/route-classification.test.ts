@@ -21,11 +21,13 @@ describe("route privacy classification", () => {
     ["/claims-desk?project=project-id", "protected"],
     ["/consortium-room?project=project-id", "protected"],
     ["/organisation-settings", "protected"],
+    ["/help", "protected"],
   ] as const)("classifies %s as %s", (path, expected) => {
     expect(classifyRoute(path)).toBe(expected);
   });
 
   it("does not treat a lookalike public path as a protected prefix", () => {
     expect(classifyRoute("/projects-and-services")).toBe("public");
+    expect(classifyRoute("/helpful")).toBe("public");
   });
 });

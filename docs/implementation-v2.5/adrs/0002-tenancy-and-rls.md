@@ -1,7 +1,16 @@
 # ADR-0002: Organisation tenancy with PostgreSQL RLS
 
-Status: Accepted target; migration evidence pending
+Status: Accepted; source and startup attestation implemented; live deployment evidence remains external
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Platform security and data (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Security/privacy and database operations role holders; named alternates are not yet recorded
+Drivers: `AD-001`, `AD-002`, `AD-009`
+Evidence: `lib/db/migrations/0001_tenant_rls.sql`; `lib/db/src/index.ts`; `lib/db/src/runtimeSecurity.ts`; `lib/db/src/runtimeSecurity.test.ts`; `artifacts/api-server/src/middlewares/databaseTenancy.ts`
+Supersedes: Broad application-only client/project filtering in the observed baseline
+Superseded by: None
 
 ## Context
 

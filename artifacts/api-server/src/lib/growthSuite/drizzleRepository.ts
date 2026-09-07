@@ -8,7 +8,7 @@ import {
   users,
   withTenantDatabase,
 } from "@workspace/db";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import { writeAuditTx } from "../audit";
 import {
   GROWTH_SUITE_BOUNDS,

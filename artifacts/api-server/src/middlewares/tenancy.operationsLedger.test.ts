@@ -3,6 +3,7 @@ import assert from "node:assert/strict";
 import {
   canMutateReleasedGovernedAddendumImpact,
   canMutateReleasedOperationsLedger,
+  canRunReleasedGovernedProjectExport,
 } from "./tenancy";
 
 const PROJECT_ID = "11111111-1111-4111-8111-111111111111";
@@ -114,6 +115,47 @@ test("only exact governed addendum review and apply paths bypass release immutab
         `${path}/extra`,
       ),
       false,
+    );
+  }
+});
+
+test("only the exact governed project export command bypasses release immutability", () => {
+  const exportPath = `/projects/${PROJECT_ID}/export`;
+
+  for (const status of ["signed_off", "exported"]) {
+    assert.equal(
+      canRunReleasedGovernedProjectExport(status, "POST", exportPath),
+      true,
+      `${status} POST ${exportPath}`,
+    );
+  }
+  assert.equal(
+    canRunReleasedGovernedProjectExport("exported", "post", exportPath),
+    true,
+    "method matching is case insensitive",
+  );
+
+  for (const status of ["reporting", "archived"]) {
+    assert.equal(
+      canRunReleasedGovernedProjectExport(status, "POST", exportPath),
+      false,
+      `${status} cannot receive the released-project exception`,
+    );
+  }
+
+  const denied: ReadonlyArray<readonly [string, string]> = [
+    ["GET", exportPath],
+    ["PATCH", exportPath],
+    ["POST", `/projects/${PROJECT_ID}/exports`],
+    ["POST", `${exportPath}/`],
+    ["POST", `${exportPath}/extra`],
+    ["POST", "/projects//export"],
+  ];
+  for (const [method, path] of denied) {
+    assert.equal(
+      canRunReleasedGovernedProjectExport("exported", method, path),
+      false,
+      `${method} ${path}`,
     );
   }
 });

@@ -1,0 +1,185 @@
+{
+  "schemaVersion": 1,
+  "programmeId": "bidbox-continuous-usability/v1",
+  "purpose": "Continuously test whether authorised BidBox users can understand, complete, verify, and recover from high-consequence tender workflows.",
+  "evidencePolicy": "Only observed sessions and checked-in artefacts count as evidence; planned studies and synthetic runs must never be reported as user outcomes.",
+  "participantRoles": [
+    "bid_lead",
+    "bid_analyst",
+    "reviewer",
+    "administrator",
+    "partner",
+    "executive_observer"
+  ],
+  "testEnvironments": [
+    "desktop_standard",
+    "mobile_narrow",
+    "low_bandwidth",
+    "deadline_interruption",
+    "africa_lagos_time"
+  ],
+  "metrics": [
+    "task_completion",
+    "task_abandonment",
+    "time_on_task",
+    "interaction_count",
+    "errors_and_recovery",
+    "assistance_requests",
+    "confidence_rating",
+    "system_usability_scale",
+    "ueq_short",
+    "nasa_tlx"
+  ],
+  "cadence": {
+    "expertWalkthrough": "before_each_release",
+    "accessibilityReview": "before_each_release",
+    "moderatedRoleSessions": "monthly",
+    "roleCoverageReview": "quarterly",
+    "productionFeedbackTriage": "weekly"
+  },
+  "researchSafeguards": {
+    "requiresInformedConsent": true,
+    "useSyntheticTenderDataByDefault": true,
+    "recordingOptInOnly": true,
+    "excludeSecretsAndLiveBidContent": true,
+    "redactPersonalDataFromFindings": true,
+    "findingsRequireRoleAndEnvironmentContext": true
+  },
+  "releaseGates": {
+    "criticalTaskCompletionPercent": 90,
+    "maximumUnrecoveredCriticalErrors": 0,
+    "maximumCriticalAccessibilityViolations": 0,
+    "maximumCriticalTruthfulnessDefects": 0,
+    "requiresNamedFindingOwner": true,
+    "requiresRetestEvidenceForCriticalFixes": true
+  },
+  "tasks": [
+    {
+      "id": "find_profile_user_id",
+      "title": "Find and copy the BidBox User ID",
+      "roles": [
+        "bid_lead",
+        "bid_analyst",
+        "reviewer",
+        "administrator",
+        "partner"
+      ],
+      "startingState": "The participant is signed in and needs their identifier for an invitation or support request.",
+      "successOutcome": "The participant reaches Profile, identifies the BidBox User ID, and copies it without exposing unrelated account data.",
+      "risk": "standard",
+      "surfaces": ["profile", "authenticated_navigation"]
+    },
+    {
+      "id": "create_pursuit_with_validation",
+      "title": "Create a pursuit and recover from invalid input",
+      "roles": ["bid_lead", "administrator"],
+      "startingState": "The participant has an authorised client and a partly complete tender brief.",
+      "successOutcome": "The participant understands required fields, corrects validation errors, and reaches the new pursuit without losing valid input.",
+      "risk": "critical",
+      "surfaces": ["clients", "pursuit_creation", "form_feedback"]
+    },
+    {
+      "id": "understand_pursuit_lifecycle",
+      "title": "Distinguish the viewed stage, recorded status, blocker, deadline, and next action",
+      "roles": ["bid_lead", "bid_analyst", "reviewer", "executive_observer"],
+      "startingState": "The participant opens an active pursuit with work spread across multiple registers.",
+      "successOutcome": "The participant distinguishes the stage navigation currently in view from the recorded project status, recognises when no authoritative lifecycle stage is recorded, and correctly states the most important blocker, deadline context, and next permitted action.",
+      "risk": "critical",
+      "surfaces": ["pursuit_lifecycle", "project_details", "readiness"]
+    },
+    {
+      "id": "verify_existing_source_and_intake_state",
+      "title": "Recognise intake availability and verify an existing source",
+      "roles": ["bid_lead", "bid_analyst"],
+      "startingState": "The participant opens an authorised pursuit with a synthetic source already recorded while new uploads are explicitly unavailable.",
+      "successOutcome": "The participant recognises that no upload request can be sent, distinguishes processing from failure for the existing source, and can retry or continue appropriately.",
+      "risk": "critical",
+      "surfaces": ["documents", "loading_and_error_states"]
+    },
+    {
+      "id": "trace_requirement_to_source",
+      "title": "Trace a requirement to its governing source",
+      "roles": ["bid_analyst", "reviewer"],
+      "startingState": "The participant is reviewing extracted requirements and must validate one important obligation.",
+      "successOutcome": "The participant locates source provenance, distinguishes generated assistance from human authority, and records an informed review decision.",
+      "risk": "critical",
+      "surfaces": ["requirements", "review_desk", "explainable_status"]
+    },
+    {
+      "id": "map_and_review_evidence",
+      "title": "Map evidence and resolve a review finding",
+      "roles": ["bid_analyst", "reviewer", "partner"],
+      "startingState": "The pursuit contains an unmet requirement and a permission-scoped evidence source.",
+      "successOutcome": "The participant maps the correct evidence, understands its review state, and resolves or escalates the finding without using a machine identifier.",
+      "risk": "critical",
+      "surfaces": ["evidence", "defects", "governed_selectors"]
+    },
+    {
+      "id": "compare_response_with_source",
+      "title": "Compare a response with its source and review context",
+      "roles": ["bid_analyst", "reviewer"],
+      "startingState": "A response version is ready for source-grounded review.",
+      "successOutcome": "The participant uses the side-by-side Review Desk to locate an issue, confirm provenance, and make a reversible review decision.",
+      "risk": "critical",
+      "surfaces": ["review_desk", "delivery_studio"]
+    },
+    {
+      "id": "sign_off_with_preflight",
+      "title": "Review sign-off consequences before confirming",
+      "roles": ["reviewer"],
+      "startingState": "An authorised report is eligible for human sign-off.",
+      "successOutcome": "The participant verifies the scope, authority, blockers, and consequences in preflight before explicitly confirming sign-off.",
+      "risk": "critical",
+      "surfaces": ["reports", "sign_off_preflight"]
+    },
+    {
+      "id": "assemble_and_export_package",
+      "title": "Assemble and export a governed submission package",
+      "roles": ["bid_lead", "reviewer"],
+      "startingState": "The pursuit has a candidate package and at least one state that must be explained before export.",
+      "successOutcome": "The participant understands blocking and advisory checks, confirms the exact package snapshot, and exports only when currently authorised.",
+      "risk": "critical",
+      "surfaces": ["package_assembly", "export_preflight", "explainable_status"]
+    },
+    {
+      "id": "rehearse_submission_and_recover",
+      "title": "Run submission rehearsal and recover from a blocked state",
+      "roles": ["bid_lead", "reviewer"],
+      "startingState": "The current package snapshot has an unresolved rehearsal prerequisite.",
+      "successOutcome": "The participant can explain why rehearsal is blocked, navigate to the corrective action, rerun checks, and recognise the verified state.",
+      "risk": "critical",
+      "surfaces": ["submission_rehearsal", "readiness", "recovery"]
+    },
+    {
+      "id": "delete_record_safely",
+      "title": "Cancel or confirm a destructive record action",
+      "roles": ["bid_lead", "administrator"],
+      "startingState": "The participant encounters an obsolete record while other valid records remain.",
+      "successOutcome": "The participant understands the exact target and consequence, can cancel without mutation, and can explicitly confirm the intended deletion.",
+      "risk": "critical",
+      "surfaces": [
+        "documents",
+        "requirements",
+        "evidence",
+        "defects",
+        "client_vault"
+      ]
+    },
+    {
+      "id": "get_contextual_help_without_losing_work",
+      "title": "Use contextual help and resume the current task",
+      "roles": [
+        "bid_lead",
+        "bid_analyst",
+        "reviewer",
+        "administrator",
+        "partner",
+        "executive_observer"
+      ],
+      "startingState": "The participant is uncertain about a term or next action while editing or reviewing.",
+      "successOutcome": "The participant opens relevant in-product help, understands the guidance and authority boundary, then resumes without losing state.",
+      "risk": "standard",
+      "surfaces": ["contextual_help", "authenticated_navigation"]
+    }
+  ]
+}

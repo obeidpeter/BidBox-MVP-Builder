@@ -76,6 +76,7 @@ jobs:
           pnpm run verify:governance
           pnpm run verify:release-provenance
           pnpm run verify:release-config
+          pnpm run verify:usability-release
 
       - name: Prove production database migration and startup attestation
         run: pnpm --filter @workspace/db test

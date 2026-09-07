@@ -1,0 +1,237 @@
+{
+  "schemaVersion": 1,
+  "catalogueId": "valo.architecture.risks.v1",
+  "status": "active_open_risks_require_review",
+  "lastReviewed": "2026-08-31",
+  "lastReviewedAt": "2026-08-31",
+  "sourceReviewedThrough": "2026-08-31",
+  "owner": "Platform architecture (@obeidpeter)",
+  "backupOwner": "UNASSIGNED (AR-001)",
+  "likelihoodVocabulary": ["low", "medium", "high"],
+  "impactVocabulary": ["low", "medium", "high", "critical"],
+  "statusVocabulary": [
+    "open",
+    "mitigating",
+    "monitoring",
+    "accepted",
+    "closed"
+  ],
+  "risks": [
+    {
+      "id": "AR-001",
+      "title": "Single architecture and code owner has no recorded backup",
+      "owner": "Repository owner (@obeidpeter)",
+      "backupOwner": "UNASSIGNED",
+      "likelihood": "high",
+      "impact": "high",
+      "status": "open",
+      "driverIds": ["AD-004", "AD-010", "AD-011"],
+      "trigger": "The primary owner is unavailable or authors a high-risk change requiring independent review.",
+      "mitigation": "Assign named primary and backup owners by platform/data, API/delivery and product/contracts boundaries; require an external reviewer for security and production releases until teams exist.",
+      "evidence": [".github/CODEOWNERS"],
+      "reviewBy": "2026-09-30"
+    },
+    {
+      "id": "AR-002",
+      "title": "Replit source rebuild is not a measured live artifact promotion",
+      "owner": "Release engineering",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "monitoring",
+      "driverIds": ["AD-003", "AD-010", "AD-011"],
+      "trigger": "A deployment is described as running the byte-identical GitHub candidate without a provider-measured digest.",
+      "mitigation": "Retain exact source snapshot, provider build and immutable deployment IDs; keep runtimeIdentityEvidence environment-declared and liveArtifactDigestVerified false until measured evidence exists.",
+      "evidence": [
+        "docs/implementation-v2.5/RELEASE_PROVENANCE.md",
+        ".github/workflows/deployment-verification.yml"
+      ],
+      "reviewBy": "2026-11-30"
+    },
+    {
+      "id": "AR-003",
+      "title": "In-process schedules can duplicate across autoscale replicas",
+      "owner": "Platform operations",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "critical",
+      "status": "open",
+      "driverIds": ["AD-004", "AD-005", "AD-008", "AD-010"],
+      "trigger": "VALO_INPROCESS_SCHEDULES is enabled while more than one application replica may run.",
+      "mitigation": "Keep schedules off by default; before opt-in, prove a single active scheduler or add job-specific distributed exclusion and idempotency with retained duplicate-effect tests.",
+      "evidence": [".replit", "scripts/run-inprocess-schedules.mjs"],
+      "reviewBy": "2026-09-30"
+    },
+    {
+      "id": "AR-004",
+      "title": "Durable worker and declared schedules lack production activation evidence",
+      "owner": "Delivery and operations architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "high",
+      "impact": "high",
+      "status": "open",
+      "driverIds": ["AD-005", "AD-011"],
+      "trigger": "Operations depend on an unmounted worker or a source-declared but not-installed schedule.",
+      "mitigation": "Preserve activation gates, assign workload identities, install only eligible schedules, and retain platform IDs, first/full-cycle receipts, last-success signals, alerts and disable procedures.",
+      "evidence": [
+        "docs/durable-worker-foundation/IMPLEMENTATION.md",
+        "config/operations/schedules.v1.json"
+      ],
+      "reviewBy": "2026-10-31"
+    },
+    {
+      "id": "AR-005",
+      "title": "Desired repository and environment protection may differ from live GitHub state",
+      "owner": "Release engineering and repository administration",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "open",
+      "driverIds": ["AD-010", "AD-011"],
+      "trigger": "A repository policy file or passing governance test is treated as proof that live rulesets or environment reviewers are applied.",
+      "mitigation": "Apply the desired branch/environment policy through GitHub administration and retain a live export or API attestation in the private operations record for every review.",
+      "evidence": [
+        ".github/branch-policy.json",
+        "docs/implementation-v2.5/RELEASE_PROVENANCE.md"
+      ],
+      "reviewBy": "2026-09-30"
+    },
+    {
+      "id": "AR-006",
+      "title": "Route mount semantics can drift beyond automated contract and policy-ID reconciliation",
+      "owner": "API and application security",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "mitigating",
+      "driverIds": ["AD-001", "AD-002", "AD-007", "AD-008"],
+      "trigger": "A route is mounted or moved under different middleware semantics even though its OpenAPI operation, prefix default and runtime high-risk policy identifier still reconcile.",
+      "mitigation": "Keep verifier enforcement for OpenAPI coverage, exact runtime project-route IDs and high-risk controls; review app.ts/routes/index.ts mount order and negative near-match tests as executable truth until mount semantics are parsed automatically.",
+      "evidence": [
+        "config/architecture/route-policies.v1.json",
+        "artifacts/api-server/src/lib/projectRoutePolicy.ts",
+        "scripts/verify-architecture.mjs"
+      ],
+      "reviewBy": "2026-10-31"
+    },
+    {
+      "id": "AR-007",
+      "title": "Current, deployed and target architecture narratives can diverge",
+      "owner": "Platform architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "high",
+      "impact": "medium",
+      "status": "mitigating",
+      "driverIds": ["AD-004", "AD-007", "AD-011"],
+      "trigger": "A target diagram or historical acceptance record is read as current deployed evidence.",
+      "mitigation": "Maintain dated current, deployed, verified and target labels; link the guidebook to source catalogues; supersede stale claims and run architecture freshness/link checks.",
+      "evidence": [
+        "docs/implementation-v2.5/ARCHITECTURE.md",
+        "docs/architecture/README.md"
+      ],
+      "reviewBy": "2026-10-31"
+    },
+    {
+      "id": "AR-008",
+      "title": "Clerk proxy availability and host configuration are an authentication dependency",
+      "owner": "Identity and application security",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "monitoring",
+      "driverIds": ["AD-002", "AD-009", "AD-011"],
+      "trigger": "Allowed origins, proxy headers, Clerk keys or provider availability prevent valid session verification.",
+      "mitigation": "Keep a fixed upstream and exact host allowlist, fail closed on unknown hosts, verify production provider approval/key custody, and retain identity outage smoke evidence.",
+      "evidence": [
+        "artifacts/api-server/src/middlewares/clerkProxyMiddleware.ts",
+        "artifacts/api-server/src/app.ts"
+      ],
+      "reviewBy": "2026-11-30"
+    },
+    {
+      "id": "AR-009",
+      "title": "Exact database attestation can trade availability for security correctness",
+      "owner": "Platform security and data",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "low",
+      "impact": "high",
+      "status": "monitoring",
+      "driverIds": ["AD-002", "AD-008", "AD-010"],
+      "trigger": "An intended migration changes an attested role, policy, trigger, function or privilege without synchronized source/test updates.",
+      "mitigation": "Treat attestation failure as a controlled startup stop; rehearse migrations against production-shaped PostgreSQL and update migration, exact catalogue and tests in one reviewed change.",
+      "evidence": [
+        "lib/db/src/runtimeSecurity.ts",
+        "lib/db/src/runtimeSecurity.test.ts"
+      ],
+      "reviewBy": "2026-11-30"
+    },
+    {
+      "id": "AR-010",
+      "title": "Package assembly and final release locks can consume memory or extend contention",
+      "owner": "Delivery governance",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "monitoring",
+      "driverIds": ["AD-003", "AD-008", "AD-010"],
+      "trigger": "Large governed reports/packages or concurrent exports approach process memory, request-transaction or provider latency limits.",
+      "mitigation": "Keep deployment byte ceilings and bounded in-memory preassembly; the current shared resource boundary deliberately holds the project advisory lock across assembly to preserve the global project-before-membership order. Load-test deadline peaks, monitor duration/memory, and require a full lock-order redesign plus database race evidence before shortening that window or introducing streaming.",
+      "evidence": [
+        "artifacts/api-server/src/routes/reports.ts",
+        "docs/implementation-v2.5/RUNTIME_RELIABILITY.md"
+      ],
+      "reviewBy": "2026-10-31"
+    },
+    {
+      "id": "AR-011",
+      "title": "Alert delivery, backup creation and audit anchoring remain externally disconnected",
+      "owner": "Platform operations and security",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "high",
+      "impact": "critical",
+      "status": "open",
+      "driverIds": ["AD-003", "AD-010", "AD-011"],
+      "trigger": "Source alert/validator definitions are relied on without provider capture, delivery receipts, immutable anchor or restore evidence.",
+      "mitigation": "Connect approved providers, independently pin evidence digests, prove paging and full-cycle schedules, and complete isolated restore and anchor-reconciliation drills before GA claims.",
+      "evidence": [
+        "config/observability/alerts.v2.5.json",
+        "config/operations/schedules.v1.json"
+      ],
+      "reviewBy": "2026-09-30"
+    },
+    {
+      "id": "AR-012",
+      "title": "API domain remains a coarse internal boundary with large hotspots",
+      "owner": "API and platform architecture",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "high",
+      "impact": "medium",
+      "status": "mitigating",
+      "driverIds": ["AD-004", "AD-007", "AD-008"],
+      "trigger": "Delivery, intelligence, retention, commercial or communication changes create cross-domain imports or make transactional hotspots harder to review safely.",
+      "mitigation": "Enforce the current edge-to-lib direction and line-budget exceptions now; introduce finer domain dependency rules only with measured change pressure and ownership, preserving transaction protocols during extraction.",
+      "evidence": [
+        "config/architecture/module-boundaries.v1.json",
+        "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts"
+      ],
+      "reviewBy": "2026-10-31"
+    },
+    {
+      "id": "AR-013",
+      "title": "Peak-load and accessibility service measures are not yet calibrated with production evidence",
+      "owner": "Product experience and platform operations",
+      "backupOwner": "UNASSIGNED (AR-001)",
+      "likelihood": "medium",
+      "impact": "high",
+      "status": "open",
+      "driverIds": ["AD-005", "AD-010", "AD-012"],
+      "trigger": "A release relies on an unmeasured peak/SLO or infers full accessibility from unit-level axe checks alone.",
+      "mitigation": "Calibrate observed peak and p95 SLO, run the 2x peak slow-provider rehearsal, and retain keyboard, screen-reader, narrow-viewport and low-bandwidth critical-task evidence before GA.",
+      "evidence": [
+        "config/architecture/drivers.v1.json",
+        "docs/usability/CONTINUOUS_USABILITY_PROGRAMME.md"
+      ],
+      "reviewBy": "2026-10-31"
+    }
+  ]
+}

@@ -12,6 +12,7 @@
   },
   "devDependencies": {
     "@types/node": "catalog:",
-    "tsx": "catalog:"
+    "tsx": "catalog:",
+    "typescript": "~5.9.3"
   }
 }

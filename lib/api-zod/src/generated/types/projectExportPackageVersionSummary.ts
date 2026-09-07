@@ -28,6 +28,8 @@ export interface ProjectExportPackageVersionSummary {
   versionNumber: number;
   /** @pattern ^[a-f0-9]{64}$ */
   manifestSha256: string;
+  /** @pattern ^[a-f0-9]{64}$ */
+  sourceSnapshotSha256: string;
   renderQaStatus: ProjectExportPackageVersionSummaryRenderQaStatus;
   createdAt: Date;
 }

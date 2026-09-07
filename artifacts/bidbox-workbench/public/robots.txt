@@ -17,6 +17,7 @@ Disallow: /notifications
 Disallow: /organisation-settings
 Disallow: /settings
 Disallow: /account
+Disallow: /help
 Disallow: /sign-in
 Disallow: /accept-invitation
 Disallow: /sso-callback

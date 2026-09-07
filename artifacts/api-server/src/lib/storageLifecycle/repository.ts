@@ -17,7 +17,7 @@ import {
   or,
   sql,
 } from "drizzle-orm";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import { writeAuditTx } from "../audit";
 import { parseInstantViaString } from "../dbClock";
 import { lockStagedUploadObject } from "../stagedUploadLock";

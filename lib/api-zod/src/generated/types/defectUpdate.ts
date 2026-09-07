@@ -20,14 +20,18 @@ import type { DefectUpdateStatus } from './defectUpdateStatus';
 import type { DefectUpdateType } from './defectUpdateType';
 
 export interface DefectUpdate {
-  requirementId?: string;
+  /** @nullable */
+  requirementId?: string | null;
   type?: DefectUpdateType;
   severity?: DefectUpdateSeverity;
   /** @minLength 1 */
   description?: string;
-  evidenceSnapshot?: string;
-  remediation?: string;
-  owner?: string;
+  /** @nullable */
+  evidenceSnapshot?: string | null;
+  /** @nullable */
+  remediation?: string | null;
+  /** @nullable */
+  owner?: string | null;
   status?: DefectUpdateStatus;
   suggested?: boolean;
 }

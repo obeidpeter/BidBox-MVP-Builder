@@ -19,14 +19,42 @@ const references = readFileSync(
   "utf8",
 );
 
-test("lease and finalize lock authority, project, record and object before storage", () => {
-  const authority = source.indexOf("resolveCurrentDirectAuthority(");
-  const project = source.indexOf("scope.projectId}, 0)", authority);
-  const record = source.indexOf("loadTargetForWrite(", project);
-  const object = source.indexOf("lockStagedUploadObject(objectPath)", record);
-  const storage = source.indexOf("downloadObjectEntityForIntake(", object);
-  assert.ok(authority >= 0 && project > authority);
-  assert.ok(record > project && object > record && storage > object);
+test("project precedes current authority and both upload commands invoke that helper first", () => {
+  const helperStart = source.indexOf("async function lockAuthorityAndProject(");
+  const helperEnd = source.indexOf("async function loadTargetForWrite(");
+  const helper = source.slice(helperStart, helperEnd);
+  const projectLock = helper.indexOf("scope.projectId}, 0)");
+  const authorityLock = helper.indexOf("resolveCurrentDirectAuthority(");
+  assert.ok(helperStart >= 0 && helperEnd > helperStart);
+  assert.ok(projectLock >= 0 && authorityLock > projectLock);
+
+  const issueStart = source.indexOf("  async issueLease(");
+  const finalizeStart = source.indexOf("  async finalize(", issueStart);
+  const issue = source.slice(issueStart, finalizeStart);
+  const issueAuthority = issue.indexOf("lockAuthorityAndProject(scope)");
+  const issueTarget = issue.indexOf("loadTargetForWrite(scope, command)");
+  const issueObject = issue.indexOf("lockStagedUploadObject(objectPath)");
+  const issueStorage = issue.indexOf("getObjectEntityUploadURL(");
+  assert.ok(issueStart >= 0 && finalizeStart > issueStart);
+  assert.equal(issue.match(/lockAuthorityAndProject\(scope\)/gu)?.length, 1);
+  assert.ok(issueAuthority >= 0 && issueTarget > issueAuthority);
+  assert.ok(issueObject > issueTarget && issueStorage > issueObject);
+
+  const finalizeEnd = source.indexOf(
+    "  async #recordFailedIntake(",
+    finalizeStart,
+  );
+  const finalize = source.slice(finalizeStart, finalizeEnd);
+  const finalizeAuthority = finalize.indexOf("lockAuthorityAndProject(scope)");
+  const finalizeTarget = finalize.indexOf("loadTargetForWrite(scope, command)");
+  const finalizeObject = finalize.indexOf("lockStagedUploadObject(objectPath)");
+  const finalizeStorage = finalize.indexOf("downloadObjectEntityForIntake(");
+  assert.ok(finalizeEnd > finalizeStart);
+  assert.equal(finalize.match(/lockAuthorityAndProject\(scope\)/gu)?.length, 1);
+  assert.ok(finalizeAuthority >= 0 && finalizeTarget > finalizeAuthority);
+  assert.ok(
+    finalizeObject > finalizeTarget && finalizeStorage > finalizeObject,
+  );
   assert.match(source, /\.for\("update"\)/u);
   assert.match(source, /authority\.permissions\.has\("document:upload"\)/u);
 });

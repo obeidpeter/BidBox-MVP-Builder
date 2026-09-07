@@ -86,4 +86,75 @@ describe("Tender Context UI integration contract", () => {
     }
     expect(source).toMatch(/not a\s+universal Nigeria eligibility list/u);
   });
+
+  it("uses governed human-labelled selectors instead of raw binding IDs or JSON", () => {
+    for (const contract of [
+      "Primary verified tender source",
+      "Derived from the Step 1 current verified version",
+      "Select a currently eligible rule pack",
+      "Select by description and source",
+      "Select by label and issuer",
+      "Evidence kind",
+      "Must be current on submission date",
+      "Must match the legal entity exactly",
+    ]) {
+      expect(source).toContain(contract);
+    }
+    for (const removedRawControl of [
+      "parseJsonArray",
+      "Primary verified document version ID",
+      "Approved Nigeria rule-pack ID",
+      "Exact approved rule-pack UUID",
+      "JSON list of exact requirementId",
+      "Optional JSON list of exact vaultItemVersionId",
+    ]) {
+      expect(source).not.toContain(removedRawControl);
+    }
+  });
+
+  it("derives one UTF-16 citation boundary and fails closed on evidence snapshot state", () => {
+    expect(source).toContain("deriveUniqueUtf16Citation");
+    expect(source).toContain("canonicalText.indexOf(exactQuote)");
+    expect(source).toContain(
+      "canonicalText.indexOf(exactQuote, startOffset + 1)",
+    );
+    expect(source).toContain(
+      "That quote occurs more than once. Select a longer unique passage.",
+    );
+    expect(source).toContain(
+      "That exact quote does not occur in the verified current snapshot.",
+    );
+    expect(source).toContain('current.snapshot?.status === "verified"');
+    expect(source).toContain('queryState !== "ready"');
+    expect(source).toContain(
+      "Every selected company-evidence item needs one verified, unique exact quote.",
+    );
+    expect(source).toContain("description={selectionOptions.freshnessNote}");
+  });
+
+  it("lets users remove stale governed selections instead of trapping the draft", () => {
+    expect(source).toContain(
+      'aria-label="Remove unavailable requirement selection"',
+    );
+    expect(source).toContain(
+      'aria-label="Remove unavailable company evidence selection"',
+    );
+    expect(source.match(/Remove selection/gu)).toHaveLength(2);
+    expect(source).toContain("delete next[id]");
+    expect(source).toContain("Retry options");
+    expect(source).toMatch(
+      /selectionOptions\.requirements\.length === 0 &&\s+selectedRequirements\.length === 0/u,
+    );
+  });
+
+  it("blocks a rule pack that does not cover the entered jurisdiction", () => {
+    expect(source).toContain("isRulePackJurisdictionCompatible");
+    expect(source).toContain("const jurisdictionMismatch = Boolean(");
+    expect(source).toContain("selectedRulePackOption &&");
+    expect(source).toContain("!jurisdictionMismatch &&");
+    expect(source).toContain(
+      "Choose a rule pack that applies to the entered Nigeria jurisdiction.",
+    );
+    expect(source).toContain('id="jurisdiction-rule-pack-error"');
+  });
 });

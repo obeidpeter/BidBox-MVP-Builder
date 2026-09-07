@@ -1,10 +1,13 @@
 # Operations and developer handover
 
+Status: maintained operational entry point. Last reviewed 2026-08-31. See the [root README](../../README.md) and [current architecture guidebook](../architecture/README.md) before relying on older implementation snapshots in this dossier.
+
 ## Repository surfaces
 
 - Web: `artifacts/bidbox-workbench`
-- API/workers target: `artifacts/api-server`
-- Schema target: `lib/db` (add versioned migrations; existing schema push is development/CI only)
+- API/runtime: `artifacts/api-server`
+- Durable-worker foundation: `artifacts/api-server/src/lib/durableWorkerFoundation.ts` (external workload activation remains gated)
+- Schema and source-controlled migrations: `lib/db`
 - Contract: `lib/api-spec/openapi.yaml` and generated clients/schemas
 - CI: `.github/workflows/ci.yml`
 - Implementation dossier: this directory
@@ -15,22 +18,18 @@ Use the repository's pinned pnpm/Node versions and a disposable PostgreSQL 16 da
 
 ```text
 pnpm install --frozen-lockfile
-pnpm run typecheck
-pnpm --filter @workspace/db run push-force        # disposable CI/test DB only
-pnpm --filter @workspace/api-server test
-pnpm --filter @workspace/bidbox-workbench test
-pnpm --filter @workspace/api-server prove:doctrine:offline
-pnpm --filter @workspace/api-server prove:injection:offline
-pnpm --filter @workspace/api-server eval:harness:offline
-pnpm --filter @workspace/api-server build
-pnpm --filter @workspace/bidbox-workbench build
+pnpm run doctor
+pnpm run verify:architecture
+pnpm run check:fast
+
+# With an approved disposable PostgreSQL 16 DATABASE_URL:
+pnpm run check:db
+
+# Complete local candidate verification:
+pnpm run check:all
 ```
 
-When OpenAPI changes, regenerate with the existing codegen command and fail on unexpected generated drift. Live AI proofs require the approved deployment environment/secret mechanism and are not substituted by offline checks.
-
-## Current environment caveat
-
-On the Windows working copy used by the frontend agent, Vitest did not start because the Rollup Windows native package was missing after workspace override resolution. No test assertions ran. Fix by restoring a lockfile-compatible platform dependency install in the approved runtime/CI; do not claim pass, hand-edit `node_modules`, relax the lockfile or skip the suite.
+Never use schema push against shared, staging or production databases. `check:db` applies the source-controlled migration history to an explicitly supplied disposable test database. When OpenAPI changes, regenerate through the existing codegen command and fail on unexpected generated drift. Live AI proofs require the approved deployment environment/secret mechanism and are not substituted by offline checks.
 
 ## Release evidence locations
 
@@ -38,9 +37,7 @@ CI reports/logs, SBOM/provenance and scan results belong in immutable CI/artefac
 
 ## First priorities
 
-1. Versioned migrations and tenant/RLS backfill proof.
-2. Full permission/storage/search/job/AI tenant negative suite.
-3. Durable jobs/provider adapters/audit anchor.
-4. Exact rule packs and legal/privacy approval.
-5. Full tests, accessibility/security/load/render/restore/rollback.
-6. Authorised staging then production deployment under runbook.
+1. Keep current/target/deployed/verified architecture labels and the driver-to-evidence ledger synchronized with every significant change.
+2. Close or explicitly defer external worker identity, audit-anchor, telemetry/paging and scheduled-operation activation gates.
+3. Retain production-shaped permission/RLS, concurrency, export, accessibility, load, restore and rollback evidence for the exact release.
+4. Reconcile every live release identity and configuration digest through the deployment runbook; never treat source presence as deployment proof.

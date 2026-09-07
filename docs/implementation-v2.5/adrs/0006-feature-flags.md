@@ -1,7 +1,16 @@
 # ADR-0006: Server-enforced feature flags for commercial activation
 
-Status: Accepted
+Status: Accepted; server-side evaluation implemented
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Product platform (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Product and security/privacy role holders for sensitive or commercial activation; named alternates are not yet recorded
+Drivers: `AD-001`, `AD-006`, `AD-011`
+Evidence: `artifacts/api-server/src/routes/featureFlags.ts`; `artifacts/api-server/src/middlewares/tenancy.ts`; `artifacts/api-server/src/lib/featureFlags.ts`; `lib/db/src/schema/index.ts`; `config/architecture/route-policies.v1.json`
+Supersedes: Environment-only and client-authoritative activation
+Superseded by: None
 
 ## Context
 

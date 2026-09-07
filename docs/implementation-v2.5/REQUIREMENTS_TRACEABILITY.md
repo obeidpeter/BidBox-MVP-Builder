@@ -1,6 +1,6 @@
 # Bidirectional requirements traceability
 
-Snapshot: 2026-08-08. Status is conservative. `Target` paths may not exist yet; `Observed` means inspected source exists; no row is `Verified` unless a retained evidence ID is listed.
+Snapshot: 2026-08-08. **Historical implementation snapshot; do not use these rows as current release status.** The maintained current-state architecture/evidence index is [`../architecture/README.md`](../architecture/README.md), while immutable CI and deployment evidence remains authoritative for a particular release. `Target` paths may not exist yet; `Observed` means inspected source existed at the snapshot date; no row is `Verified` unless a retained evidence ID is listed.
 
 A range such as `ORG-001..005` expands to every individual ID in that inclusive range; it is used only where the code and verification surface is shared. No requirement inside a range is implicitly excluded, and acceptance evidence must still report individual failures.
 

@@ -1,7 +1,7 @@
 import { createHash } from "node:crypto";
 import { and, desc, eq, sql } from "drizzle-orm";
 import { db, reviews } from "@workspace/db";
-import type { LocalUser } from "../../middlewares/auth";
+import type { LocalUser } from "../accessContext";
 import { writeAuditTx } from "../audit";
 import {
   INTELLIGENCE_CAPABILITY_IDS,

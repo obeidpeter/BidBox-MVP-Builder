@@ -19,7 +19,7 @@ import {
   workTasks,
 } from "@workspace/db";
 import { and, eq, sql } from "drizzle-orm";
-import type { AccessContext } from "../../middlewares/tenancy";
+import type { AccessContext } from "../accessContext";
 import type { ClientEvidenceRequestRecord } from "../clientActionPortal/contracts";
 import {
   parsePersistedClientActionEnvelope,

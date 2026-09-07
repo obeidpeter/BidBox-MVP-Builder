@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import {
   useListCapabilityItems,
   useCreateCapabilityItem,
@@ -6,6 +6,7 @@ import {
   useDeleteCapabilityItem,
   useListClientDocuments,
   getListCapabilityItemsQueryKey,
+  getListClientDocumentsQueryKey,
   type CapabilityItem,
 } from "@workspace/api-client-react";
 import { useQueryClient } from "@tanstack/react-query";
@@ -46,6 +47,18 @@ import {
 } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useOrganisationPermission } from "@/contexts/organisation-context";
+import {
+  DataErrorPanel,
+  LoadingPanel,
+  StatusPanel,
+} from "@/components/platform-states";
+import { DestructiveConfirmation } from "@/components/destructive-confirmation";
+import {
+  FieldErrorMessage,
+  FormErrorSummary,
+  UnsavedChangesAlert,
+} from "@/components/form-feedback";
+import { errorMessage } from "@/lib/errors";
 
 const CLAIM_TYPES = [
   { value: "project", label: "Past Project" },
@@ -64,11 +77,43 @@ interface FormState {
   evidenceDocId: string;
 }
 
+const EMPTY_FORM: FormState = {
+  claimType: "project",
+  description: "",
+  evidenceDocId: NO_EVIDENCE,
+};
+
 export function ClientCapability({ clientId }: { clientId: string }) {
+  const canReadEvidence = useOrganisationPermission("evidence:read");
+  const canReadDocuments = useOrganisationPermission("document:read");
   const canWriteEvidence = useOrganisationPermission("evidence:write");
   const canApproveEvidence = useOrganisationPermission("evidence:approve");
-  const { data: items, isLoading } = useListCapabilityItems(clientId);
-  const { data: clientDocs } = useListClientDocuments(clientId);
+  const {
+    data: items,
+    isLoading: itemsLoading,
+    isPending: itemsPending,
+    isError: itemsError,
+    isSuccess: itemsSuccess,
+    refetch: refetchItems,
+  } = useListCapabilityItems(clientId, {
+    query: {
+      queryKey: getListCapabilityItemsQueryKey(clientId),
+      enabled: canReadEvidence && Boolean(clientId),
+    },
+  });
+  const {
+    data: clientDocs,
+    isLoading: documentsLoading,
+    isPending: documentsPending,
+    isError: documentsError,
+    isSuccess: documentsSuccess,
+    refetch: refetchDocuments,
+  } = useListClientDocuments(clientId, {
+    query: {
+      queryKey: getListClientDocumentsQueryKey(clientId),
+      enabled: canReadDocuments && Boolean(clientId),
+    },
+  });
   const createItem = useCreateCapabilityItem();
   const updateItem = useUpdateCapabilityItem();
   const deleteItem = useDeleteCapabilityItem();
@@ -77,11 +122,20 @@ export function ClientCapability({ clientId }: { clientId: string }) {
 
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [form, setForm] = useState<FormState>({
-    claimType: "project",
-    description: "",
-    evidenceDocId: NO_EVIDENCE,
-  });
+  const [form, setForm] = useState<FormState>(EMPTY_FORM);
+  const [initialForm, setInitialForm] = useState<FormState>(EMPTY_FORM);
+  const [descriptionError, setDescriptionError] = useState<string | null>(null);
+  const [formError, setFormError] = useState<string | null>(null);
+  const [discardOpen, setDiscardOpen] = useState(false);
+  const [destructiveAction, setDestructiveAction] = useState<{
+    kind: "delete" | "revoke";
+    item: CapabilityItem;
+  } | null>(null);
+  const [destructiveError, setDestructiveError] = useState<string | null>(null);
+  const descriptionRef = useRef<HTMLTextAreaElement>(null);
+
+  const documentsReady = !canReadDocuments || documentsSuccess;
+  const recordsReady = canReadEvidence && itemsSuccess && documentsReady;
 
   const refresh = () =>
     queryClient.invalidateQueries({
@@ -90,36 +144,75 @@ export function ClientCapability({ clientId }: { clientId: string }) {
 
   const openCreate = () => {
     setEditingId(null);
-    setForm({
-      claimType: "project",
-      description: "",
-      evidenceDocId: NO_EVIDENCE,
-    });
+    setForm(EMPTY_FORM);
+    setInitialForm(EMPTY_FORM);
+    setDescriptionError(null);
+    setFormError(null);
     setDialogOpen(true);
   };
 
   const openEdit = (item: CapabilityItem) => {
     setEditingId(item.id);
-    setForm({
+    const nextForm: FormState = {
       claimType: item.claimType,
       description: item.description ?? "",
       evidenceDocId: item.evidenceDocId ?? NO_EVIDENCE,
-    });
+    };
+    setForm(nextForm);
+    setInitialForm(nextForm);
+    setDescriptionError(null);
+    setFormError(null);
     setDialogOpen(true);
   };
 
+  const closeDialog = () => {
+    setDialogOpen(false);
+    setDescriptionError(null);
+    setFormError(null);
+    setDiscardOpen(false);
+  };
+
+  const requestCloseDialog = () => {
+    if (saving) return;
+    if (JSON.stringify(form) !== JSON.stringify(initialForm)) {
+      setDiscardOpen(true);
+      return;
+    }
+    closeDialog();
+  };
+
   const handleSave = () => {
+    if (!recordsReady) {
+      setFormError(
+        "Reload the capability register and source documents before saving.",
+      );
+      return;
+    }
+    if (!editingId && !form.description.trim()) {
+      setDescriptionError("Enter the capability claim.");
+      descriptionRef.current?.focus();
+      return;
+    }
+    setDescriptionError(null);
+    setFormError(null);
     const opts = {
       onSuccess: () => {
-        setDialogOpen(false);
+        closeDialog();
         refresh();
+        toast({ title: editingId ? "Claim updated" : "Claim added" });
       },
-      onError: (err: unknown) =>
+      onError: (err: unknown) => {
+        const message = errorMessage(
+          err,
+          "The claim was not saved. Reload the register and try again.",
+        );
+        setFormError(message);
         toast({
           variant: "destructive",
           title: "Could not save claim",
-          description: err instanceof Error ? err.message : undefined,
-        }),
+          description: message,
+        });
+      },
     };
     if (editingId) {
       updateItem.mutate(
@@ -127,7 +220,7 @@ export function ClientCapability({ clientId }: { clientId: string }) {
           id: editingId,
           data: {
             claimType: form.claimType,
-            description: form.description.trim() || undefined,
+            description: form.description.trim() || null,
             evidenceDocId:
               form.evidenceDocId === NO_EVIDENCE ? null : form.evidenceDocId,
           },
@@ -154,12 +247,21 @@ export function ClientCapability({ clientId }: { clientId: string }) {
 
   const setApproval = (
     item: CapabilityItem,
-    approvedStatus: "approved" | "rejected" | "pending",
+    approvedStatus: "approved" | "rejected",
   ) => {
+    if (!recordsReady) return;
     updateItem.mutate(
       { id: item.id, data: { approvedStatus } },
       {
-        onSuccess: refresh,
+        onSuccess: () => {
+          refresh();
+          toast({
+            title:
+              approvedStatus === "approved"
+                ? "Claim approved"
+                : "Claim rejected",
+          });
+        },
         onError: (err: unknown) =>
           toast({
             variant: "destructive",
@@ -173,13 +275,62 @@ export function ClientCapability({ clientId }: { clientId: string }) {
     );
   };
 
-  const handleDelete = (item: CapabilityItem) => {
+  const handleDestructiveAction = () => {
+    if (!recordsReady || !destructiveAction) return;
+    const { kind, item } = destructiveAction;
+    setDestructiveError(null);
+    if (kind === "revoke") {
+      updateItem.mutate(
+        { id: item.id, data: { approvedStatus: "pending" } },
+        {
+          onSuccess: () => {
+            setDestructiveAction(null);
+            refresh();
+            toast({
+              title: "Approval revoked",
+              description:
+                "The claim is no longer available for draft use until it is approved again.",
+            });
+          },
+          onError: (err) => {
+            const message = errorMessage(
+              err,
+              "Approval was not revoked. Reload the capability register and try again.",
+            );
+            setDestructiveError(message);
+            toast({
+              variant: "destructive",
+              title: "Could not revoke approval",
+              description: message,
+            });
+          },
+        },
+      );
+      return;
+    }
     deleteItem.mutate(
       { id: item.id },
       {
-        onSuccess: refresh,
-        onError: () =>
-          toast({ variant: "destructive", title: "Could not delete claim" }),
+        onSuccess: () => {
+          setDestructiveAction(null);
+          refresh();
+          toast({
+            title: "Claim deleted",
+            description: `${claimName(item)} was permanently removed.`,
+          });
+        },
+        onError: (err) => {
+          const message = errorMessage(
+            err,
+            "The claim was not deleted. Reload the capability register and try again.",
+          );
+          setDestructiveError(message);
+          toast({
+            variant: "destructive",
+            title: "Could not delete claim",
+            description: message,
+          });
+        },
       },
     );
   };
@@ -187,6 +338,12 @@ export function ClientCapability({ clientId }: { clientId: string }) {
   const saving = createItem.isPending || updateItem.isPending;
   const claimLabel = (v: string) =>
     CLAIM_TYPES.find((c) => c.value === v)?.label ?? v;
+  const claimName = (item: CapabilityItem) =>
+    item.description?.trim() || `${claimLabel(item.claimType)} claim`;
+  const claimIdentity = (item: CapabilityItem) =>
+    `${claimName(item)} — ${claimLabel(item.claimType)} · ${
+      item.evidenceDocName?.trim() || "no evidence document"
+    } · ID ${item.id}`;
 
   return (
     <div className="space-y-4">
@@ -201,19 +358,53 @@ export function ClientCapability({ clientId }: { clientId: string }) {
           </p>
         </div>
         {canWriteEvidence && (
-          <Button size="sm" variant="outline" onClick={openCreate}>
+          <Button
+            size="sm"
+            variant="outline"
+            onClick={openCreate}
+            disabled={!recordsReady}
+          >
             <Plus className="w-4 h-4 mr-2" />
             Add claim
           </Button>
         )}
       </div>
 
+      {canReadEvidence && !canReadDocuments ? (
+        <StatusPanel
+          state="blocked"
+          title="Document access required for evidence options"
+          description="Capability claims remain visible, but source-document choices are unavailable. Ask an organisation administrator for Document read access to inspect or change evidence links."
+        />
+      ) : null}
+
       <div className="bg-card border border-border rounded-lg shadow-xs overflow-hidden">
-        {isLoading ? (
-          <div className="p-8 flex justify-center">
-            <Loader2 className="w-6 h-6 animate-spin text-muted-foreground" />
+        {!canReadEvidence ? (
+          <div className="p-4">
+            <StatusPanel
+              state="blocked"
+              title="Evidence access required"
+              description="You need Evidence read access to view capability claims. No claim or document request was sent."
+            />
           </div>
-        ) : items && items.length > 0 ? (
+        ) : itemsLoading ||
+          itemsPending ||
+          (canReadDocuments && (documentsLoading || documentsPending)) ? (
+          <LoadingPanel label="Loading capability claims and evidence documents" />
+        ) : itemsError ||
+          (canReadDocuments && documentsError) ||
+          !recordsReady ? (
+          <div className="p-4">
+            <DataErrorPanel
+              title="We couldn't load the capability register"
+              description="Claims or their evidence documents are unavailable. Approval, editing and deletion stay disabled until both current records load."
+              onRetry={() => {
+                void refetchItems();
+                if (canReadDocuments) void refetchDocuments();
+              }}
+            />
+          </div>
+        ) : items.length > 0 ? (
           <Table>
             <TableHeader>
               <TableRow className="bg-muted/30">
@@ -301,7 +492,9 @@ export function ClientCapability({ clientId }: { clientId: string }) {
                             }
                             onClick={() => setApproval(item, "approved")}
                             disabled={
-                              !item.evidenceDocId || updateItem.isPending
+                              !recordsReady ||
+                              !item.evidenceDocId ||
+                              updateItem.isPending
                             }
                           >
                             Approve
@@ -314,8 +507,11 @@ export function ClientCapability({ clientId }: { clientId: string }) {
                             variant="ghost"
                             size="sm"
                             className="h-8 px-2 text-xs"
-                            onClick={() => setApproval(item, "pending")}
-                            disabled={updateItem.isPending}
+                            onClick={() => {
+                              setDestructiveError(null);
+                              setDestructiveAction({ kind: "revoke", item });
+                            }}
+                            disabled={!recordsReady || updateItem.isPending}
                           >
                             Revoke
                           </Button>
@@ -327,16 +523,21 @@ export function ClientCapability({ clientId }: { clientId: string }) {
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Edit capability claim"
+                              aria-label={`Edit ${claimIdentity(item)}`}
                               onClick={() => openEdit(item)}
+                              disabled={!recordsReady}
                             >
                               <Pencil className="w-4 h-4 text-muted-foreground" />
                             </Button>
                             <Button
                               variant="ghost"
                               size="icon"
-                              aria-label="Delete capability claim"
-                              onClick={() => handleDelete(item)}
+                              aria-label={`Delete ${claimIdentity(item)}`}
+                              onClick={() => {
+                                setDestructiveError(null);
+                                setDestructiveAction({ kind: "delete", item });
+                              }}
+                              disabled={!recordsReady || deleteItem.isPending}
                             >
                               <Trash2 className="w-4 h-4 text-muted-foreground hover:text-destructive" />
                             </Button>
@@ -362,7 +563,7 @@ export function ClientCapability({ clientId }: { clientId: string }) {
 
       <Dialog
         open={canWriteEvidence && dialogOpen}
-        onOpenChange={setDialogOpen}
+        onOpenChange={(open) => !open && requestCloseDialog()}
       >
         <DialogContent className="sm:max-w-[520px]">
           <DialogHeader>
@@ -371,8 +572,16 @@ export function ClientCapability({ clientId }: { clientId: string }) {
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
+            <FormErrorSummary
+              id="capability-form-errors"
+              errors={[descriptionError, formError]}
+              title="The claim was not saved"
+            />
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="capability-claim-type"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Claim type
               </label>
               <Select
@@ -381,7 +590,7 @@ export function ClientCapability({ clientId }: { clientId: string }) {
                   setForm({ ...form, claimType: val as FormState["claimType"] })
                 }
               >
-                <SelectTrigger>
+                <SelectTrigger id="capability-claim-type">
                   <SelectValue />
                 </SelectTrigger>
                 <SelectContent>
@@ -394,50 +603,80 @@ export function ClientCapability({ clientId }: { clientId: string }) {
               </Select>
             </div>
             <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
+              <label
+                htmlFor="capability-description"
+                className="text-xs font-medium text-muted-foreground uppercase"
+              >
                 Description
               </label>
               <Textarea
+                ref={descriptionRef}
+                id="capability-description"
                 value={form.description}
-                onChange={(e) =>
-                  setForm({ ...form, description: e.target.value })
-                }
+                onChange={(e) => {
+                  setForm({ ...form, description: e.target.value });
+                  if (descriptionError) setDescriptionError(null);
+                }}
                 placeholder="e.g. Completed 32km federal road rehabilitation, Kaduna, 2024 — ₦1.8bn"
                 className="min-h-[80px]"
-              />
-            </div>
-            <div className="space-y-2">
-              <label className="text-xs font-medium text-muted-foreground uppercase">
-                Evidence document
-              </label>
-              <Select
-                value={form.evidenceDocId}
-                onValueChange={(val) =>
-                  setForm({ ...form, evidenceDocId: val })
+                aria-invalid={!!descriptionError}
+                aria-describedby={
+                  descriptionError ? "capability-description-error" : undefined
                 }
-              >
-                <SelectTrigger>
-                  <SelectValue />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value={NO_EVIDENCE}>
-                    No evidence yet (claim stays non-claimable)
-                  </SelectItem>
-                  {(clientDocs ?? []).map((d) => (
-                    <SelectItem key={d.id} value={d.id}>
-                      {d.filename}
-                    </SelectItem>
-                  ))}
-                </SelectContent>
-              </Select>
-              <p className="text-xs text-muted-foreground">
-                Evidence must be a document already uploaded to one of this
-                client's projects.
-              </p>
+              />
+              <FieldErrorMessage id="capability-description-error">
+                {descriptionError}
+              </FieldErrorMessage>
             </div>
+            {canReadDocuments ? (
+              <div className="space-y-2">
+                <label
+                  htmlFor="capability-evidence-document"
+                  className="text-xs font-medium text-muted-foreground uppercase"
+                >
+                  Evidence document
+                </label>
+                <Select
+                  value={form.evidenceDocId}
+                  onValueChange={(val) =>
+                    setForm({ ...form, evidenceDocId: val })
+                  }
+                >
+                  <SelectTrigger
+                    id="capability-evidence-document"
+                    aria-describedby="capability-evidence-help"
+                  >
+                    <SelectValue />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value={NO_EVIDENCE}>
+                      No evidence yet (claim stays non-claimable)
+                    </SelectItem>
+                    {(clientDocs ?? []).map((d) => (
+                      <SelectItem key={d.id} value={d.id}>
+                        {d.filename}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+                <p
+                  id="capability-evidence-help"
+                  className="text-xs text-muted-foreground"
+                >
+                  Evidence must be a document already uploaded to one of this
+                  client's projects.
+                </p>
+              </div>
+            ) : (
+              <StatusPanel
+                state="blocked"
+                title="Document access required"
+                description="The existing evidence link is preserved. Document read access is required to inspect or choose a different source document."
+              />
+            )}
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>
+            <Button variant="outline" onClick={requestCloseDialog}>
               Cancel
             </Button>
             <Button onClick={handleSave} disabled={saving}>
@@ -447,6 +686,53 @@ export function ClientCapability({ clientId }: { clientId: string }) {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+
+      <UnsavedChangesAlert
+        open={discardOpen}
+        onOpenChange={setDiscardOpen}
+        onDiscard={closeDialog}
+        subject={
+          editingId ? "this capability claim" : "this new capability claim"
+        }
+      />
+
+      <DestructiveConfirmation
+        open={!!destructiveAction}
+        onOpenChange={(open) => {
+          if (!open) {
+            setDestructiveAction(null);
+            setDestructiveError(null);
+          }
+        }}
+        itemName={
+          destructiveAction
+            ? claimIdentity(destructiveAction.item)
+            : "Selected capability claim"
+        }
+        title={
+          destructiveAction?.kind === "revoke"
+            ? "Revoke approval for this claim?"
+            : "Permanently delete this claim?"
+        }
+        consequence={
+          destructiveAction?.kind === "revoke"
+            ? "The claim will immediately stop being claimable and cannot be used in drafts until a reviewer approves it again."
+            : "This removes the claim, its evidence link and its verification state. This action cannot be undone."
+        }
+        confirmLabel={
+          destructiveAction?.kind === "revoke"
+            ? "Revoke approval"
+            : "Delete claim"
+        }
+        pendingLabel={
+          destructiveAction?.kind === "revoke"
+            ? "Revoking approval…"
+            : "Deleting claim…"
+        }
+        pending={updateItem.isPending || deleteItem.isPending}
+        error={destructiveError}
+        onConfirm={handleDestructiveAction}
+      />
     </div>
   );
 }

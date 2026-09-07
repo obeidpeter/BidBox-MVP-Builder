@@ -32,6 +32,7 @@ export const PROTECTED_PREFIXES = [
   "/organisation-settings",
   "/settings",
   "/account",
+  "/help",
   "/production-acceptance",
   "/ai-shadow",
   "/field-companion",

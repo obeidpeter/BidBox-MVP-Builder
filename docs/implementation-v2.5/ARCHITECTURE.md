@@ -1,6 +1,8 @@
 # Technical architecture (updated TRD)
 
-Status: target architecture. Observed implementation is recorded in `BASELINE_AUDIT.md`; verification is recorded in `REQUIREMENTS_TRACEABILITY.md`.
+Status: retained v2.5 target architecture. It is not the as-built view.
+
+Last reconciled: 2026-08-31. The canonical current-state index, diagrams and evidence links are in [`../architecture/README.md`](../architecture/README.md). `BASELINE_AUDIT.md` and `REQUIREMENTS_TRACEABILITY.md` are dated implementation snapshots, not current release truth. This document remains the target contract where the current-state guidebook does not explicitly supersede it.
 
 ## Decision summary
 
@@ -165,4 +167,6 @@ Development, test, staging and production use separate identity, database, stora
 
 ## Known target-versus-baseline gaps
 
-The observed application does not prove PostgreSQL RLS, full organisations/memberships, durable jobs, partner/billing modules, real migrations, immutable anchoring, complete adapters, IaC, production monitoring or the specified release transaction. They remain planned until the traceability evidence says otherwise.
+The original 2026-08-08 baseline did not prove PostgreSQL RLS, full organisations/memberships, durable jobs, partner/billing modules, real migrations, immutable anchoring, complete adapters, IaC, production monitoring or the specified release transaction. That sentence is retained as historical context, not as a current finding.
+
+Later changes added source-controlled migrations, database/runtime security attestation, organisation and permission foundations, durable-worker/outbox foundations, provider boundaries and release-provenance controls. Activation and deployment evidence remain deliberately separate: the durable worker is not mounted for external workload execution, external audit anchoring and telemetry delivery are not claimed, and a checked-in Replit deployment configuration is not proof of a particular live release. The current/target/evidence status of each element is maintained in the architecture guidebook rather than inferred from this target document.

@@ -1,6 +1,6 @@
 import { and, desc, eq, isNotNull, sql } from "drizzle-orm";
 import { db, auditEvents, projects } from "@workspace/db";
-import type { LocalUser } from "../middlewares/auth";
+import type { LocalUser } from "./accessContext";
 import {
   AUDIT_GENESIS_HASH,
   computeAuditHash,

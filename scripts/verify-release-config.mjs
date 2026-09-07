@@ -125,8 +125,8 @@ assert.doesNotMatch(
 );
 assert.match(
   replitProductionStartup,
-  /import \{ runReplitIntakeMigrations \} from "\.\.\/lib\/db\/scripts\/replit-intake-migrations\.mjs";/,
-  "The shared production startup wrapper must import the bounded migration launcher",
+  /import \{ runReplitIntakeMigrations \} from "@workspace\/db\/replit-intake-migrations";/,
+  "The shared production startup wrapper must import the bounded migration launcher through the database package boundary",
 );
 assert.match(
   replitProductionStartup,

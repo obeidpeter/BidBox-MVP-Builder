@@ -8,7 +8,7 @@
     "build": "node ./build.mjs",
     "start": "node --enable-source-maps ./dist/index.mjs",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "node --import tsx --test 'src/**/*.test.ts'",
+    "test": "node --import tsx --test \"src/**/*.test.ts\"",
     "prove:doctrine": "node --import tsx ./scripts/prove-ai-doctrine.ts --offline",
     "prove:doctrine:offline": "node --import tsx ./scripts/prove-ai-doctrine.ts --offline",
     "prove:injection": "node --import tsx ./scripts/run-injection-corpus.ts --offline",

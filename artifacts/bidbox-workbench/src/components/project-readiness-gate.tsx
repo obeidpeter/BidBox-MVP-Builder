@@ -19,6 +19,7 @@ import {
   ShieldCheck,
   XCircle,
 } from "lucide-react";
+import { useEffect } from "react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Progress } from "@/components/ui/progress";
@@ -27,6 +28,7 @@ import {
   summarizeReadiness,
   type GateStatus,
   type ProjectTab as ReadinessProjectTab,
+  type ReadinessAssessment,
 } from "@/lib/readiness";
 
 export type ProjectTab = ReadinessProjectTab | "delivery";
@@ -60,9 +62,11 @@ function statusMeta(status: GateStatus) {
 export function ProjectReadinessGate({
   project,
   onGoToTab,
+  onAssessmentChange,
 }: {
   project: Project;
   onGoToTab: (tab: ProjectTab) => void;
+  onAssessmentChange?: (assessment: ReadinessAssessment) => void;
 }) {
   const projectId = project.id;
   const documentsQuery = useListDocuments(projectId);
@@ -84,10 +88,11 @@ export function ProjectReadinessGate({
     riskQuery,
     reportsQuery,
   ];
-  const isLoading = queries.some((q) => q.isLoading);
   // A failed register load must not masquerade as a "Blocked/Missing"
   // verdict — the gate refuses to rule on data it does not have.
   const isError = queries.some((q) => q.isError);
+  const isLoading =
+    !isError && queries.some((q) => q.isLoading || q.isPending || q.isFetching);
 
   const checks = computeReadinessChecks({
     project,
@@ -103,13 +108,44 @@ export function ProjectReadinessGate({
   });
   const summary = summarizeReadiness(checks);
 
+  useEffect(() => {
+    if (!onAssessmentChange) return;
+    if (isLoading) {
+      onAssessmentChange({ status: "loading" });
+      return;
+    }
+    if (isError) {
+      onAssessmentChange({ status: "error" });
+      return;
+    }
+    onAssessmentChange({ status: "ready", summary });
+  }, [
+    isError,
+    isLoading,
+    onAssessmentChange,
+    summary.blockedRequired,
+    summary.nextCheck?.action,
+    summary.nextCheck?.detail,
+    summary.nextCheck?.id,
+    summary.nextCheck?.label,
+    summary.nextCheck?.tab,
+    summary.passedRequired,
+    summary.progress,
+    summary.ready,
+    summary.requiredTotal,
+    summary.warningCount,
+  ]);
+
   return (
     <section className="bg-card border border-border rounded-xl shadow-xs overflow-hidden">
       <div className="p-6 border-b border-border">
         <div className="flex flex-col gap-4 lg:flex-row lg:items-start lg:justify-between">
           <div className="space-y-3">
             <div className="flex items-center gap-2">
-              <ShieldCheck className="w-5 h-5 text-primary" />
+              <ShieldCheck
+                className="w-5 h-5 text-primary"
+                aria-hidden="true"
+              />
               <h3 className="font-serif text-xl font-medium">
                 Pursuit readiness
               </h3>
@@ -158,7 +194,10 @@ export function ProjectReadinessGate({
         {!isLoading && !isError && summary.nextCheck && (
           <div className="mt-4 flex flex-col gap-3 rounded-lg border border-border bg-muted/30 p-3 sm:flex-row sm:items-center sm:justify-between">
             <div className="flex items-start gap-3">
-              <FileCheck2 className="mt-0.5 w-4 h-4 text-muted-foreground" />
+              <FileCheck2
+                className="mt-0.5 w-4 h-4 text-muted-foreground"
+                aria-hidden="true"
+              />
               <div>
                 <p className="text-sm font-medium">
                   Next action: {summary.nextCheck.label}
@@ -174,20 +213,28 @@ export function ProjectReadinessGate({
               onClick={() => onGoToTab(summary.nextCheck!.tab)}
             >
               {summary.nextCheck.action}
-              <ArrowRight className="w-4 h-4 ml-2" />
+              <ArrowRight className="w-4 h-4 ml-2" aria-hidden="true" />
             </Button>
           </div>
         )}
       </div>
 
       {isLoading ? (
-        <div className="p-8 flex items-center justify-center text-sm text-muted-foreground">
-          <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+        <div
+          className="p-8 flex items-center justify-center text-sm text-muted-foreground"
+          role="status"
+          aria-live="polite"
+          aria-label="Checking readiness"
+        >
+          <Loader2 className="w-5 h-5 mr-2 animate-spin" aria-hidden="true" />
           Checking readiness
         </div>
       ) : isError ? (
-        <div className="p-8 flex items-center justify-center gap-2 text-sm text-destructive">
-          <XCircle className="w-5 h-5" />
+        <div
+          className="p-8 flex items-center justify-center gap-2 text-sm text-destructive"
+          role="alert"
+        >
+          <XCircle className="w-5 h-5" aria-hidden="true" />
           Some pursuit records could not be loaded, so readiness cannot be
           assessed. Retry when the connection recovers.
         </div>
@@ -203,7 +250,10 @@ export function ProjectReadinessGate({
               >
                 <div className="flex items-start justify-between gap-3">
                   <div className="flex items-center gap-2">
-                    <Icon className={`w-4 h-4 ${meta.iconClass}`} />
+                    <Icon
+                      className={`w-4 h-4 ${meta.iconClass}`}
+                      aria-hidden="true"
+                    />
                     <h4 className="text-sm font-semibold">{check.label}</h4>
                   </div>
                   <Badge
@@ -223,7 +273,10 @@ export function ProjectReadinessGate({
                   onClick={() => onGoToTab(check.tab)}
                 >
                   {check.action}
-                  <ArrowRight className="w-3.5 h-3.5 ml-1.5" />
+                  <ArrowRight
+                    className="w-3.5 h-3.5 ml-1.5"
+                    aria-hidden="true"
+                  />
                 </Button>
               </div>
             );
@@ -233,7 +286,10 @@ export function ProjectReadinessGate({
 
       {!isLoading && !isError && summary.ready && (
         <div className="flex items-center gap-2 border-t border-border bg-emerald-50 px-6 py-3 text-sm text-emerald-800">
-          <Circle className="w-3 h-3 fill-emerald-600 text-emerald-600" />
+          <Circle
+            className="w-3 h-3 fill-emerald-600 text-emerald-600"
+            aria-hidden="true"
+          />
           Required checks are clear. Advisory warnings should still be reviewed
           before external delivery.
         </div>

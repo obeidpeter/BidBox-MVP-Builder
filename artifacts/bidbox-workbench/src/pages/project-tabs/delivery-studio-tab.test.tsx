@@ -1,15 +1,30 @@
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import {
+  fireEvent,
+  render,
+  screen,
+  waitFor,
+  within,
+} from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { DeliveryStudioTab } from "./delivery-studio-tab";
 
 const PROJECT_ID = "11111111-1111-4111-8111-111111111111";
 const ACTOR_ID = "99999999-9999-4999-8999-999999999999";
+const DOCUMENT_ID = "66666666-6666-4666-8666-666666666666";
+const DOCUMENT_VERSION_ID = "77777777-7777-4777-8777-777777777777";
+const SOURCE_SERIES_ID = "aaaaaaaa-aaaa-4aaa-8aaa-aaaaaaaaaaaa";
+const PORTAL_CANONICAL_SHA256 = "8".repeat(64);
+const PORTAL_RULE =
+  "Required file field Technical response, upload order 1. Upload the final reviewed response PDF.";
+const PORTAL_CANONICAL_TEXT = `Portal instructions 📄\n${PORTAL_RULE}\nEnd of verified portal instructions.`;
 const mutate = vi.fn();
 const refetch = vi.fn();
+const refetchMe = vi.fn();
 const getStudio = vi.fn();
 const toast = vi.fn();
+let deliveryMutationOnError: ((error: unknown) => void) | undefined;
 
 const READ_PERMISSIONS = [
   "project:read",
@@ -61,9 +76,19 @@ const state = {
   accessSource: "membership" as "membership" | "partner",
   actorName: "Delivery Reviewer",
   meLoading: false,
+  meError: false,
   loading: false,
   pending: false,
+  fetching: false,
   error: false,
+  documentsLoading: false,
+  documentsFetching: false,
+  documentsError: false,
+  documentVersionLoading: false,
+  documentVersionFetching: false,
+  documentVersionError: false,
+  documents: governedDocuments(),
+  documentVersion: verifiedDocumentVersion(),
   data: snapshot(),
 };
 
@@ -72,6 +97,14 @@ vi.mock("@workspace/api-client-react", () => ({
     "/api/projects/delivery-studio",
     projectId,
   ],
+  getListDocumentsQueryKey: (projectId: string) => [
+    "/api/projects/documents",
+    projectId,
+  ],
+  getGetCurrentDocumentVersionSnapshotQueryKey: (documentId: string) => [
+    "/api/documents/current-version-snapshot",
+    documentId,
+  ],
   useGetDeliveryStudio: (...args: unknown[]) => {
     getStudio(...args);
     return {
@@ -79,18 +112,46 @@ vi.mock("@workspace/api-client-react", () => ({
       isLoading: state.loading,
       isPending: state.pending,
       isError: state.error,
-      isFetching: false,
+      isFetching: state.fetching,
+      isSuccess: !state.loading && !state.pending && !state.error,
       refetch,
     };
   },
-  useRunDeliveryStudioAction: () => ({
-    mutate,
-    isPending: false,
+  useRunDeliveryStudioAction: (options?: {
+    mutation?: { onError?: (error: unknown) => void };
+  }) => {
+    deliveryMutationOnError = options?.mutation?.onError;
+    return {
+      mutate,
+      isPending: false,
+    };
+  },
+  useListDocuments: () => ({
+    data: state.documents,
+    isLoading: state.documentsLoading,
+    isPending: state.documentsLoading,
+    isFetching: state.documentsFetching,
+    isError: state.documentsError,
+    isSuccess: !state.documentsLoading && !state.documentsError,
+  }),
+  useGetCurrentDocumentVersionSnapshot: (documentId: string) => ({
+    data:
+      documentId === state.documentVersion.documentId
+        ? state.documentVersion
+        : undefined,
+    isLoading: state.documentVersionLoading,
+    isPending: state.documentVersionLoading,
+    isFetching: state.documentVersionFetching,
+    isError: state.documentVersionError,
+    isSuccess: !state.documentVersionLoading && !state.documentVersionError,
   }),
   useGetMe: () => ({
-    data: { id: ACTOR_ID, name: state.actorName },
+    data: state.meError ? undefined : { id: ACTOR_ID, name: state.actorName },
     isLoading: state.meLoading,
     isPending: state.meLoading,
+    isError: state.meError,
+    isSuccess: !state.meLoading && !state.meError,
+    refetch: refetchMe,
   }),
 }));
 
@@ -201,6 +262,66 @@ function snapshot() {
   };
 }
 
+function governedDocuments() {
+  return [
+    {
+      id: DOCUMENT_ID,
+      projectId: PROJECT_ID,
+      type: "tender" as const,
+      filename: "Portal rules.pdf",
+      objectPath: "organisations/organisation-1/portal-rules.pdf",
+      source: "Tender portal",
+      redactionStatus: "included" as const,
+      extractionStatus: "extracted" as const,
+      createdAt: "2026-08-20T08:00:00.000Z",
+    },
+  ];
+}
+
+function verifiedDocumentVersion() {
+  return {
+    documentId: DOCUMENT_ID,
+    projectId: PROJECT_ID,
+    documentVersionId: DOCUMENT_VERSION_ID,
+    documentVersionSha256: "9".repeat(64),
+    filename: "Portal rules.pdf",
+    redactionStatus: "included" as const,
+    extractionStatus: "extracted",
+    canonicalText: PORTAL_CANONICAL_TEXT,
+    snapshot: {
+      id: "bbbbbbbb-bbbb-4bbb-8bbb-bbbbbbbbbbbb",
+      documentId: DOCUMENT_ID,
+      documentVersionId: DOCUMENT_VERSION_ID,
+      documentVersionSha256: "9".repeat(64),
+      capturedRedactionStatus: "included" as const,
+      canonicalText: PORTAL_CANONICAL_TEXT,
+      canonicalTextSha256: PORTAL_CANONICAL_SHA256,
+      structuredSnapshot: {
+        schema: "valo.addendum-structured-snapshot/v2" as const,
+        sourceId: SOURCE_SERIES_ID,
+        sourceKind: "solicitation" as const,
+        mode: "full" as const,
+        baseVersionId: null,
+        authority: "authoritative" as const,
+        origin: "https://procurement.example/portal-rules",
+        fields: [],
+        operations: [],
+      },
+      structuredSnapshotSha256: "7".repeat(64),
+      extractionMethod: "test-parser",
+      parserVersion: "1.0.0",
+      status: "verified" as const,
+      capturedByUserId: "cccccccc-cccc-4ccc-8ccc-cccccccccccc",
+      capturedByName: "Capture Operator",
+      verifiedByUserId: "dddddddd-dddd-4ddd-8ddd-dddddddddddd",
+      verifiedByName: "Independent Reviewer",
+      verifiedAt: "2026-08-20T09:30:00.000Z",
+      version: 1,
+      createdAt: "2026-08-20T09:00:00.000Z",
+    },
+  };
+}
+
 function assembledPackage() {
   return {
     id: "22222222-2222-4222-8222-222222222222",
@@ -239,6 +360,42 @@ function renderTab() {
   );
 }
 
+async function completeRehearsalPreflight() {
+  const user = userEvent.setup();
+  await user.click(
+    screen.getByRole("button", { name: "Prepare submission rehearsal" }),
+  );
+  await user.selectOptions(
+    screen.getByRole("combobox", {
+      name: "Current verified project document",
+    }),
+    DOCUMENT_ID,
+  );
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Portal field label" }),
+    { target: { value: "Technical response" } },
+  );
+  fireEvent.change(
+    screen.getByRole("textbox", { name: "Exact portal rule quote" }),
+    { target: { value: PORTAL_RULE } },
+  );
+  fireEvent.change(screen.getByRole("textbox", { name: "Mapping rationale" }), {
+    target: { value: "Matches the reviewed portal field exactly." },
+  });
+  fireEvent.change(screen.getByRole("textbox", { name: "Review note" }), {
+    target: {
+      value:
+        "I checked the captured portal rule, assembled file and exact mapping.",
+    },
+  });
+  await user.click(
+    screen.getByRole("checkbox", {
+      name: /I accept this exact portal field, assembled file and mapping/i,
+    }),
+  );
+  return user;
+}
+
 describe("DeliveryStudioTab", () => {
   beforeEach(() => {
     state.permissions = [
@@ -256,14 +413,26 @@ describe("DeliveryStudioTab", () => {
     state.accessSource = "membership";
     state.actorName = "Delivery Reviewer";
     state.meLoading = false;
+    state.meError = false;
     state.loading = false;
     state.pending = false;
+    state.fetching = false;
     state.error = false;
+    state.documentsLoading = false;
+    state.documentsFetching = false;
+    state.documentsError = false;
+    state.documentVersionLoading = false;
+    state.documentVersionFetching = false;
+    state.documentVersionError = false;
+    state.documents = governedDocuments();
+    state.documentVersion = verifiedDocumentVersion();
     state.data = snapshot();
     mutate.mockReset();
     refetch.mockReset();
+    refetchMe.mockReset();
     getStudio.mockReset();
     toast.mockReset();
+    deliveryMutationOnError = undefined;
   });
 
   it("shows all governed stages and the human/no-portal boundary", () => {
@@ -296,6 +465,66 @@ describe("DeliveryStudioTab", () => {
         }),
       }),
     );
+  });
+
+  it("compares source, response and review provenance claim by claim", async () => {
+    const current = snapshot();
+    current.responseStudio.sections[0]!.version!.claims.push({
+      id: "claim-2",
+      claimKey: "technical-approach-claim-2",
+      text: "The mobilisation sequence has named owners.",
+      kind: "instructional",
+      supportMode: "paraphrase",
+      groundingStatus: "review_required",
+      reviewerUserId: "reviewer-2",
+      citations: [],
+    });
+    current.responseStudio.claimCount = 2;
+    state.data = current;
+    renderTab();
+
+    expect(
+      screen.getByRole("heading", { name: "Review Desk" }),
+    ).toBeInTheDocument();
+    for (const name of [
+      "Source and citation",
+      "Response and claim",
+      "Red-team and review",
+    ]) {
+      expect(screen.getByRole("heading", { name })).toBeInTheDocument();
+    }
+    expect(
+      screen.getByText("Claim 1 of 2", { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Previous review claim" }),
+    ).toBeDisabled();
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Next review claim" }),
+    );
+
+    expect(
+      screen.getByText("Claim 2 of 2", { exact: false }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText("The mobilisation sequence has named owners."),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByText(/No source citation is recorded for this claim/i),
+    ).toBeInTheDocument();
+  });
+
+  it("explains every stage status from the exposed snapshot data", async () => {
+    renderTab();
+    const explanations = screen.getAllByText("Why this status?");
+    expect(explanations).toHaveLength(4);
+
+    await userEvent.click(explanations[1]!);
+    expect(
+      screen.getByText("Red-team policy approved-rubric-v1."),
+    ).toBeInTheDocument();
+    expect(screen.getByText(/0 unresolved findings/i)).toBeInTheDocument();
   });
 
   it("keeps every mutation unavailable when the matching grants are absent", () => {
@@ -377,6 +606,29 @@ describe("DeliveryStudioTab", () => {
     },
   );
 
+  it("shows a retryable identity error without enabling the Studio request", async () => {
+    state.meError = true;
+    renderTab();
+
+    expect(
+      screen.getByRole("heading", {
+        name: "Your profile could not be loaded",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.queryByRole("heading", { name: "Named profile required" }),
+    ).not.toBeInTheDocument();
+    expect(getStudio).toHaveBeenCalledWith(
+      PROJECT_ID,
+      expect.objectContaining({
+        query: expect.objectContaining({ enabled: false }),
+      }),
+    );
+
+    await userEvent.click(screen.getByRole("button", { name: "Try again" }));
+    expect(refetchMe).toHaveBeenCalledTimes(1);
+  });
+
   it("requires an explicit classified claim before saving a response version", async () => {
     renderTab();
     await userEvent.click(
@@ -438,6 +690,108 @@ describe("DeliveryStudioTab", () => {
       ifMatch: "7",
       idempotencyKey: expect.stringMatching(/^[0-9a-f-]{36}$/iu),
     });
+  });
+
+  it("keeps a rejected response action visible inside its open dialog", async () => {
+    mutate.mockImplementationOnce(() =>
+      deliveryMutationOnError?.(
+        new Error("Draft authority changed before the response was saved."),
+      ),
+    );
+    renderTab();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Add response section" }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Section key" }), {
+      target: { value: "delivery-plan" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), {
+      target: { value: "Delivery plan" },
+    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Response content" }),
+      { target: { value: "Reviewed response content." } },
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "Claims, one per line (maximum 20)",
+      }),
+      { target: { value: "This is a reviewer opinion." } },
+    );
+
+    await userEvent.click(
+      screen.getByRole("button", { name: "Save response version" }),
+    );
+
+    expect(
+      await within(screen.getByRole("dialog")).findByRole("alert"),
+    ).toHaveTextContent(
+      "Draft authority changed before the response was saved.",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Add a response section" }),
+    ).toBeInTheDocument();
+  });
+
+  it("binds cited claims to a selected governed document's current version", async () => {
+    const user = userEvent.setup();
+    renderTab();
+    await user.click(
+      screen.getByRole("button", { name: "Add response section" }),
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Section key" }), {
+      target: { value: "delivery-plan" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Title" }), {
+      target: { value: "Delivery plan" },
+    });
+    fireEvent.change(
+      screen.getByRole("textbox", { name: "Response content" }),
+      { target: { value: "The portal requires a technical response file." } },
+    );
+    fireEvent.change(
+      screen.getByRole("textbox", {
+        name: "Claims, one per line (maximum 20)",
+      }),
+      { target: { value: "A technical response file is required." } },
+    );
+    await user.selectOptions(
+      screen.getByRole("combobox", { name: "Governed citation source" }),
+      DOCUMENT_ID,
+    );
+    fireEvent.change(screen.getByRole("textbox", { name: "Page number" }), {
+      target: { value: "4" },
+    });
+    fireEvent.change(screen.getByRole("textbox", { name: "Exact quote" }), {
+      target: { value: "Technical response file is required." },
+    });
+    expect(
+      screen.queryByRole("textbox", { name: "Document version ID" }),
+    ).not.toBeInTheDocument();
+
+    await user.click(
+      screen.getByRole("button", { name: "Save response version" }),
+    );
+
+    expect(mutate).toHaveBeenCalledWith(
+      expect.objectContaining({
+        data: expect.objectContaining({
+          claims: [
+            expect.objectContaining({
+              kind: "opinion",
+              citations: [
+                {
+                  documentId: DOCUMENT_ID,
+                  documentVersionId: DOCUMENT_VERSION_ID,
+                  pageNumber: 4,
+                  quote: "Technical response file is required.",
+                },
+              ],
+            }),
+          ],
+        }),
+      }),
+    );
   });
 
   it("blocks destructive editing when an existing section contains mixed claim evidence", async () => {
@@ -503,6 +857,20 @@ describe("DeliveryStudioTab", () => {
     await userEvent.click(
       screen.getByRole("button", { name: "Assemble package" }),
     );
+    expect(
+      screen.getByRole("heading", {
+        name: "Preflight — exact assembly inputs",
+      }),
+    ).toBeInTheDocument();
+    expect(
+      screen.getByRole("button", { name: "Assemble governed manifest" }),
+    ).toBeDisabled();
+    expect(mutate).not.toHaveBeenCalled();
+    await userEvent.click(
+      screen.getByRole("checkbox", {
+        name: /I reviewed this exact source snapshot, response-version list/i,
+      }),
+    );
     await userEvent.click(
       screen.getByRole("button", { name: "Assemble governed manifest" }),
     );
@@ -513,6 +881,47 @@ describe("DeliveryStudioTab", () => {
       ifMatch: "7",
       idempotencyKey: expect.stringMatching(/^[0-9a-f-]{36}$/iu),
     });
+  });
+
+  it("requires renewed package consent after the displayed delivery snapshot changes", async () => {
+    const view = renderTab();
+    await userEvent.click(
+      screen.getByRole("button", { name: "Assemble package" }),
+    );
+    const confirmation = screen.getByRole("checkbox", {
+      name: /I reviewed this exact source snapshot, response-version list/i,
+    });
+    await userEvent.click(confirmation);
+    expect(confirmation).toBeChecked();
+
+    state.fetching = true;
+    view.rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <DeliveryStudioTab projectId={PROJECT_ID} />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(confirmation).not.toBeChecked());
+    expect(
+      screen.getByRole("button", { name: "Assemble governed manifest" }),
+    ).toBeDisabled();
+
+    state.fetching = false;
+    state.data = {
+      ...snapshot(),
+      version: 8,
+      sourceSnapshotHash: "f".repeat(64),
+    };
+    view.rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <DeliveryStudioTab projectId={PROJECT_ID} />
+      </QueryClientProvider>,
+    );
+
+    expect(confirmation).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Assemble governed manifest" }),
+    ).toBeDisabled();
+    expect(mutate).not.toHaveBeenCalled();
   });
 
   it("records a bounded cited rehearsal for one assembled manifest file without portal actions", async () => {
@@ -547,25 +956,30 @@ describe("DeliveryStudioTab", () => {
       ),
     ).toBeInTheDocument();
 
-    const documentId = "66666666-6666-4666-8666-666666666666";
-    const documentVersionId = "77777777-7777-4777-8777-777777777777";
-    fireEvent.change(
-      screen.getByRole("textbox", { name: "Project document ID" }),
-      { target: { value: documentId } },
+    expect(
+      screen.queryByRole("textbox", { name: "Project document ID" }),
+    ).not.toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Project document version ID" }),
+    ).not.toBeInTheDocument();
+    await userEvent.selectOptions(
+      screen.getByRole("combobox", {
+        name: "Current verified project document",
+      }),
+      DOCUMENT_ID,
     );
-    fireEvent.change(
-      screen.getByRole("textbox", { name: "Project document version ID" }),
-      { target: { value: documentVersionId } },
-    );
+    expect(screen.getAllByText(DOCUMENT_VERSION_ID).length).toBeGreaterThan(0);
+    expect(screen.getByText("Generated mapping ID")).toBeInTheDocument();
+    expect(
+      screen.queryByRole("textbox", { name: "Mapping ID" }),
+    ).not.toBeInTheDocument();
     fireEvent.change(
       screen.getByRole("textbox", { name: "Portal field label" }),
       { target: { value: "Technical response" } },
     );
-    const portalRule =
-      "Required file field Technical response, upload order 1. Upload the final reviewed response PDF.";
     fireEvent.change(
       screen.getByRole("textbox", { name: "Exact portal rule quote" }),
-      { target: { value: portalRule } },
+      { target: { value: PORTAL_RULE } },
     );
     const rationale = "Matches the reviewed portal field exactly.";
     fireEvent.change(
@@ -601,13 +1015,15 @@ describe("DeliveryStudioTab", () => {
         rehearsal: {
           sources: [
             {
-              sourceId: documentId,
-              versionId: documentVersionId,
-              kind: "other",
-              title: "Verified project portal source",
-              content: portalRule,
+              sourceId: SOURCE_SERIES_ID,
+              versionId: DOCUMENT_VERSION_ID,
+              kind: "solicitation",
+              title: "Portal rules.pdf",
+              content: PORTAL_CANONICAL_TEXT,
+              contentSha256: PORTAL_CANONICAL_SHA256,
+              capturedAt: "2026-08-20T09:00:00.000Z",
               authority: "authoritative",
-              origin: `document:${documentId}:version:${documentVersionId}`,
+              origin: "https://procurement.example/portal-rules",
             },
             {
               sourceId: "22222222-2222-4222-8222-222222222222",
@@ -628,7 +1044,19 @@ describe("DeliveryStudioTab", () => {
               fieldType: "file",
               required: true,
               uploadOrder: 1,
-              ruleText: portalRule,
+              ruleText: PORTAL_RULE,
+              citations: [
+                {
+                  sourceId: SOURCE_SERIES_ID,
+                  sourceVersionId: DOCUMENT_VERSION_ID,
+                  contentSha256: PORTAL_CANONICAL_SHA256,
+                  startOffset: PORTAL_CANONICAL_TEXT.indexOf(PORTAL_RULE),
+                  endOffset:
+                    PORTAL_CANONICAL_TEXT.indexOf(PORTAL_RULE) +
+                    PORTAL_RULE.length,
+                  quote: PORTAL_RULE,
+                },
+              ],
               review: {
                 state: "accepted",
                 reviewerId: ACTOR_ID,
@@ -650,6 +1078,18 @@ describe("DeliveryStudioTab", () => {
               fieldExternalId: "portal-file-1",
               fileExternalId: "44444444-4444-4444-8444-444444444444",
               rationale,
+              citations: expect.arrayContaining([
+                {
+                  sourceId: SOURCE_SERIES_ID,
+                  sourceVersionId: DOCUMENT_VERSION_ID,
+                  contentSha256: PORTAL_CANONICAL_SHA256,
+                  startOffset: PORTAL_CANONICAL_TEXT.indexOf(PORTAL_RULE),
+                  endOffset:
+                    PORTAL_CANONICAL_TEXT.indexOf(PORTAL_RULE) +
+                    PORTAL_RULE.length,
+                  quote: PORTAL_RULE,
+                },
+              ]),
             },
           ],
           rehearsalReview: {
@@ -671,6 +1111,110 @@ describe("DeliveryStudioTab", () => {
     expect(request.data.rehearsal).not.toHaveProperty("credentials");
     expect(request.data.rehearsal).not.toHaveProperty("upload");
     expect(request.data.rehearsal).not.toHaveProperty("submit");
+  });
+
+  it("requires renewed rehearsal consent when the current verified snapshot changes", async () => {
+    const current = snapshot();
+    current.packageAssembly = {
+      status: "ready",
+      package: assembledPackage(),
+    };
+    state.data = current;
+    const view = renderTab();
+    await completeRehearsalPreflight();
+    const confirmation = screen.getByRole("checkbox", {
+      name: /I accept this exact portal field, assembled file and mapping/i,
+    });
+    expect(confirmation).toBeChecked();
+
+    state.documentVersionFetching = true;
+    view.rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <DeliveryStudioTab projectId={PROJECT_ID} />
+      </QueryClientProvider>,
+    );
+    await waitFor(() => expect(confirmation).not.toBeChecked());
+    expect(
+      screen.getByRole("button", { name: "Record bounded rehearsal" }),
+    ).toBeDisabled();
+
+    const refreshed = verifiedDocumentVersion();
+    refreshed.documentVersionId = "12121212-1212-4121-8121-121212121212";
+    refreshed.documentVersionSha256 = "1".repeat(64);
+    refreshed.snapshot.documentVersionId = refreshed.documentVersionId;
+    refreshed.snapshot.documentVersionSha256 = refreshed.documentVersionSha256;
+    refreshed.snapshot.canonicalTextSha256 = "2".repeat(64);
+    refreshed.snapshot.version = 2;
+    refreshed.snapshot.createdAt = "2026-08-20T10:00:00.000Z";
+    state.documentVersion = refreshed;
+    state.documentVersionFetching = false;
+    view.rerender(
+      <QueryClientProvider client={new QueryClient()}>
+        <DeliveryStudioTab projectId={PROJECT_ID} />
+      </QueryClientProvider>,
+    );
+
+    expect(confirmation).not.toBeChecked();
+    expect(
+      screen.getByRole("button", { name: "Record bounded rehearsal" }),
+    ).toBeDisabled();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("rejects a portal quote that is not unique in the verified canonical text", async () => {
+    const current = snapshot();
+    current.packageAssembly = {
+      status: "ready",
+      package: assembledPackage(),
+    };
+    state.data = current;
+    const repeated = verifiedDocumentVersion();
+    repeated.canonicalText = `${PORTAL_RULE}\n${PORTAL_RULE}`;
+    repeated.snapshot.canonicalText = repeated.canonicalText;
+    repeated.snapshot.canonicalTextSha256 = "3".repeat(64);
+    state.documentVersion = repeated;
+    renderTab();
+    const user = await completeRehearsalPreflight();
+
+    await user.click(
+      screen.getByRole("button", { name: "Record bounded rehearsal" }),
+    );
+
+    expect(
+      screen.getByText(
+        /must occur exactly once in the current verified canonical document text/i,
+      ),
+    ).toBeInTheDocument();
+    expect(mutate).not.toHaveBeenCalled();
+  });
+
+  it("keeps a rejected rehearsal action visible inside its open dialog", async () => {
+    const current = snapshot();
+    current.packageAssembly = {
+      status: "ready",
+      package: assembledPackage(),
+    };
+    state.data = current;
+    mutate.mockImplementationOnce(() =>
+      deliveryMutationOnError?.(
+        new Error("Reviewer membership changed before rehearsal persistence."),
+      ),
+    );
+    renderTab();
+    const user = await completeRehearsalPreflight();
+
+    await user.click(
+      screen.getByRole("button", { name: "Record bounded rehearsal" }),
+    );
+
+    expect(
+      await within(screen.getByRole("dialog")).findByRole("alert"),
+    ).toHaveTextContent(
+      "Reviewer membership changed before rehearsal persistence.",
+    );
+    expect(
+      screen.getByRole("heading", { name: "Prepare submission rehearsal" }),
+    ).toBeInTheDocument();
   });
 
   it("keeps multi-file packages out of the bounded browser rehearsal", () => {

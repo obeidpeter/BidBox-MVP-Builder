@@ -77,6 +77,7 @@ describe("public SEO and privacy boundary", () => {
       "/reports",
       "/organisation-settings",
       "/account",
+      "/help",
       "/sign-in",
     ]) {
       expect(robots).toContain(`Disallow: ${path}`);

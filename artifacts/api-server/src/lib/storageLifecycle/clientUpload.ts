@@ -1,5 +1,4 @@
-import type { LocalUser } from "../../middlewares/auth";
-import type { AccessContext } from "../../middlewares/tenancy";
+import type { AccessContext, LocalUser } from "../accessContext";
 
 import { UUID_PATTERN as UUID } from "../identifierPatterns";
 const CONTROL = /[\u0000-\u001f\u007f\ud800-\udfff]/u;

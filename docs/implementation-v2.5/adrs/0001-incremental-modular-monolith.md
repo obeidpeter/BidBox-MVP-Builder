@@ -1,7 +1,16 @@
 # ADR-0001: Incremental TypeScript modular monolith
 
-Status: Accepted
+Status: Accepted; current source boundary
 Date: 2026-08-08
+Last reviewed: 2026-08-31
+Next review: 2026-11-30
+Owner: Platform architecture (`@obeidpeter`)
+Backup owner: Unassigned; tracked as `AR-001`
+Reviewers: Product, security/privacy and operations role holders for changes to deployable boundaries; named alternates are not yet recorded
+Drivers: `AD-004`, `AD-005`, `AD-007`
+Evidence: `pnpm-workspace.yaml`; `artifacts/api-server/package.json`; `artifacts/bidbox-workbench/package.json`; `config/architecture/module-boundaries.v1.json`
+Supersedes: None
+Superseded by: None
 
 ## Context
 

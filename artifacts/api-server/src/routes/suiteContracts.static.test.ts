@@ -1008,7 +1008,10 @@ test("package discovery is metadata-only and evidence response history stays pai
   const packageResponse = openApiSchema(
     "ProjectExportPackageVersionListResponse",
   );
-  assert.match(packageResponse, /required: \[items, limit, truncated\]/u);
+  assert.match(
+    packageResponse,
+    /required: \[items, limit, truncated, exportScopeSha256\]/u,
+  );
   assert.match(packageResponse, /maxItems: 100/u);
   assert.match(packageResponse, /const: 100/u);
   const packageItem = openApiSchema("ProjectExportPackageVersionSummary");
@@ -1018,6 +1021,7 @@ test("package discovery is metadata-only and evidence response history stays pai
     "packageType",
     "versionNumber",
     "manifestSha256",
+    "sourceSnapshotSha256",
     "renderQaStatus",
     "createdAt",
   ]) {
@@ -1039,11 +1043,16 @@ test("package discovery is metadata-only and evidence response history stays pai
   assert.match(packageRoute, /Cache-Control", "private, no-store/u);
   assert.doesNotMatch(
     packageRoute,
-    /readinessSnapshot|sourceSnapshotHash|docxObjectPath|pdfObjectPath|zipObjectPath|contentText/u,
+    /readinessSnapshot|docxObjectPath|pdfObjectPath|zipObjectPath|contentText/u,
   );
   assert.match(
+    packageRoute,
+    /sourceSnapshotSha256: packageVersions\.sourceSnapshotHash/u,
+  );
+  assert.match(packageRoute, /exportScopeSha256: exportScopeSha256/u);
+  assert.match(
     zodClient,
-    /ListProjectPackageVersionsResponse = zod\.object\([\s\S]*?"packageType": zod\.literal\("project_export"\)[\s\S]*?"limit": zod\.literal\(100\)[\s\S]*?\)\.strict\(\)/u,
+    /ListProjectPackageVersionsResponse = zod\.object\([\s\S]*?"packageType": zod\.literal\("project_export"\)[\s\S]*?"limit": zod\.literal\(100\)[\s\S]*?"exportScopeSha256":[\s\S]*?\)\.strict\(\)/u,
   );
 
   const historyItem = openApiSchema(

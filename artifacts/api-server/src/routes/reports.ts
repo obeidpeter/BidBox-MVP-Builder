@@ -1,4 +1,5 @@
 import { Router, type IRouter, type Request, type Response } from "express";
+import { createHash } from "node:crypto";
 import { and, eq, desc, sql } from "drizzle-orm";
 import {
   db,
@@ -22,7 +23,7 @@ import {
   packages,
   packageVersions,
 } from "@workspace/db";
-import { SignOffReportBody } from "@workspace/api-zod";
+import { ExportProjectBody, SignOffReportBody } from "@workspace/api-zod";
 import { getLocalUser } from "../middlewares/auth";
 import {
   getOrganisationId,
@@ -78,7 +79,10 @@ import {
   loadRedTeamApprovalAttestation,
   type DeliveryStudioQueryExecutor,
 } from "../lib/deliveryStudio/drizzleRepository";
-import { resolveCurrentDirectAuthority } from "../lib/directMembershipAuthority";
+import {
+  hasCurrentAccessPermission,
+  resolveCurrentDirectAuthority,
+} from "../lib/directMembershipAuthority";
 import { buildProjectExportZip } from "../lib/projectExportArchive";
 
 const router: IRouter = Router();
@@ -105,14 +109,89 @@ class PackageExportGovernanceError extends Error {
   constructor(
     message: string,
     readonly ndaStatus: string | null,
+    readonly authorityLost = false,
   ) {
     super(message);
     this.name = "PackageExportGovernanceError";
   }
 }
+
+class PackageExportDriftError extends Error {
+  constructor(message: string) {
+    super(message);
+    this.name = "PackageExportDriftError";
+  }
+}
+
+type ExportPackageBinding = {
+  packageVersionId: string | null;
+  packageVersionNumber: number | null;
+  packageManifestSha256: string | null;
+  packageSourceSnapshotSha256: string | null;
+};
+
+function exportScopeSha256(
+  report: { id: string; version: number; status: string } | undefined,
+  packageBinding: ExportPackageBinding,
+): string {
+  return createHash("sha256")
+    .update(
+      JSON.stringify({
+        report: report
+          ? { id: report.id, version: report.version, status: report.status }
+          : null,
+        package: packageBinding,
+      }),
+      "utf8",
+    )
+    .digest("hex");
+}
+
+function hasCompletePackageBinding(binding: ExportPackageBinding): boolean {
+  const values = [
+    binding.packageVersionId,
+    binding.packageVersionNumber,
+    binding.packageManifestSha256,
+    binding.packageSourceSnapshotSha256,
+  ];
+  return (
+    values.every((value) => value === null) ||
+    values.every((value) => value !== null)
+  );
+}
+
+type ExportReceipt = {
+  requestSha256: string;
+  packageVersionId: string;
+  packageVersionNumber: number;
+  packageManifestSha256: string;
+  packageSourceSnapshotSha256: string;
+};
+
+function parseExportReceipt(value: string | null): ExportReceipt | null {
+  try {
+    const candidate = JSON.parse(
+      value ?? "null",
+    ) as Partial<ExportReceipt> | null;
+    return candidate &&
+      typeof candidate.requestSha256 === "string" &&
+      typeof candidate.packageVersionId === "string" &&
+      UUID_ANY_PATTERN.test(candidate.packageVersionId) &&
+      Number.isSafeInteger(candidate.packageVersionNumber) &&
+      Number(candidate.packageVersionNumber) >= 1 &&
+      typeof candidate.packageManifestSha256 === "string" &&
+      SHA256_PATTERN.test(candidate.packageManifestSha256) &&
+      typeof candidate.packageSourceSnapshotSha256 === "string" &&
+      SHA256_PATTERN.test(candidate.packageSourceSnapshotSha256)
+      ? (candidate as ExportReceipt)
+      : null;
+  } catch {
+    return null;
+  }
+}
 import {
   SHA256_HEX_PATTERN as SHA256_PATTERN,
-  UUID_V1_5_PATTERN as UUID_PATTERN,
+  UUID_PATTERN as UUID_ANY_PATTERN,
 } from "../lib/identifierPatterns";
 import { isOneOf } from "../lib/typeGuards";
 import { parseInstantViaString } from "../lib/dbClock";
@@ -691,9 +770,10 @@ router.post(
           await resolveCurrentDirectAuthority(signOffAccessContext, user?.id),
         );
 
-        // Client -> project is the canonical release lock order. A concurrent
-        // NDA change either completes before this point-in-time re-read or is
-        // serialized after sign-off; package export rechecks current NDA state.
+        // Inside the project advisory boundary already established by shared
+        // middleware, client row -> project row is the canonical row-lock
+        // order. A concurrent NDA change either completes before this re-read
+        // or is serialized after sign-off; export rechecks current NDA state.
         const [lockedClient] = await tx
           .select({ id: clients.id, ndaStatus: clients.ndaStatus })
           .from(clients)
@@ -1034,7 +1114,7 @@ router.get(
   async (req: Request, res: Response) => {
     const projectId = String(req.params.id);
     const organisationId = getOrganisationId(req);
-    if (!organisationId || !UUID_PATTERN.test(projectId)) {
+    if (!organisationId || !UUID_ANY_PATTERN.test(projectId)) {
       res.status(403).json({ error: "Organisation access denied" });
       return;
     }
@@ -1055,6 +1135,22 @@ router.get(
       .for("share");
     const canonicalPackageId =
       soleCanonicalProjectExportPackageId(canonicalPackages);
+    const [currentReport] = await db
+      .select({
+        id: reports.id,
+        version: reports.version,
+        status: reports.status,
+      })
+      .from(reports)
+      .where(
+        and(
+          eq(reports.organisationId, organisationId),
+          eq(reports.projectId, projectId),
+        ),
+      )
+      .orderBy(desc(reports.version), desc(reports.id))
+      .limit(1)
+      .for("share");
     const rows = canonicalPackageId
       ? await db
           .select({
@@ -1063,6 +1159,7 @@ router.get(
             packageType: packages.packageType,
             versionNumber: packageVersions.versionNumber,
             manifestSha256: packageVersions.manifestHash,
+            sourceSnapshotSha256: packageVersions.sourceSnapshotHash,
             renderQaStatus: packageVersions.renderQaStatus,
             createdAt: packageVersions.createdAt,
           })
@@ -1096,11 +1193,12 @@ router.get(
         if (
           row.packageType !== PROJECT_EXPORT_PACKAGE_TYPE ||
           !isOneOf(row.renderQaStatus, ["pending", "passed", "failed"]) ||
-          !UUID_PATTERN.test(row.packageId) ||
-          !UUID_PATTERN.test(row.packageVersionId) ||
+          !UUID_ANY_PATTERN.test(row.packageId) ||
+          !UUID_ANY_PATTERN.test(row.packageVersionId) ||
           !Number.isSafeInteger(row.versionNumber) ||
           row.versionNumber < 1 ||
           !SHA256_PATTERN.test(row.manifestSha256) ||
+          !SHA256_PATTERN.test(row.sourceSnapshotSha256) ||
           !(row.createdAt instanceof Date) ||
           Number.isNaN(row.createdAt.getTime())
         ) {
@@ -1112,6 +1210,7 @@ router.get(
           packageType: PROJECT_EXPORT_PACKAGE_TYPE,
           versionNumber: row.versionNumber,
           manifestSha256: row.manifestSha256,
+          sourceSnapshotSha256: row.sourceSnapshotSha256,
           renderQaStatus: row.renderQaStatus,
           createdAt: row.createdAt.toISOString(),
         };
@@ -1130,15 +1229,79 @@ router.get(
       items,
       limit: PROJECT_EXPORT_PACKAGE_LIST_LIMIT,
       truncated,
+      exportScopeSha256: exportScopeSha256(currentReport, {
+        packageVersionId: items[0]?.packageVersionId ?? null,
+        packageVersionNumber: items[0]?.versionNumber ?? null,
+        packageManifestSha256: items[0]?.manifestSha256 ?? null,
+        packageSourceSnapshotSha256: items[0]?.sourceSnapshotSha256 ?? null,
+      }),
     });
   },
 );
 
-router.get(
+router.post(
   "/projects/:id/export",
   requirePermissionOrLegacy("report:export"),
   async (req: Request, res: Response) => {
     const projectId = String(req.params.id);
+    const organisationId = getOrganisationId(req);
+    const idempotencyKey = req.get("Idempotency-Key")?.trim() ?? "";
+    const confirmedScopeHeader = req.get("If-Match")?.trim() ?? "";
+    const confirmedScopeMatch = /^"([a-f0-9]{64})"$/u.exec(
+      confirmedScopeHeader,
+    );
+    const confirmedScopeSha256 = confirmedScopeMatch?.[1] ?? "";
+    const parsedBody = ExportProjectBody.strict().safeParse(req.body);
+    if (
+      !organisationId ||
+      !UUID_ANY_PATTERN.test(projectId) ||
+      !UUID_ANY_PATTERN.test(idempotencyKey) ||
+      !confirmedScopeMatch ||
+      !parsedBody.success ||
+      !Number.isSafeInteger(parsedBody.data.reportVersion) ||
+      !Number.isSafeInteger(parsedBody.data.packageVersionNumber ?? 1) ||
+      !hasCompletePackageBinding(parsedBody.data)
+    ) {
+      res.status(400).json({ error: "Invalid exact export confirmation" });
+      return;
+    }
+    const exportRequest = parsedBody.data;
+    const requestSha256 = createHash("sha256")
+      .update(
+        JSON.stringify({
+          organisationId,
+          projectId,
+          confirmedScopeSha256,
+          exportRequest,
+        }),
+        "utf8",
+      )
+      .digest("hex");
+    const idempotencyObjectId = createHash("sha256")
+      .update(`${organisationId}\u0000${idempotencyKey}`, "utf8")
+      .digest("hex");
+    const [existingReceipt] = await db
+      .select({ details: auditEvents.details })
+      .from(auditEvents)
+      .where(
+        and(
+          eq(auditEvents.organisationId, organisationId),
+          eq(auditEvents.projectId, projectId),
+          eq(auditEvents.eventType, "project.exported"),
+          eq(auditEvents.objectType, "project_export_request"),
+          eq(auditEvents.objectId, idempotencyObjectId),
+        ),
+      )
+      .limit(1);
+    if (existingReceipt) {
+      const receipt = parseExportReceipt(existingReceipt.details);
+      if (!receipt || receipt.requestSha256 !== requestSha256) {
+        res.status(409).json({
+          error: "Idempotency key was already bound to another export scope.",
+        });
+        return;
+      }
+    }
     const [governance] = await db
       .select({
         project: projects,
@@ -1148,7 +1311,12 @@ router.get(
       })
       .from(projects)
       .leftJoin(clients, eq(projects.clientId, clients.id))
-      .where(eq(projects.id, projectId));
+      .where(
+        and(
+          eq(projects.id, projectId),
+          eq(projects.organisationId, organisationId),
+        ),
+      );
     if (!governance) {
       res.status(404).json({ error: "Not found" });
       return;
@@ -1157,7 +1325,12 @@ router.get(
     const projectReports = await db
       .select()
       .from(reports)
-      .where(eq(reports.projectId, projectId))
+      .where(
+        and(
+          eq(reports.organisationId, organisationId),
+          eq(reports.projectId, projectId),
+        ),
+      )
       .orderBy(desc(reports.version));
     const latestReport = projectReports[0];
     const packageDenial = packageExportDenial({
@@ -1455,9 +1628,180 @@ router.get(
       return;
     }
 
+    const authorityLoss = new PackageExportGovernanceError(
+      "Package export authority changed or expired before persistence.",
+      null,
+      true,
+    );
+    const exportAccessContext = getAccessContext(req);
+    const exportActorId = getLocalUser(req)?.id;
+    const retainsExportAuthority = () =>
+      hasCurrentAccessPermission(
+        exportAccessContext,
+        exportActorId,
+        "report:export",
+      );
     try {
       await db.transaction(
         async (tx) => {
+          if (!(await retainsExportAuthority())) throw authorityLoss;
+          await tx.execute(
+            sql`select pg_advisory_xact_lock(hashtextextended(${projectId}, 0))`,
+          );
+          const finalReceipts = await tx
+            .select({ details: auditEvents.details })
+            .from(auditEvents)
+            .where(
+              and(
+                eq(auditEvents.organisationId, organisationId),
+                eq(auditEvents.projectId, projectId),
+                eq(auditEvents.eventType, "project.exported"),
+                eq(auditEvents.objectType, "project_export_request"),
+                eq(auditEvents.objectId, idempotencyObjectId),
+              ),
+            )
+            .limit(2)
+            .for("share");
+          if (finalReceipts.length > 1) {
+            throw new PackageExportDriftError(
+              "Export idempotency receipt is ambiguous.",
+            );
+          }
+          const finalReceipt = finalReceipts[0]
+            ? parseExportReceipt(finalReceipts[0].details)
+            : null;
+          if (
+            finalReceipts[0] &&
+            (!finalReceipt || finalReceipt.requestSha256 !== requestSha256)
+          ) {
+            throw new PackageExportDriftError(
+              "Idempotency key was already bound to another export scope.",
+            );
+          }
+          const [currentProject] = await tx
+            .select({
+              id: projects.id,
+              clientId: projects.clientId,
+              status: projects.status,
+              version: projects.version,
+            })
+            .from(projects)
+            .where(
+              and(
+                eq(projects.id, projectId),
+                eq(projects.organisationId, organisationId),
+              ),
+            )
+            .for("share");
+          const [currentReport] = await tx
+            .select()
+            .from(reports)
+            .where(
+              and(
+                eq(reports.organisationId, organisationId),
+                eq(reports.projectId, projectId),
+              ),
+            )
+            .orderBy(desc(reports.version), desc(reports.id))
+            .limit(1)
+            .for("share");
+          if (
+            !currentProject ||
+            currentProject.clientId !== project.clientId ||
+            (finalReceipt
+              ? currentProject.status !== "exported" ||
+                currentProject.version !== canonicalProject.version
+              : currentProject.status !== project.status ||
+                currentProject.version !== project.version) ||
+            !currentReport ||
+            currentReport.id !== exportRequest.reportId ||
+            currentReport.version !== exportRequest.reportVersion ||
+            currentReport.status !== "signed_off" ||
+            currentReport.docxPath !== latestReport!.docxPath ||
+            currentReport.updatedAt?.getTime() !==
+              latestReport!.updatedAt?.getTime()
+          ) {
+            throw new PackageExportDriftError(
+              "Report or project source material changed during package export.",
+            );
+          }
+          const lockedPackages = await tx
+            .select({ id: packages.id })
+            .from(packages)
+            .where(
+              and(
+                eq(packages.organisationId, organisationId),
+                eq(packages.projectId, projectId),
+                eq(packages.packageType, PROJECT_EXPORT_PACKAGE_TYPE),
+              ),
+            )
+            .limit(2)
+            .for("update");
+          const lockedPackageId =
+            soleCanonicalProjectExportPackageId(lockedPackages);
+          const [lockedPackageVersion] = lockedPackageId
+            ? await tx
+                .select({
+                  id: packageVersions.id,
+                  versionNumber: packageVersions.versionNumber,
+                  manifestSha256: packageVersions.manifestHash,
+                  sourceSnapshotSha256: packageVersions.sourceSnapshotHash,
+                })
+                .from(packages)
+                .innerJoin(
+                  packageVersions,
+                  and(
+                    eq(packageVersions.organisationId, packages.organisationId),
+                    eq(packageVersions.packageId, packages.id),
+                    eq(
+                      packageVersions.versionNumber,
+                      packages.currentVersionNumber,
+                    ),
+                  ),
+                )
+                .where(eq(packages.id, lockedPackageId))
+                .limit(1)
+                .for("share")
+            : [];
+          const lockedPackageBinding: ExportPackageBinding = {
+            packageVersionId: lockedPackageVersion?.id ?? null,
+            packageVersionNumber: lockedPackageVersion?.versionNumber ?? null,
+            packageManifestSha256: lockedPackageVersion?.manifestSha256 ?? null,
+            packageSourceSnapshotSha256:
+              lockedPackageVersion?.sourceSnapshotSha256 ?? null,
+          };
+          const requestedPackageBinding: ExportPackageBinding = {
+            packageVersionId: exportRequest.packageVersionId,
+            packageVersionNumber: exportRequest.packageVersionNumber,
+            packageManifestSha256: exportRequest.packageManifestSha256,
+            packageSourceSnapshotSha256:
+              exportRequest.packageSourceSnapshotSha256,
+          };
+          if (finalReceipt) {
+            if (
+              JSON.stringify(lockedPackageBinding) !==
+              JSON.stringify({
+                packageVersionId: finalReceipt.packageVersionId,
+                packageVersionNumber: finalReceipt.packageVersionNumber,
+                packageManifestSha256: finalReceipt.packageManifestSha256,
+                packageSourceSnapshotSha256:
+                  finalReceipt.packageSourceSnapshotSha256,
+              })
+            ) {
+              throw new PackageExportDriftError(
+                "The package created for this idempotent request is no longer current.",
+              );
+            }
+          } else if (
+            exportScopeSha256(currentReport, lockedPackageBinding) !==
+              confirmedScopeSha256 ||
+            JSON.stringify(lockedPackageBinding) !==
+              JSON.stringify(requestedPackageBinding)
+          ) {
+            throw new PackageExportDriftError(
+              "Confirmed package provenance changed during package export.",
+            );
+          }
           // Package bytes and their manifest were prepared from the earlier
           // readiness snapshot. Re-lock and re-read the authoritative client
           // row immediately before writing durable package/export evidence.
@@ -1489,6 +1833,26 @@ router.get(
               currentClient?.ndaStatus ?? null,
             );
           }
+          if (!(await retainsExportAuthority())) throw authorityLoss;
+
+          // A completed request is a read-only replay. The advisory lock makes
+          // concurrent same-key calls observe the first receipt; matching the
+          // rebuilt manifest to that receipt guarantees the returned bytes are
+          // still bound to the original canonical package without creating a
+          // version, transition, or duplicate audit event.
+          if (finalReceipt) {
+            if (
+              packageManifest.manifestHash !==
+                finalReceipt.packageManifestSha256 ||
+              packageManifest.sourceSnapshotHash !==
+                finalReceipt.packageSourceSnapshotSha256
+            ) {
+              throw new PackageExportDriftError(
+                "Rebuilt archive no longer matches the idempotency receipt.",
+              );
+            }
+            return;
+          }
 
           const packageVersion = await persistCanonicalProjectExportPackage(
             tx,
@@ -1504,6 +1868,21 @@ router.get(
               generatedByUserId: getLocalUser(req)?.id ?? null,
             },
           );
+          await writeAuditTx(tx, {
+            user: getLocalUser(req),
+            organisationId,
+            projectId,
+            eventType: "project.exported",
+            objectType: "project_export_request",
+            objectId: idempotencyObjectId,
+            details: JSON.stringify({
+              requestSha256,
+              packageVersionId: packageVersion.packageVersionId,
+              packageVersionNumber: packageVersion.versionNumber,
+              packageManifestSha256: packageVersion.manifestHash,
+              packageSourceSnapshotSha256: packageVersion.sourceSnapshotHash,
+            } satisfies ExportReceipt),
+          });
           if (project.status === "signed_off") {
             const transitioned = await tx
               .update(projects)
@@ -1555,6 +1934,22 @@ router.get(
         { isolationLevel: "read committed" },
       );
     } catch (error) {
+      if (error instanceof PackageExportDriftError) {
+        await writeAudit({
+          user: getLocalUser(req),
+          organisationId,
+          projectId,
+          eventType: "project.export_denied",
+          objectType: "project",
+          objectId: projectId,
+          details: error.message,
+        });
+        res.status(409).json({
+          error:
+            "The confirmed report, package provenance or source material changed. Refresh before exporting.",
+        });
+        return;
+      }
       if (!(error instanceof PackageExportGovernanceError)) throw error;
       const ndaApprovalMissing = error.ndaStatus !== "signed";
       await writeAudit({
@@ -1566,6 +1961,12 @@ router.get(
         objectId: projectId,
         details: error.message,
       });
+      if (error.authorityLost) {
+        res.status(403).json({
+          error: "Package export authority changed. Refresh before retrying.",
+        });
+        return;
+      }
       res.status(409).json({
         error: ndaApprovalMissing
           ? "Package export was denied because NDA approval changed. Refresh before retrying."
