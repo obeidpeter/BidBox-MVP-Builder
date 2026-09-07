@@ -18,7 +18,7 @@ export type EvidenceRenewalReviewReason =
   | "quality_issue";
 
 export const EVIDENCE_RENEWAL_AUTHORITY_NOTE =
-  "This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside Valo.";
+  "This register records a receipt-backed internal due reminder and named-human evidence-renewal workflow. It does not send an external message, contact an issuer or client, approve a pursuit, or claim delivery outside BidBox.";
 
 export interface EvidenceRenewalAffectedPursuit {
   projectId: string;
@@ -39,7 +39,7 @@ export interface EvidenceRenewalStagedReplacement {
 }
 
 export interface EvidenceRenewalInternalReminder {
-  channel: "valo_evidence_renewal_register";
+  channel: "bidbox_evidence_renewal_register";
   assignedOwnerUserId: string;
   dueAt: string;
   status: "open" | "resolved";
@@ -303,7 +303,7 @@ function adaptPlan(
       "resolvedReceiptSha256",
       "externalDeliveryReceipt",
     ]) ||
-    reminder.channel !== "valo_evidence_renewal_register" ||
+    reminder.channel !== "bidbox_evidence_renewal_register" ||
     reminder.assignedOwnerUserId !== owner.userId ||
     !instant(reminder.dueAt) ||
     reminder.dueAt !== `${value.targetDate}T16:00:00.000Z` ||

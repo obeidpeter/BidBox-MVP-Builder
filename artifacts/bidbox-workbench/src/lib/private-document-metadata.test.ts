@@ -9,15 +9,15 @@ describe("private route metadata", () => {
     document.head.innerHTML = `
       <title>Public page</title>
       <meta name="robots" content="index, follow">
-      <meta property="og:url" content="https://valo.example.test/public">
-      <link rel="canonical" href="https://valo.example.test/public">
+      <meta property="og:url" content="https://bidbox.example.test/public">
+      <link rel="canonical" href="https://bidbox.example.test/public">
     `;
   });
 
   it("fails closed before identity or workspace code finishes loading", () => {
-    applyPrivateDocumentMetadata("Secure access | Valo");
+    applyPrivateDocumentMetadata("Secure access | BidBox");
 
-    expect(document.title).toBe("Secure access | Valo");
+    expect(document.title).toBe("Secure access | BidBox");
     expect(document.head.querySelector('meta[name="robots"]')).toHaveAttribute(
       "content",
       PRIVATE_ROBOTS_DIRECTIVE,

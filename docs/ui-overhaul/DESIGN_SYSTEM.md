@@ -1,6 +1,6 @@
 # Design system
 
-Status: implementation contract aligned to `artifacts/valo-workbench/src/index.css` and the shared React components. The light theme is the audited baseline. Dark tokens exist, but dark-mode activation and visual QA are not release evidence.
+Status: implementation contract aligned to `artifacts/bidbox-workbench/src/index.css` and the shared React components. The light theme is the audited baseline. Dark tokens exist, but dark-mode activation and visual QA are not release evidence.
 
 ## Character
 

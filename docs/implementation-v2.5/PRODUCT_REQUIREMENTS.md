@@ -4,7 +4,7 @@ Document status: normative target; implementation evidence is maintained only in
 
 ## Product outcome
 
-Valo helps legitimate organisations prevent controllable tender disqualification by turning tender documents into cited requirements, governed evidence work, deterministic checks, grounded drafts, independent human review, and controlled packages. Valo warrants its process within the reviewed materials; it does not guarantee an award or predict an evaluator.
+BidBox helps legitimate organisations prevent controllable tender disqualification by turning tender documents into cited requirements, governed evidence work, deterministic checks, grounded drafts, independent human review, and controlled packages. BidBox warrants its process within the reviewed materials; it does not guarantee an award or predict an evaluator.
 
 ## Binding invariants
 
@@ -17,7 +17,7 @@ Valo helps legitimate organisations prevent controllable tender disqualification
 | INV-05 | Every released factual claim links to approved valid evidence; otherwise release is blocked.                           |
 | INV-06 | Any unresolved fatal or likely-fatal requirement blocks submission-ready status.                                       |
 | INV-07 | Fatal reclassification requires reason, evidence, audit entry and independent authorised approval.                     |
-| INV-08 | Valo does not generate prices or rates; it only verifies client-supplied commercial figures.                           |
+| INV-08 | BidBox does not generate prices or rates; it only verifies client-supplied commercial figures.                         |
 | INV-09 | No brokering, evaluator intelligence, facilitation, collusion help, influence service or award guarantee.              |
 | INV-10 | Tenant data is isolated across database, storage, search, cache, logs and AI retrieval and never trains shared models. |
 | INV-11 | Same-tender/same-lot conflicts are checked before assignment; governance is tender-specific.                           |
@@ -27,7 +27,7 @@ Valo helps legitimate organisations prevent controllable tender disqualification
 
 ## Actors
 
-Required actors and detailed permissions are defined in `PERMISSIONS_MATRIX.md`: organisation owner, organisation admin, bid manager, contributor, client approver, auditor, Valo analyst, Valo quality adviser, Valo operations admin, restricted platform admin, partner admin, and partner analyst/reviewer.
+Required actors and detailed permissions are defined in `PERMISSIONS_MATRIX.md`: organisation owner, organisation admin, bid manager, contributor, client approver, auditor, BidBox analyst, BidBox quality adviser, BidBox operations admin, restricted platform admin, partner admin, and partner analyst/reviewer.
 
 ## Lifecycle and deterministic states
 
@@ -122,7 +122,7 @@ Every package is immutable once signed. Any changed source creates a new version
 - `PRT-001` Provide responsive role-specific client views for onboarding, intake, progress, actions, evidence, reports, packages, billing/usage and support.
 - `OPS-001` Provide reviewer/admin queues for intake, extraction, conflicts, evidence, expiry, BOQ, red team, sign-off, billing, notifications, SLA, support, evaluations, security and audit.
 - `PAR-001` Support partner organisations, delegated management, partner client workspaces, co-signing/QA responsibility and ownership rules.
-- `PAR-002` Permit branding to alter presentation only, never provenance, evidence, state, controls or Valo integrity notices.
+- `PAR-002` Permit branding to alter presentation only, never provenance, evidence, state, controls or BidBox integrity notices.
 - `PAR-003` Report partner usage/performance/revenue-share inputs without computing or paying money unless the authorised finance workflow approves it.
 - `ANL-001` Provide operational/product metrics with tenant scope and privacy-safe access.
 - `ANL-002` Publish consent-controlled benchmarks only through minimum-cohort, small-cell suppression, differencing, withdrawal and re-identification controls.
@@ -158,4 +158,4 @@ Quality targets require dataset composition, sample size, exclusions and limitat
 - Award prediction, evaluator profiling, brokering or influence services.
 - Native mobile application.
 - GCC/Arabic localisation.
-- Fully autonomous Valo-branded submission-ready packages without configured human QA.
+- Fully autonomous BidBox-branded submission-ready packages without configured human QA.

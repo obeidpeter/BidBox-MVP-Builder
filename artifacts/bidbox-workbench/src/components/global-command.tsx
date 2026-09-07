@@ -86,7 +86,7 @@ export function GlobalCommand({
       </button>
       <Dialog open={open} onOpenChange={setOpen}>
         <DialogContent className="max-h-[80dvh] max-w-2xl overflow-hidden p-0">
-          <DialogTitle className="sr-only">Search Valo</DialogTitle>
+          <DialogTitle className="sr-only">Search BidBox</DialogTitle>
           <div className="border-b border-border p-4">
             <div className="relative">
               <Search

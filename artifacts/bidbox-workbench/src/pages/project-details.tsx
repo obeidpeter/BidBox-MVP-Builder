@@ -425,7 +425,7 @@ export default function ProjectDetails() {
           Pursuit unavailable
         </h1>
         <p className="mt-2 text-sm text-muted-foreground">
-          Valo could not check this pursuit. The failed request does not show
+          BidBox could not check this pursuit. The failed request does not show
           that records are missing or that the pursuit is ready.
         </p>
         <p className="mt-3 rounded-md bg-muted px-3 py-2 text-xs text-muted-foreground">

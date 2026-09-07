@@ -446,7 +446,7 @@ async function seed() {
   if (isProductionRuntime(process.env)) {
     throw new Error("sample-data seeding is forbidden in production");
   }
-  console.log("Seeding Valo Bid Autopsy Workbench sample data...");
+  console.log("Seeding BidBox Bid Autopsy Workbench sample data...");
 
   const [existingSeedOrganisation] = await db
     .select({ id: organisations.id })
@@ -458,14 +458,14 @@ async function seed() {
       .insert(organisations)
       .values({
         id: seedOrganisationId,
-        name: "Valo Sample Workspace",
+        name: "BidBox Sample Workspace",
         slug: "valo-sample-workspace",
         type: "valo",
       })
       .onConflictDoUpdate({
         target: organisations.slug,
         set: {
-          name: "Valo Sample Workspace",
+          name: "BidBox Sample Workspace",
           status: "active",
           updatedAt: new Date(),
         },

@@ -6,7 +6,7 @@ import { applyPrivateDocumentMetadata } from "@/lib/private-document-metadata";
 
 export default function ProtectedApp() {
   useEffect(() => {
-    applyPrivateDocumentMetadata("Workspace | Valo");
+    applyPrivateDocumentMetadata("Workspace | BidBox");
   }, []);
 
   return (

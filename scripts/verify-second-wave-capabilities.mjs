@@ -20,7 +20,7 @@ export const REQUIRED_SECOND_WAVE_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/routes/index.ts",
       "artifacts/api-server/src/routes/retentionCompletion.ts",
       "lib/api-spec/openapi.yaml",
-      "artifacts/valo-workbench/src/pages/settings.tsx",
+      "artifacts/bidbox-workbench/src/pages/settings.tsx",
       "docs/second-wave/IMPLEMENTATION.md",
     ]),
     guardAssertions: Object.freeze([
@@ -182,7 +182,7 @@ function safeEvidencePath(root, path) {
 export function validateSecondWaveCapabilityRegistry(registry) {
   if (!isRecord(registry)) fail("registry must be an object");
   if (registry.schemaVersion !== 1) fail("schemaVersion must be 1");
-  if (registry.registryId !== "valo-product-capabilities/second-wave-v1") {
+  if (registry.registryId !== "bidbox-product-capabilities/second-wave-v1") {
     fail("registryId must identify the frozen second-wave registry");
   }
   if (
@@ -287,7 +287,7 @@ function parseJson(source, path) {
 function verifyRetentionActivation(manifest) {
   if (
     !isRecord(manifest) ||
-    manifest.manifestId !== "valo-retention-completion-activation/v1" ||
+    manifest.manifestId !== "bidbox-retention-completion-activation/v1" ||
     manifest.status !== "preconditions_open_workflow_disabled" ||
     manifest.workflow !== "durable_two_phase_detach_reconcile_certify" ||
     manifest.productionActivationGranted !== false
@@ -317,7 +317,7 @@ function verifyRetentionActivation(manifest) {
 function verifyControlledEvaluationActivation(manifest) {
   if (
     !isRecord(manifest) ||
-    manifest.controlId !== "valo-controlled-evaluation-runner/v1" ||
+    manifest.controlId !== "bidbox-controlled-evaluation-runner/v1" ||
     manifest.deliveryState !== "foundation_only" ||
     manifest.manifestBindingImplemented !== true ||
     manifest.tenantAndProjectBindingRequired !== true ||

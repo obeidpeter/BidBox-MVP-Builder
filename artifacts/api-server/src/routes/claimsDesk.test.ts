@@ -12,7 +12,7 @@ import type { AccessContext } from "../middlewares/tenancy";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_claims_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_claims_test";
 
 const { createClaimsDeskRouter } = await import("./claimsDesk");
 

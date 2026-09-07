@@ -54,7 +54,7 @@ Every third-party action in both release workflows is pinned to the reviewed
 40-character upstream commit. A version comment is descriptive only; the tag is
 never used for execution. The Anchore step disables its own artifact upload,
 release-asset upload and dependency-snapshot side effects. Only the final,
-digest-bound Valo bundle is uploaded. Re-resolve and review every upstream
+digest-bound BidBox bundle is uploaded. Re-resolve and review every upstream
 commit before changing a pin.
 
 For an offline rehearsal after both production builds and SBOM creation:
@@ -63,8 +63,8 @@ For an offline rehearsal after both production builds and SBOM creation:
 node scripts/release-provenance.mjs create \
   --expected-source-commit <full-current-HEAD> \
   --artifact api-server=artifacts/api-server/dist \
-  --artifact workbench=artifacts/valo-workbench/dist \
-  --sbom valo-sbom.cdx.json \
+  --artifact workbench=artifacts/bidbox-workbench/dist \
+  --sbom bidbox-sbom.cdx.json \
   --output release-evidence/release-manifest.json
 ```
 
@@ -82,7 +82,7 @@ checked-in `.replit-artifact/artifact.toml`, or another tracked source file. Do
 not paste credentials or the optional probe authorization value into source,
 workflow inputs, logs, or deployment records.
 
-The exact health routes publish `X-Valo-Release-Sha256` only when the configured
+The exact health routes publish `X-BidBox-Release-Sha256` only when the configured
 value is a lowercase 64-character digest. This is a deployment-controlled,
 environment-declared identity; it is not a hash measured from the running
 bytes. Liveness remains dependency-free and readiness still requires the

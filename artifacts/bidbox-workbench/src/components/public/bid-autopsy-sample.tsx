@@ -124,7 +124,7 @@ export function BidAutopsySample() {
         </div>
       </div>
       <figcaption className="border-t border-sidebar-border bg-sidebar-accent px-5 py-3 text-xs leading-5 text-sidebar-foreground/60">
-        This example shows how Valo reviews a bid. Valo confirms what it can
+        This example shows how BidBox reviews a bid. BidBox confirms what it can
         check for each piece of work.
       </figcaption>
     </figure>

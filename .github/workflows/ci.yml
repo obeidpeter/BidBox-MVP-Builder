@@ -1,4 +1,4 @@
-# Valo Bid Autopsy Workbench — CI
+# BidBox Bid Autopsy Workbench — CI
 #
 # Guards every push/PR with the deterministic verification stack:
 # typecheck, unit + DB-backed integration tests, both production builds,
@@ -173,23 +173,23 @@ jobs:
         run: pnpm install --frozen-lockfile
 
       - name: Workbench tests
-        run: pnpm --filter @workspace/valo-workbench test
+        run: pnpm --filter @workspace/bidbox-workbench test
 
       - name: Build workbench
         env:
           PORT: "5173"
           BASE_PATH: "/"
-        run: pnpm --filter @workspace/valo-workbench build
+        run: pnpm --filter @workspace/bidbox-workbench build
 
       - name: Enforce public route performance budget
-        run: pnpm --filter @workspace/valo-workbench budget:public
+        run: pnpm --filter @workspace/bidbox-workbench budget:public
 
       - name: Generate software bill of materials
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: .
           format: cyclonedx-json
-          output-file: valo-sbom.cdx.json
+          output-file: bidbox-sbom.cdx.json
           upload-artifact: false
           upload-release-assets: false
           dependency-snapshot: false
@@ -197,8 +197,8 @@ jobs:
       - name: Upload software bill of materials
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: valo-sbom
-          path: valo-sbom.cdx.json
+          name: bidbox-sbom
+          path: bidbox-sbom.cdx.json
           if-no-files-found: error
 
   # Keep this stable aggregate context for the protected-branch rule. It must

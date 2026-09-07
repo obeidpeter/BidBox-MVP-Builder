@@ -124,7 +124,7 @@ function phaseMessage(progress: ClientActionUploadProgress): string {
     case "checking":
       return "Checking the selected file against the acknowledged upload details.";
     case "leasing":
-      return "Requesting short-lived permission to upload this file. No file bytes are sent to the Valo API.";
+      return "Requesting short-lived permission to upload this file. No file bytes are sent to the BidBox API.";
     case "lease_ready":
       return `Temporary upload slot ${progress.replayed ? "reused" : "issued"}; it expires ${new Date(progress.expiresAt).toLocaleString("en-NG")}.`;
     case "transferring":
@@ -355,8 +355,8 @@ export function ClientActionUploadControl({
         <p className="mt-1 text-xs text-muted-foreground">
           Maximum {CLIENT_ACTION_UPLOAD_MAXIMUM_BYTES / 1024 / 1024} MB.
           Accepted MIME for this slot: {acceptedTypes.join(", ")}. Bytes go
-          directly to the short-lived signed storage URL; the Valo API receives
-          metadata and finalization only.
+          directly to the short-lived signed storage URL; the BidBox API
+          receives metadata and finalization only.
         </p>
         <p className="mt-1 break-all font-mono text-xs text-muted-foreground">
           Upload details: {binding.filename} /{" "}
@@ -496,8 +496,8 @@ export function ClientActionUploadControl({
       <p className="text-xs text-muted-foreground">
         Your upload slot lasts up to 15 minutes. Closing this page, discarding
         your selection or seeing an error does not confirm that the temporary
-        upload was deleted. Valo stops accepting data before time runs out, then
-        checks for late uploads and records cleanup.
+        upload was deleted. BidBox stops accepting data before time runs out,
+        then checks for late uploads and records cleanup.
       </p>
     </section>
   );

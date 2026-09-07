@@ -1,6 +1,6 @@
 /**
- * MOCKUP of the Valo sign-in landing ("The Sealed Dossier" — synthesized).
- * Mirror of artifacts/valo-workbench/src/pages/sign-in.tsx with the Clerk
+ * MOCKUP of the BidBox sign-in landing ("The Sealed Dossier" — synthesized).
+ * Mirror of artifacts/bidbox-workbench/src/pages/sign-in.tsx with the Clerk
  * widget replaced by a static stand-in card so it renders in the sandbox.
  */
 
@@ -12,11 +12,26 @@ function LedgerGrid() {
       className="pointer-events-none fixed inset-0 h-full w-full text-foreground"
     >
       <defs>
-        <pattern id="valo-page-grid" width="48" height="48" patternUnits="userSpaceOnUse">
-          <path d="M48 0H0V48" fill="none" stroke="currentColor" strokeWidth="0.5" />
+        <pattern
+          id="bidbox-page-grid"
+          width="48"
+          height="48"
+          patternUnits="userSpaceOnUse"
+        >
+          <path
+            d="M48 0H0V48"
+            fill="none"
+            stroke="currentColor"
+            strokeWidth="0.5"
+          />
         </pattern>
       </defs>
-      <rect width="100%" height="100%" fill="url(#valo-page-grid)" opacity="0.05" />
+      <rect
+        width="100%"
+        height="100%"
+        fill="url(#bidbox-page-grid)"
+        opacity="0.05"
+      />
     </svg>
   );
 }
@@ -28,11 +43,35 @@ function RegistrarSeal() {
       viewBox="0 0 120 120"
       className="h-24 w-24 text-primary sm:h-28 sm:w-28"
       role="img"
-      aria-label="Valo Workbench registrar's seal"
+      aria-label="BidBox Workbench registrar's seal"
     >
-      <circle cx="60" cy="60" r="58" fill="none" stroke="currentColor" strokeWidth="1" opacity="0.55" />
-      <circle cx="60" cy="60" r="55.5" fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.3" />
-      <circle cx="60" cy="60" r="41" fill="none" stroke="currentColor" strokeWidth="0.75" opacity="0.45" />
+      <circle
+        cx="60"
+        cy="60"
+        r="58"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="1"
+        opacity="0.55"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="55.5"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        opacity="0.3"
+      />
+      <circle
+        cx="60"
+        cy="60"
+        r="41"
+        fill="none"
+        stroke="currentColor"
+        strokeWidth="0.75"
+        opacity="0.45"
+      />
       <circle
         cx="60"
         cy="60"
@@ -50,14 +89,25 @@ function RegistrarSeal() {
       <g className="origin-center animate-[spin_120s_linear_infinite] motion-reduce:animate-none">
         <defs>
           <path
-            id="valo-seal-path"
+            id="bidbox-seal-path"
             d="M 60,60 m -48,0 a 48,48 0 1,1 96,0 a 48,48 0 1,1 -96,0"
             fill="none"
           />
         </defs>
-        <text className="font-mono uppercase" fontSize="6.4" fill="currentColor" opacity="0.75">
-          <textPath href="#valo-seal-path" startOffset="0" textLength="301" lengthAdjust="spacingAndGlyphs">
-            Valo Bid Autopsy Workbench · Forensic Review · Chain of Custody ·&#160;
+        <text
+          className="font-mono uppercase"
+          fontSize="6.4"
+          fill="currentColor"
+          opacity="0.75"
+        >
+          <textPath
+            href="#bidbox-seal-path"
+            startOffset="0"
+            textLength="301"
+            lengthAdjust="spacingAndGlyphs"
+          >
+            BidBox Bid Autopsy Workbench · Forensic Review · Chain of Custody
+            ·&#160;
           </textPath>
         </text>
       </g>
@@ -73,7 +123,15 @@ function RegistrarSeal() {
       >
         VW
       </text>
-      <line x1="47" y1="70.5" x2="73" y2="70.5" stroke="currentColor" strokeWidth="0.5" opacity="0.5" />
+      <line
+        x1="47"
+        y1="70.5"
+        x2="73"
+        y2="70.5"
+        stroke="currentColor"
+        strokeWidth="0.5"
+        opacity="0.5"
+      />
       <text
         x="60"
         y="78"
@@ -105,7 +163,9 @@ function DoubleRule({ className = "" }: { className?: string }) {
 function ClerkCardStandIn() {
   return (
     <div className="w-full max-w-[400px] rounded-lg bg-card p-8">
-      <h2 className="text-center font-serif text-xl text-foreground">Sign in to Valo Workbench</h2>
+      <h2 className="text-center font-serif text-xl text-foreground">
+        Sign in to BidBox Workbench
+      </h2>
       <p className="mt-1 text-center text-sm text-muted-foreground">
         Welcome back! Please sign in to continue
       </p>
@@ -145,9 +205,7 @@ export default function SignInLanding() {
       {/* ── Dossier cover ────────────────────────────────────────────────── */}
       <main className="relative mx-auto flex w-full max-w-md flex-1 flex-col items-center px-4 py-10 sm:max-w-lg sm:py-12">
         {/* Seal + masthead */}
-        <section
-          className="flex w-full flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 fill-mode-both duration-700"
-        >
+        <section className="flex w-full flex-col items-center text-center animate-in fade-in slide-in-from-bottom-4 fill-mode-both duration-700">
           <RegistrarSeal />
 
           <DoubleRule className="mt-8 w-full" />
@@ -156,7 +214,7 @@ export default function SignInLanding() {
             Bid Autopsy Workbench
           </h1>
           <p className="mt-3 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
-            Valo &middot; Forensic tender review &middot; Nigeria
+            BidBox &middot; Forensic tender review &middot; Nigeria
           </p>
 
           <DoubleRule className="mt-6 w-full" />
@@ -181,10 +239,22 @@ export default function SignInLanding() {
 
           <div className="relative border border-border bg-card shadow-sm">
             {/* Registration corner marks */}
-            <span aria-hidden="true" className="absolute -left-px -top-px h-3 w-3 border-l-2 border-t-2 border-primary" />
-            <span aria-hidden="true" className="absolute -right-px -top-px h-3 w-3 border-r-2 border-t-2 border-primary" />
-            <span aria-hidden="true" className="absolute -bottom-px -left-px h-3 w-3 border-b-2 border-l-2 border-primary" />
-            <span aria-hidden="true" className="absolute -bottom-px -right-px h-3 w-3 border-b-2 border-r-2 border-primary" />
+            <span
+              aria-hidden="true"
+              className="absolute -left-px -top-px h-3 w-3 border-l-2 border-t-2 border-primary"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute -right-px -top-px h-3 w-3 border-r-2 border-t-2 border-primary"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-px -left-px h-3 w-3 border-b-2 border-l-2 border-primary"
+            />
+            <span
+              aria-hidden="true"
+              className="absolute -bottom-px -right-px h-3 w-3 border-b-2 border-r-2 border-primary"
+            />
 
             {/* Exhibit tab set into the top rule */}
             <p className="absolute -top-2 left-1/2 -translate-x-1/2 whitespace-nowrap bg-background px-3 font-mono text-[10px] uppercase tracking-[0.28em] text-muted-foreground">
@@ -205,9 +275,12 @@ export default function SignInLanding() {
       {/* ── Provenance strip ─────────────────────────────────────────────── */}
       <footer className="relative border-t border-border bg-background">
         <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-1 px-6 py-3 font-mono text-[9px] uppercase tracking-[0.22em] text-muted-foreground sm:px-10 sm:text-[10px]">
-          <span>Engine valo-autopsy-engine/gate0-v1</span>
+          <span>Engine bidbox-autopsy-engine/gate0-v1</span>
           <span className="hidden items-center gap-1.5 md:flex">
-            <span aria-hidden="true" className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-600" />
+            <span
+              aria-hidden="true"
+              className="inline-block h-1.5 w-1.5 rounded-full bg-emerald-600"
+            />
             SHA-256 audit chain &middot; Named-reviewer sign-off
           </span>
           <span>Confidential</span>

@@ -71,6 +71,9 @@ app.use(
       "Idempotency-Key",
       "If-Match",
       "X-Request-Id",
+      "X-BidBox-Organisation-Id",
+      "X-BidBox-Break-Glass-Session",
+      // Legacy names accepted for one release (see middlewares/tenancy.ts).
       "X-Valo-Organisation-Id",
       "X-Valo-Break-Glass-Session",
     ],
@@ -126,7 +129,7 @@ app.use(
     max: rateLimitMax,
   }),
 );
-// Keep the bounded Valo limiter authoritative, then layer a supported limiter
+// Keep the bounded BidBox limiter authoritative, then layer a supported limiter
 // for framework-aware security tooling and defence in depth. Doubling the
 // secondary fixed-window allowance prevents it from rejecting traffic that the
 // primary per-client fixed window accepted across a secondary window boundary.
@@ -138,7 +141,7 @@ app.use(
     legacyHeaders: false,
     skip: (req) => req.method === "OPTIONS" || req.path === "/healthz",
     // Match the primary limiter's exact-IP grouping. The default IPv6 subnet
-    // grouping would otherwise combine clients the Valo policy keeps separate.
+    // grouping would otherwise combine clients the BidBox policy keeps separate.
     keyGenerator: (req) => req.ip || req.socket.remoteAddress || "unknown",
     validate: { keyGeneratorIpFallback: false },
     passOnStoreError: false,

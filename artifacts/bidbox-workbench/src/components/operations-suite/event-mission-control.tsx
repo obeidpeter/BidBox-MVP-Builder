@@ -82,8 +82,9 @@ export function EventMissionControl({
       busy={state === "loading"}
     >
       <HumanAuthorityNotice title="Attendance boundary">
-        Valo cannot attend, sign a register or prove presence. A named delegate
-        performs the visit and a reviewer validates the resulting proof.
+        BidBox cannot attend, sign a register or prove presence. A named
+        delegate performs the visit and a reviewer validates the resulting
+        proof.
       </HumanAuthorityNotice>
 
       {boundary ?? (

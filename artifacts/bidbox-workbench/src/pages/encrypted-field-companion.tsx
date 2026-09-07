@@ -640,9 +640,9 @@ export default function EncryptedFieldCompanionPage() {
         <CardContent className="space-y-3">
           <p className="text-sm text-muted-foreground">
             This deletes this signed-in user&apos;s local encryption key and all
-            of their Valo field drafts across every organisation in this browser
-            profile. Other users&apos; actor-bound drafts are not opened or
-            deleted. It cannot be undone.
+            of their BidBox field drafts across every organisation in this
+            browser profile. Other users&apos; actor-bound drafts are not opened
+            or deleted. It cannot be undone.
           </p>
           <div className="flex flex-col gap-2 sm:flex-row">
             <Input
@@ -672,7 +672,7 @@ export default function EncryptedFieldCompanionPage() {
                   })
                   .catch(() =>
                     setError(
-                      "The local device store could not be wiped. Close other Valo tabs and retry.",
+                      "The local device store could not be wiped. Close other BidBox tabs and retry.",
                     ),
                   )
                   .finally(() => {

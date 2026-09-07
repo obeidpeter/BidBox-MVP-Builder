@@ -1,13 +1,14 @@
 ---
-name: Valo web Clerk auth transport
-description: Why the valo-workbench web app must use Clerk session cookies, never setAuthTokenGetter/Bearer tokens.
+name: BidBox web Clerk auth transport
+description: Why the bidbox-workbench web app must use Clerk session cookies, never setAuthTokenGetter/Bearer tokens.
 ---
 
-The valo-workbench **web** app authenticates to the api-server via Clerk's **session cookie** (`__session`), which `clerkMiddleware` + `getAuth` read server-side. Same-origin `/api` fetches send the cookie automatically; the Vite dev proxy (`/api` → api-server) forwards it.
+The bidbox-workbench **web** app authenticates to the api-server via Clerk's **session cookie** (`__session`), which `clerkMiddleware` + `getAuth` read server-side. Same-origin `/api` fetches send the cookie automatically; the Vite dev proxy (`/api` → api-server) forwards it.
 
-**Rule:** Never wire `setAuthTokenGetter` / `getToken()` / `Authorization: Bearer` in the web app. That transport is **mobile/Expo-only** (no browser cookie jar). `setAuthTokenGetter` stays exported from `@workspace/api-client-react` for mobile, but must not be *called* on web.
+**Rule:** Never wire `setAuthTokenGetter` / `getToken()` / `Authorization: Bearer` in the web app. That transport is **mobile/Expo-only** (no browser cookie jar). `setAuthTokenGetter` stays exported from `@workspace/api-client-react` for mobile, but must not be _called_ on web.
 
 **Why:** A prior `use-auth-sync.ts` hook called `setAuthTokenGetter(() => getToken())` in the web app and produced a permanent "Authentication Failed" screen (rendered by `layout.tsx` when `useGetMe()` errors). Two failure modes:
+
 - First-render race: `useGetMe()` lives in `Layout` (child), the token getter was set by `useAuthSync()` in `ProtectedApp` (parent). Effects run child-first, so the first `/api/me` went out with no token → 401. React Query has `retry:false`, so one miss = permanent failure until reload.
 - Clerk session tokens from `getToken()` expire ~60s, adding intermittent 401s.
 

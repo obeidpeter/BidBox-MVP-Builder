@@ -28,7 +28,7 @@ test("full-cycle evidence carries every incomplete page across invocations", () 
   }
   assert.match(
     runner,
-    /"valo\.storage\.deletion_sample_complete":\s*fullCycleComplete \? 1 : 0/u,
+    /"bidbox\.storage\.deletion_sample_complete":\s*fullCycleComplete \? 1 : 0/u,
   );
   assert.match(
     runner,

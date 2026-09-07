@@ -1,4 +1,4 @@
-VALO
+BidBox
 Bid Autopsy Report
 Supply of Laboratory Equipment VMT-2026-014
 Client: Acme Integrated Services Ltd   |   Version 1   |   Generated 1 Jul 2026, 10:00
@@ -212,5 +212,5 @@ Reviewer name: ______________________________
 Attestation: ________________________________
 Date: _______________________________________
 Process Warranty
-Valo does not warrant contract award, evaluator behaviour, or acceptance of the package. Valo warrants the reviewed process applied to the materials provided: requirement extraction, deterministic verification, and named human review.
+BidBox does not warrant contract award, evaluator behaviour, or acceptance of the package. BidBox warrants the reviewed process applied to the materials provided: requirement extraction, deterministic verification, and named human review.
 Engine: valo-autopsy-engine/ai-foundation-v1 · Prompt pack: ai-foundation-v1 · Model: gpt-5.4 · Taxonomy: ng-defects-v1.0.0

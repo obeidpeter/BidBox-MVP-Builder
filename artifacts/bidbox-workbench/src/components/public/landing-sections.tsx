@@ -51,7 +51,7 @@ const process = [
   {
     number: "02",
     title: "List and verify the requirements",
-    body: "Valo turns tender instructions into a structured list with page and clause references. A named person must confirm every suggested item.",
+    body: "BidBox turns tender instructions into a structured list with page and clause references. A named person must confirm every suggested item.",
   },
   {
     number: "03",
@@ -107,7 +107,7 @@ const differentiators = [
   [
     Calculator,
     "Rule-based calculations",
-    "Valo calculates figures with fixed rules instead of asking an AI model.",
+    "BidBox calculates figures with fixed rules instead of asking an AI model.",
   ],
   [
     UserRoundCheck,
@@ -161,28 +161,28 @@ const faqs = [
     "It is a structured review of a tender package against the published requirements. The agreed report can include a requirements list linked to source clauses, an issues list, evidence and bill of quantities (BOQ) findings, issue priorities and an action plan.",
   ],
   [
-    "Does Valo guarantee an award?",
-    "No. Valo helps a team find and fix problems within its control. It cannot guarantee an evaluator’s decision, acceptance of a package or contract award.",
+    "Does BidBox guarantee an award?",
+    "No. BidBox helps a team find and fix problems within its control. It cannot guarantee an evaluator’s decision, acceptance of a package or contract award.",
   ],
   [
-    "Can Valo review a live bid?",
-    "Yes, if Valo can agree what the review will cover and how long it will take, clear any conflicts and approve a secure document-sharing process. The public request form does not accept tender documents.",
+    "Can BidBox review a live bid?",
+    "Yes, if BidBox can agree what the review will cover and how long it will take, clear any conflicts and approve a secure document-sharing process. The public request form does not accept tender documents.",
   ],
   [
-    "Can Valo review a previously unsuccessful bid?",
+    "Can BidBox review a previously unsuccessful bid?",
     "Yes. An after-the-event review can compare the submitted package, available feedback and published criteria. It clearly separates documented facts from conclusions.",
   ],
   [
     "Must financial pages be shared?",
-    "Not for the first contact. If the review includes a bill of quantities (BOQ), share only the necessary commercial pages later through the approved secure process. Valo does not set prices.",
+    "Not for the first contact. If the review includes a bill of quantities (BOQ), share only the necessary commercial pages later through the approved secure process. BidBox does not set prices.",
   ],
   [
     "What documents are required?",
-    "That depends on the agreed review. Valo may later need the tender, clarifications, the draft or submitted response and selected evidence. Do not send any of these through the public form.",
+    "That depends on the agreed review. BidBox may later need the tender, clarifications, the draft or submitted response and selected evidence. Do not send any of these through the public form.",
   ],
   [
-    "Does Valo create commercial pricing?",
-    "No. Valo can check the calculations and consistency of client-supplied figures. The client remains responsible for rates, assumptions and pricing strategy.",
+    "Does BidBox create commercial pricing?",
+    "No. BidBox can check the calculations and consistency of client-supplied figures. The client remains responsible for rates, assumptions and pricing strategy.",
   ],
   [
     "How is information protected?",
@@ -190,15 +190,15 @@ const faqs = [
   ],
   [
     "How long does the process take?",
-    "Valo confirms timing after it understands what the review will cover, the number of documents, the deadline and the level of review. It does not promise a fixed turnaround before that assessment.",
+    "BidBox confirms timing after it understands what the review will cover, the number of documents, the deadline and the level of review. It does not promise a fixed turnaround before that assessment.",
   ],
   [
     "What happens after the Autopsy?",
-    "Your team receives the agreed findings and priorities, then decides what to fix. Any further Valo support is agreed separately, and the client remains responsible for its bid decisions.",
+    "Your team receives the agreed findings and priorities, then decides what to fix. Any further BidBox support is agreed separately, and the client remains responsible for its bid decisions.",
   ],
   [
-    "Can Valo help correct the identified problems?",
-    "Yes, when Valo has the right capability and enough time, and the agreed work allows it. The review remains useful even if the client fixes the problems without further help.",
+    "Can BidBox help correct the identified problems?",
+    "Yes, when BidBox has the right capability and enough time, and the agreed work allows it. The review remains useful even if the client fixes the problems without further help.",
   ],
 ] as const;
 
@@ -271,9 +271,9 @@ export function LandingSections() {
               A good bid can be rejected before anyone considers its strengths.
             </h2>
             <p className="mt-6 max-w-xl text-base leading-7 text-muted-foreground">
-              Valo focuses on problems a team can prevent: a missing record, an
-              unanswered instruction or an inconsistency that breaks a published
-              rule.
+              BidBox focuses on problems a team can prevent: a missing record,
+              an unanswered instruction or an inconsistency that breaks a
+              published rule.
             </p>
           </div>
           <ul className="border-t border-border">
@@ -310,7 +310,7 @@ export function LandingSections() {
                 A practical report, not a generic proposal review.
               </h2>
               <p className="mt-5 text-base leading-7 text-muted-foreground">
-                The agreed report shows what Valo checked, where each
+                The agreed report shows what BidBox checked, where each
                 requirement came from, what evidence was found, what remains at
                 risk and what to do next. It also states what the review did and
                 did not cover.
@@ -389,7 +389,7 @@ export function LandingSections() {
               Follow each tender rule through to the next action.
             </h2>
             <p className="mt-6 max-w-3xl text-base leading-7 text-sidebar-foreground/70">
-              Valo separates the source, requirement, evidence, finding and
+              BidBox separates the source, requirement, evidence, finding and
               action. A reviewer can question a conclusion and still see what
               supports it.
             </p>
@@ -408,10 +408,10 @@ export function LandingSections() {
               Optional follow-on support
             </p>
             <h2 className="public-display mt-5 text-balance text-4xl font-medium leading-[1.02] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
-              Start with the review. Continue only where Valo can help.
+              Start with the review. Continue only where BidBox can help.
             </h2>
             <p className="mt-5 text-sm leading-6 text-muted-foreground">
-              Valo confirms the available service, work and price for each
+              BidBox confirms the available service, work and price for each
               client agreement. A Bid Autopsy is the starting point.
             </p>
           </div>
@@ -440,7 +440,7 @@ export function LandingSections() {
         <div className="content-shell py-20 sm:py-24 lg:py-32">
           <div className="max-w-5xl">
             <p className="text-sm font-semibold uppercase tracking-[0.14em] text-primary">
-              Why Valo
+              Why BidBox
             </p>
             <h2 className="public-display mt-5 text-balance text-4xl font-medium leading-[1.02] tracking-[-0.05em] sm:text-5xl lg:text-6xl">
               Built around evidence a reviewer can trace.

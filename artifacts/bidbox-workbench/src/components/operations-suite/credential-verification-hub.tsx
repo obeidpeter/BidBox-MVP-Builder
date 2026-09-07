@@ -64,7 +64,7 @@ export function CredentialVerificationHub({
       busy={state === "loading"}
     >
       <HumanAuthorityNotice title="Issuer authority">
-        Valo records a check; it does not impersonate an issuer or declare a
+        BidBox records a check; it does not impersonate an issuer or declare a
         credential genuine. The named checker must use the issuer&apos;s
         official service and keep the check receipt. The selected source
         document must not be quarantined, but this current record does not prove

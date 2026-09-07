@@ -38,7 +38,7 @@ export function ClientEvidenceRequestPanel({
   return (
     <Panel
       title="3. Client evidence request"
-      description="Valo records the request and later records the named person's manual sharing, uploaded document hash, signed confirmation and reasoned review decision. It sends nothing."
+      description="BidBox records the request and later records the named person's manual sharing, uploaded document hash, signed confirmation and reasoned review decision. It sends nothing."
       allowed={permissions.evidenceWrite || permissions.evidenceApprove}
       unavailableReason="Evidence write or approval permission is required."
       disabled={disabled}

@@ -20,7 +20,7 @@ describe("public SEO and privacy boundary", () => {
     expect(html).not.toContain("fonts.googleapis.com");
     expect(html).toContain("bill of quantities (BOQ)");
     expect(html).toContain(
-      "Turn on JavaScript to view Valo's public pages or sign in securely.",
+      "Turn on JavaScript to view BidBox's public pages or sign in securely.",
     );
     expect(html).not.toContain("responsiveness risks");
   });
@@ -160,7 +160,7 @@ describe("public SEO and privacy boundary", () => {
     expect(terms).toContain("before a named person reviews it");
     expect(terms).toContain("required readiness, security or service checks");
     expect(signIn).toContain(
-      "Valo must also confirm an active membership for your",
+      "BidBox must also confirm an active membership for your",
     );
     expect(signIn).not.toContain("membership approved by your organisation");
   });

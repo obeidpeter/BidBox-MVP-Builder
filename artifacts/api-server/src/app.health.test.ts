@@ -16,8 +16,8 @@ process.env.CLERK_PUBLISHABLE_KEY = `pk_test_${Buffer.from(
 ).toString("base64url")}`;
 process.env.CLERK_SECRET_KEY = ["sk", "test", "liveness-boundary"].join("_");
 process.env.CLERK_TELEMETRY_DISABLED = "1";
-process.env.CORS_ALLOWED_ORIGINS = "https://valo.example";
-process.env.DATABASE_URL = "postgresql://test:test@127.0.0.1:1/valo_app_test";
+process.env.CORS_ALLOWED_ORIGINS = "https://bidbox.example";
+process.env.DATABASE_URL = "postgresql://test:test@127.0.0.1:1/bidbox_app_test";
 process.env.NODE_ENV = "test";
 
 const { default: app } = await import("./app");
@@ -101,7 +101,7 @@ describe("application liveness boundary", () => {
   it("keeps every protected endpoint behind Clerk", async () => {
     const [publicHostResponse, internalHostResponse] = await Promise.all([
       fetch(`${origin}/api/me`, {
-        headers: { Host: "valo.example" },
+        headers: { Host: "bidbox.example" },
       }),
       fetch(`${origin}/api/me`, {
         headers: { Host: "127.0.0.1:8080" },
@@ -118,13 +118,13 @@ describe("application liveness boundary", () => {
       await Promise.all([
         fetch(`${origin}/api/healthz`, {
           method: "POST",
-          headers: { Host: "valo.example" },
+          headers: { Host: "bidbox.example" },
         }),
         fetch(`${origin}/api/healthz/extra`, {
-          headers: { Host: "valo.example" },
+          headers: { Host: "bidbox.example" },
         }),
         fetch(`${origin}/api/readyz/extra`, {
-          headers: { Host: "valo.example" },
+          headers: { Host: "bidbox.example" },
         }),
       ]);
 

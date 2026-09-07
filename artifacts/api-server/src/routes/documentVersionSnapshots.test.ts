@@ -8,7 +8,7 @@ import type { DocumentVersionSnapshotRouterOptions } from "./documentVersionSnap
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_document_snapshot_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_document_snapshot_test";
 
 const { createDocumentVersionSnapshotRouter } =
   await import("./documentVersionSnapshots");
@@ -131,7 +131,7 @@ describe("document-version snapshot route authority", () => {
       assert.equal(response.headers.get("cache-control"), "private, no-store");
       assert.match(
         response.headers.get("vary") ?? "",
-        /X-Valo-Organisation-Id/u,
+        /X-BidBox-Organisation-Id/u,
       );
     }
     currentAccess = access(READ, "break_glass");

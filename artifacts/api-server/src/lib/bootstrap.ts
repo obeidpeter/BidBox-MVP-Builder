@@ -37,7 +37,7 @@ export function isBootstrapIdentity(
 }
 
 /**
- * The initial Valo tenant is a deployment configuration, never an implicit
+ * The initial BidBox tenant is a deployment configuration, never an implicit
  * reward for being the first caller. Enabling it without complete, valid
  * values fails loudly instead of guessing an organisation identity.
  */

@@ -1,7 +1,7 @@
 import type { ClientActionUploadBinding } from "./client-action-upload-contract";
 
 const RECOVERY_SCHEMA = "valo.client-action-upload-recovery/v1" as const;
-const PREFIX = "valo:client-action-upload-recovery:v1:";
+const PREFIX = "bidbox:client-action-upload-recovery:v1:";
 const UUID =
   /^[0-9a-f]{8}-[0-9a-f]{4}-[1-8][0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$/u;
 const SAFE_KEY = /^[^\u0000-\u001f\u007f\ud800-\udfff]{16,128}$/u;

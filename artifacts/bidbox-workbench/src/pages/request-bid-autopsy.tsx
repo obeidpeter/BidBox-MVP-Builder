@@ -319,7 +319,7 @@ export default function RequestBidAutopsyPage() {
       return {
         title: "We could not confirm your request.",
         message:
-          "Check your connection and try again. If the details are unchanged, Valo will retry the same request instead of creating a duplicate.",
+          "Check your connection and try again. If the details are unchanged, BidBox will retry the same request instead of creating a duplicate.",
         retryable: true,
       };
     }
@@ -331,7 +331,7 @@ export default function RequestBidAutopsyPage() {
           : " Wait before trying again.";
       return {
         title: "Please wait before trying again.",
-        message: `Valo is temporarily limiting repeated requests.${wait} Your form details remain on this page.`,
+        message: `BidBox is temporarily limiting repeated requests.${wait} Your form details remain on this page.`,
         retryable: true,
       };
     }
@@ -349,7 +349,7 @@ export default function RequestBidAutopsyPage() {
       return {
         title: "This request page was refreshed.",
         message:
-          "Review the form, wait a moment, then submit it again. If this message returns, stop retrying and reload the official Valo page.",
+          "Review the form, wait a moment, then submit it again. If this message returns, stop retrying and reload the official BidBox page.",
         retryable: true,
       };
     }
@@ -357,7 +357,7 @@ export default function RequestBidAutopsyPage() {
       return {
         title: "This page cannot accept your request.",
         message:
-          "Do not keep retrying. Return to the official Valo site, then reopen the Bid Autopsy request page.",
+          "Do not keep retrying. Return to the official BidBox site, then reopen the Bid Autopsy request page.",
         retryable: false,
       };
     }
@@ -365,14 +365,14 @@ export default function RequestBidAutopsyPage() {
       return {
         title: "Bid Autopsy requests are temporarily unavailable.",
         message:
-          "We could not confirm your request. Keep the details on this page and try again later. Valo will safely reuse the same request.",
+          "We could not confirm your request. Keep the details on this page and try again later. BidBox will safely reuse the same request.",
         retryable: true,
       };
     }
     return {
       title: "We could not confirm your request.",
       message:
-        "Try again with the same details. Valo will reuse the request instead of creating a duplicate.",
+        "Try again with the same details. BidBox will reuse the request instead of creating a duplicate.",
       retryable: true,
     };
   }
@@ -466,7 +466,7 @@ export default function RequestBidAutopsyPage() {
     <PublicShell>
       <PublicMeta
         title="Request a Bid Autopsy"
-        description="Ask Valo for a Bid Autopsy using ordinary business contact details. Share tender documents only after the client agreement and secure document-sharing process are approved."
+        description="Ask BidBox for a Bid Autopsy using ordinary business contact details. Share tender documents only after the client agreement and secure document-sharing process are approved."
         path="/request-bid-autopsy"
       />
 
@@ -509,7 +509,7 @@ export default function RequestBidAutopsyPage() {
                 <span className="font-mono">{receipt.requestId}</span>
               </p>
               <Button asChild variant="outline" className="mt-8 min-h-11">
-                <Link href="/">Return to Valo</Link>
+                <Link href="/">Return to BidBox</Link>
               </Button>
             </div>
           ) : (
@@ -842,7 +842,7 @@ export default function RequestBidAutopsyPage() {
                       href={`${APPROVED_PUBLIC_ORIGIN}/`}
                       className="mt-3 inline-flex min-h-11 items-center font-medium text-primary underline underline-offset-2"
                     >
-                      Return to Valo
+                      Return to BidBox
                     </a>
                   ) : null}
                 </div>
@@ -897,10 +897,10 @@ export default function RequestBidAutopsyPage() {
           </h2>
           <ul className="mt-5 space-y-5">
             {[
-              "Valo records the business contact details it needs to assess your request.",
+              "BidBox records the business contact details it needs to assess your request.",
               "This form does not ask for tender files or sensitive financial schedules.",
-              "Valo agrees the work, checks for conflicts and approves a secure sharing process before any documents are shared.",
-              "Valo confirms timing only after it understands the review.",
+              "BidBox agrees the work, checks for conflicts and approves a secure sharing process before any documents are shared.",
+              "BidBox confirms timing only after it understands the review.",
             ].map((item) => (
               <li
                 key={item}

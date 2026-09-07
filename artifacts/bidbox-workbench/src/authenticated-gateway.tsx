@@ -91,8 +91,8 @@ function MissingIdentityConfiguration() {
         </p>
         <h1 className="mt-3 text-xl font-semibold">Sign-in is not available</h1>
         <p className="mt-2 text-sm leading-6 text-muted-foreground">
-          Valo's sign-in service has not been set up. To protect your data, the
-          app will remain locked until it can verify your identity.
+          BidBox's sign-in service has not been set up. To protect your data,
+          the app will remain locked until it can verify your identity.
         </p>
       </section>
     </main>

@@ -24,7 +24,7 @@ vi.mock("@/hooks/use-toast", () => ({
 }));
 
 describe("AccountPage", () => {
-  it("shows the current user's Valo ID alongside profile and security details", () => {
+  it("shows the current user's BidBox ID alongside profile and security details", () => {
     render(<AccountPage />);
 
     expect(
@@ -32,10 +32,10 @@ describe("AccountPage", () => {
     ).toBeInTheDocument();
     expect(screen.getByText("Example Organisation")).toBeInTheDocument();
     expect(
-      screen.getByRole("region", { name: "Valo user ID" }),
+      screen.getByRole("region", { name: "BidBox user ID" }),
     ).toHaveTextContent(USER_ID);
     expect(
-      screen.getByRole("button", { name: "Copy Valo user ID" }),
+      screen.getByRole("button", { name: "Copy BidBox user ID" }),
     ).toBeInTheDocument();
     expect(screen.getByText("Clerk security profile")).toBeInTheDocument();
   });

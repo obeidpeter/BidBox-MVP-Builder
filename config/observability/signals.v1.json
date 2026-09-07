@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryVersion": "valo-operational-signals/v1",
+  "registryVersion": "bidbox-operational-signals/v1",
   "status": "source_registry_complete_deployment_mapping_required",
   "allowedLabelKeys": ["bucket", "channel", "state", "status_class"],
   "signals": [
@@ -53,7 +53,7 @@
       "labels": []
     },
     {
-      "name": "valo.database.pool_connections",
+      "name": "bidbox.database.pool_connections",
       "type": "gauge",
       "unit": "connections",
       "source": "api_runtime",
@@ -61,7 +61,7 @@
       "labels": ["state"]
     },
     {
-      "name": "valo.runtime.uptime_seconds",
+      "name": "bidbox.runtime.uptime_seconds",
       "type": "gauge",
       "unit": "seconds",
       "source": "api_runtime",
@@ -69,7 +69,7 @@
       "labels": []
     },
     {
-      "name": "valo.runtime.lifecycle",
+      "name": "bidbox.runtime.lifecycle",
       "type": "gauge",
       "unit": "boolean",
       "source": "api_runtime",
@@ -77,7 +77,7 @@
       "labels": ["state"]
     },
     {
-      "name": "valo.observability.delivery_connected",
+      "name": "bidbox.observability.delivery_connected",
       "type": "gauge",
       "unit": "boolean",
       "source": "api_runtime",
@@ -85,7 +85,7 @@
       "labels": ["channel"]
     },
     {
-      "name": "valo.processing_jobs.failure_ratio",
+      "name": "bidbox.processing_jobs.failure_ratio",
       "type": "gauge",
       "unit": "ratio",
       "source": "durable_worker_adapter",
@@ -93,7 +93,7 @@
       "labels": []
     },
     {
-      "name": "valo.extraction.mandatory_recall",
+      "name": "bidbox.extraction.mandatory_recall",
       "type": "gauge",
       "unit": "ratio",
       "source": "promoted_holdout_evidence",
@@ -101,7 +101,7 @@
       "labels": []
     },
     {
-      "name": "valo.security.tenant_denials",
+      "name": "bidbox.security.tenant_denials",
       "type": "counter",
       "unit": "denials",
       "source": "security_event_adapter",
@@ -109,7 +109,7 @@
       "labels": []
     },
     {
-      "name": "valo.engagement.sla_breaches",
+      "name": "bidbox.engagement.sla_breaches",
       "type": "gauge",
       "unit": "engagements",
       "source": "operations_projection_adapter",
@@ -117,7 +117,7 @@
       "labels": []
     },
     {
-      "name": "valo.notifications.final_failure_count",
+      "name": "bidbox.notifications.final_failure_count",
       "type": "gauge",
       "unit": "deliveries",
       "source": "notification_reconciler_adapter",
@@ -125,7 +125,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_dead_letter_transitions",
+      "name": "bidbox.storage.deletion_dead_letter_transitions",
       "type": "counter_delta",
       "unit": "transitions",
       "source": "storage_deletion_reconciliation",
@@ -133,7 +133,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_oldest_sampled_age_seconds",
+      "name": "bidbox.storage.deletion_oldest_sampled_age_seconds",
       "type": "gauge",
       "unit": "seconds",
       "source": "storage_deletion_reconciliation",
@@ -141,7 +141,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_sample_complete",
+      "name": "bidbox.storage.deletion_sample_complete",
       "type": "gauge",
       "unit": "boolean",
       "source": "storage_deletion_reconciliation",
@@ -149,7 +149,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_run_success",
+      "name": "bidbox.storage.deletion_run_success",
       "type": "gauge",
       "unit": "boolean",
       "source": "storage_deletion_reconciliation",
@@ -157,7 +157,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_last_success_unixtime_seconds",
+      "name": "bidbox.storage.deletion_last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "successful_storage_deletion_reconciliation",
@@ -165,7 +165,7 @@
       "labels": []
     },
     {
-      "name": "valo.storage.deletion_last_full_cycle_unixtime_seconds",
+      "name": "bidbox.storage.deletion_last_full_cycle_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "storage_deletion_reconciliation_when_cycle_complete",
@@ -173,7 +173,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.scan_run_success",
+      "name": "bidbox.retention.scan_run_success",
       "type": "gauge",
       "unit": "boolean",
       "source": "retention_scan",
@@ -181,7 +181,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.scan_last_success_unixtime_seconds",
+      "name": "bidbox.retention.scan_last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "retention_scan",
@@ -189,7 +189,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.scan_last_full_cycle_unixtime_seconds",
+      "name": "bidbox.retention.scan_last_full_cycle_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "successful_complete_retention_scan_cycle",
@@ -197,7 +197,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.cycle_complete",
+      "name": "bidbox.retention.cycle_complete",
       "type": "gauge",
       "unit": "boolean",
       "source": "retention_scan",
@@ -205,7 +205,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.missing_conclusion_anchors",
+      "name": "bidbox.retention.missing_conclusion_anchors",
       "type": "gauge",
       "unit": "projects",
       "source": "retention_scan",
@@ -213,7 +213,7 @@
       "labels": []
     },
     {
-      "name": "valo.retention.tenant_failures",
+      "name": "bidbox.retention.tenant_failures",
       "type": "gauge",
       "unit": "tenants",
       "source": "retention_scan",
@@ -221,7 +221,7 @@
       "labels": []
     },
     {
-      "name": "valo.intake.purge_run_success",
+      "name": "bidbox.intake.purge_run_success",
       "type": "gauge",
       "unit": "boolean",
       "source": "public_intake_purge",
@@ -229,7 +229,7 @@
       "labels": []
     },
     {
-      "name": "valo.intake.purge_last_success_unixtime_seconds",
+      "name": "bidbox.intake.purge_last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "public_intake_purge",
@@ -237,7 +237,7 @@
       "labels": []
     },
     {
-      "name": "valo.authenticated_rate_limit.purge_run_success",
+      "name": "bidbox.authenticated_rate_limit.purge_run_success",
       "type": "gauge",
       "unit": "boolean",
       "source": "authenticated_rate_limit_purge",
@@ -245,7 +245,7 @@
       "labels": []
     },
     {
-      "name": "valo.authenticated_rate_limit.purge_cycle_complete",
+      "name": "bidbox.authenticated_rate_limit.purge_cycle_complete",
       "type": "gauge",
       "unit": "boolean",
       "source": "authenticated_rate_limit_purge",
@@ -253,7 +253,7 @@
       "labels": []
     },
     {
-      "name": "valo.authenticated_rate_limit.purge_last_success_unixtime_seconds",
+      "name": "bidbox.authenticated_rate_limit.purge_last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "authenticated_rate_limit_purge",
@@ -261,7 +261,7 @@
       "labels": []
     },
     {
-      "name": "valo.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
+      "name": "bidbox.authenticated_rate_limit.purge_last_full_cycle_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "authenticated_rate_limit_purge",
@@ -269,7 +269,7 @@
       "labels": []
     },
     {
-      "name": "valo.ai.cost_per_completed_package",
+      "name": "bidbox.ai.cost_per_completed_package",
       "type": "gauge",
       "unit": "minor_currency_units",
       "source": "cost_ledger_adapter",
@@ -277,7 +277,7 @@
       "labels": []
     },
     {
-      "name": "valo.backup.age_hours",
+      "name": "bidbox.backup.age_hours",
       "type": "gauge",
       "unit": "hours",
       "source": "independently_pinned_backup_evidence",
@@ -285,7 +285,7 @@
       "labels": []
     },
     {
-      "name": "valo.backup.verification_failures",
+      "name": "bidbox.backup.verification_failures",
       "type": "gauge",
       "unit": "failures",
       "source": "backup_evidence_verifier",
@@ -293,7 +293,7 @@
       "labels": []
     },
     {
-      "name": "valo.backup.last_success_unixtime_seconds",
+      "name": "bidbox.backup.last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "backup_evidence_verifier",
@@ -301,7 +301,7 @@
       "labels": []
     },
     {
-      "name": "valo.audit.anchor_failures",
+      "name": "bidbox.audit.anchor_failures",
       "type": "gauge",
       "unit": "failures",
       "source": "audit_anchor_evidence_verifier",
@@ -309,7 +309,7 @@
       "labels": []
     },
     {
-      "name": "valo.audit.anchor_age_seconds",
+      "name": "bidbox.audit.anchor_age_seconds",
       "type": "gauge",
       "unit": "seconds",
       "source": "independently_pinned_anchor_evidence",
@@ -317,7 +317,7 @@
       "labels": []
     },
     {
-      "name": "valo.audit.anchor_cycle_complete",
+      "name": "bidbox.audit.anchor_cycle_complete",
       "type": "gauge",
       "unit": "boolean",
       "source": "audit_anchor_evidence_verifier",
@@ -325,7 +325,7 @@
       "labels": []
     },
     {
-      "name": "valo.audit.anchor_last_success_unixtime_seconds",
+      "name": "bidbox.audit.anchor_last_success_unixtime_seconds",
       "type": "gauge",
       "unit": "unix_seconds",
       "source": "audit_anchor_evidence_verifier",
@@ -333,7 +333,7 @@
       "labels": []
     },
     {
-      "name": "valo.security.break_glass_activated",
+      "name": "bidbox.security.break_glass_activated",
       "type": "counter_delta",
       "unit": "activations",
       "source": "restricted_security_event_adapter",

@@ -715,7 +715,7 @@ test("frozen suite payloads retain their route-level concurrency, visibility and
   const promotionOperation = openApiOperation(promotionEntry);
   assert.match(
     promotionOperation,
-    /FieldDraftPromotionIdempotencyKey[\s\S]*?x-valo-request-body-max-bytes: 1048576/u,
+    /FieldDraftPromotionIdempotencyKey[\s\S]*?x-bidbox-request-body-max-bytes: 1048576/u,
   );
   assert.match(
     promotionOperation,
@@ -808,7 +808,7 @@ test("governed client upload preserves its closed lease, receipt and error contr
   for (const operation of [issue, finalize]) {
     assert.match(operation, /ClientActionUploadIdempotencyKey/u);
     assert.match(operation, /ClientActionUploadLeaseRequest/u);
-    assert.match(operation, /x-valo-request-body-max-bytes: 4096/u);
+    assert.match(operation, /x-bidbox-request-body-max-bytes: 4096/u);
     assert.match(operation, /ClientActionUploadExpired/u);
     assert.match(operation, /ClientActionUploadUnavailable/u);
   }
@@ -973,7 +973,7 @@ test("lead decisions and the transient contact handoff preserve their closed PII
   }
   assert.match(
     growthSource,
-    /setHeader\("Cache-Control", "private, no-store"\)[\s\S]*?res\.vary\("X-Valo-Organisation-Id"\)/u,
+    /setHeader\("Cache-Control", "private, no-store"\)[\s\S]*?res\.vary\("X-BidBox-Organisation-Id"\)/u,
   );
   assert.match(
     zodClient,

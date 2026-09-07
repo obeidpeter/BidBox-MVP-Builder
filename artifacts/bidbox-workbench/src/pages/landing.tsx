@@ -122,7 +122,7 @@ function HeroReviewPreview() {
         </div>
       </div>
       <figcaption className="border-t border-sidebar-border bg-sidebar/60 px-5 py-3 text-xs text-sidebar-foreground/55 sm:px-6">
-        Illustrative Valo review using fictional tender data.
+        Illustrative BidBox review using fictional tender data.
       </figcaption>
     </figure>
   );
@@ -156,9 +156,9 @@ export default function LandingPage() {
             </h1>
             <div className="landing-hero-details mt-10 grid gap-x-8 gap-y-6 border-t border-sidebar-border pt-7 md:grid-cols-[1.2fr_0.8fr] lg:gap-x-20">
               <p className="landing-hero-summary max-w-2xl text-xl leading-8 text-sidebar-foreground/85 sm:text-2xl sm:leading-9">
-                Valo helps Nigerian public-sector, oil-and-gas and donor-funded
-                bid teams find requirement gaps, weak evidence and BOQ issues
-                before submission.
+                BidBox helps Nigerian public-sector, oil-and-gas and
+                donor-funded bid teams find requirement gaps, weak evidence and
+                BOQ issues before submission.
               </p>
               <div className="landing-hero-actions flex w-full flex-col items-start gap-4 md:col-start-2 md:row-span-2 md:row-start-1 md:w-auto md:items-end md:justify-end">
                 <BidAutopsyCta className="w-full justify-center rounded-full border-sidebar-primary bg-sidebar-primary px-6 text-sidebar-primary-foreground shadow-md transition-transform hover:-translate-y-0.5 hover:bg-sidebar-primary/90 sm:w-auto" />
@@ -171,7 +171,7 @@ export default function LandingPage() {
                 </a>
               </div>
               <p className="landing-hero-secondary max-w-xl text-sm leading-6 text-sidebar-foreground/70 md:col-start-1">
-                Where approved, AI assists a named human reviewer. Valo links
+                Where approved, AI assists a named human reviewer. BidBox links
                 each requirement to its source, checks evidence and
                 client-supplied bill of quantities (BOQ) calculations, and
                 records what needs attention before submission.
@@ -186,7 +186,7 @@ export default function LandingPage() {
             <HeroReviewPreview />
           </div>
           <p className="landing-hero-trust mt-7 max-w-4xl border-l-2 border-sidebar-primary/35 pl-4 text-xs leading-5 text-sidebar-foreground/65">
-            Valo supports the review process. It cannot guarantee an award or
+            BidBox supports the review process. It cannot guarantee an award or
             that an evaluator will accept the bid. AI-assisted steps run only
             after the required AI service, privacy and model-evaluation
             approvals. A named human reviewer makes the final decision.

@@ -1,8 +1,8 @@
 kind = "web"
 previewPath = "/"
-title = "Valo Bid Autopsy Workbench"
+title = "BidBox Bid Autopsy Workbench"
 version = "1.0.0"
-id = "artifacts/valo-workbench"
+id = "artifacts/bidbox-workbench"
 router = "path"
 
 [[integratedSkills]]
@@ -15,11 +15,11 @@ paths = [ "/" ]
 localPort = 21921
 
 [services.development]
-run = "pnpm --filter @workspace/valo-workbench run dev"
+run = "pnpm --filter @workspace/bidbox-workbench run dev"
 
 [services.production]
-build = [ "pnpm", "--filter", "@workspace/valo-workbench", "run", "build" ]
-publicDir = "artifacts/valo-workbench/dist/public"
+build = [ "pnpm", "--filter", "@workspace/bidbox-workbench", "run", "build" ]
+publicDir = "artifacts/bidbox-workbench/dist/public"
 serve = "static"
 
 [[services.production.rewrites]]

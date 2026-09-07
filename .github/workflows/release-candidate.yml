@@ -27,7 +27,7 @@ jobs:
         env:
           POSTGRES_USER: postgres
           POSTGRES_PASSWORD: postgres
-          POSTGRES_DB: valo_release_candidate
+          POSTGRES_DB: bidbox_release_candidate
         ports:
           - 5432:5432
         options: >-
@@ -36,7 +36,7 @@ jobs:
           --health-timeout 5s
           --health-retries 10
     env:
-      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/valo_release_candidate
+      DATABASE_URL: postgresql://postgres:postgres@localhost:5432/bidbox_release_candidate
     steps:
       - uses: actions/checkout@11d5960a326750d5838078e36cf38b85af677262 # v4.4.0
         with:
@@ -87,14 +87,14 @@ jobs:
         env:
           PORT: "5173"
           BASE_PATH: "/"
-        run: pnpm --filter @workspace/valo-workbench build
+        run: pnpm --filter @workspace/bidbox-workbench build
 
       - name: Generate CycloneDX software bill of materials
         uses: anchore/sbom-action@e22c389904149dbc22b58101806040fa8d37a610 # v0.24.0
         with:
           path: .
           format: cyclonedx-json
-          output-file: valo-sbom.cdx.json
+          output-file: bidbox-sbom.cdx.json
           upload-artifact: false
           upload-release-assets: false
           dependency-snapshot: false
@@ -107,8 +107,8 @@ jobs:
           node ./scripts/release-provenance.mjs create \
             --expected-source-commit "$SOURCE_SHA" \
             --artifact api-server=artifacts/api-server/dist \
-            --artifact workbench=artifacts/valo-workbench/dist \
-            --sbom valo-sbom.cdx.json \
+            --artifact workbench=artifacts/bidbox-workbench/dist \
+            --sbom bidbox-sbom.cdx.json \
             --output release-evidence/release-manifest.json
           RELEASE_SHA256="$(node ./scripts/release-provenance.mjs print-release-id \
             --manifest release-evidence/release-manifest.json)"
@@ -125,11 +125,11 @@ jobs:
       - name: Upload immutable release candidate evidence
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: valo-release-${{ steps.source.outputs.commit_sha }}
+          name: bidbox-release-${{ steps.source.outputs.commit_sha }}
           path: |
             artifacts/api-server/dist
-            artifacts/valo-workbench/dist
-            valo-sbom.cdx.json
+            artifacts/bidbox-workbench/dist
+            bidbox-sbom.cdx.json
             release-evidence/release-manifest.json
           if-no-files-found: error
           retention-days: 90

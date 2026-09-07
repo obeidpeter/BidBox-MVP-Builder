@@ -148,7 +148,7 @@ export default function PursuitOperationsSuiteRecorder({
           Record operations
         </h2>
         <p className="max-w-4xl text-sm leading-6 text-muted-foreground">
-          These forms record named human inputs in Valo. They never fetch an
+          These forms record named human inputs in BidBox. They never fetch an
           opportunity, send a client request, attend an event, verify a
           credential, dispatch a package, submit a bid or issue a contractual
           notice.

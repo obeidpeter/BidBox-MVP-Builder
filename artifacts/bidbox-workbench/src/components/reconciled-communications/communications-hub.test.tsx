@@ -115,7 +115,7 @@ describe("CommunicationsHub", () => {
     ).toBeInTheDocument();
     expect(screen.queryByLabelText(/message body/i)).not.toBeInTheDocument();
     expect(
-      screen.queryByLabelText(/recipient valo user id/i),
+      screen.queryByLabelText(/recipient bidbox user id/i),
     ).not.toBeInTheDocument();
     expect(
       screen.queryByLabelText(/consent evidence sha/i),

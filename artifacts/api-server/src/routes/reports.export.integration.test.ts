@@ -103,7 +103,7 @@ let draftReportId: string;
 // report's .docx, so we can assert the exact payload lands in the ZIP / stream
 // without touching real object storage.
 const FAKE_DOCX_BYTES = Buffer.from(
-  "PK\u0003\u0004 valo signed report .docx payload",
+  "PK\u0003\u0004 bidbox signed report .docx payload",
   "utf8",
 );
 const unavailableObjectPaths = new Set<string>();
@@ -203,7 +203,7 @@ async function waitForAuditEventCount(
 }
 
 const membershipAdministrationLockKey = () =>
-  `valo.membership-administration:${organisationId}`;
+  `bidbox.membership-administration:${organisationId}`;
 
 async function waitingAdvisoryLockCount(): Promise<number> {
   const result = await pool.query<{ count: number }>(

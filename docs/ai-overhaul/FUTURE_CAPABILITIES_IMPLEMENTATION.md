@@ -5,13 +5,13 @@ Status: **deterministic evidence and named review connected; production model ex
 This handoff covers the twenty-two Intelligence Centre capabilities in the
 current working tree. The capability outputs remain deterministic and
 read-only: they project tenant-scoped, human-review decision support from
-records Valo already holds. The connected Review Inbox can persist a named
+records BidBox already holds. The connected Review Inbox can persist a named
 person's claim or review disposition, but that review metadata is not an
 authoritative evidence approval, package release or model-execution decision.
 No route in this delivery calls an AI provider.
 
 No provider calls were made while implementing or validating this capability
-set. Valo does not autonomously send a clarification, submit a tender, approve
+set. BidBox does not autonomously send a clarification, submit a tender, approve
 evidence or a package, select or change a price, or make or predict an award
 decision. The existing dormant schema was reused; this work adds no database
 migration.
@@ -149,7 +149,7 @@ The internal deterministic function surface is exported from
 The HTTP contract is in
 [`openapi.yaml`](../../lib/api-spec/openapi.yaml), and the protected screen is
 connected by
-[`intelligence-centre-route.tsx`](../../artifacts/valo-workbench/src/pages/intelligence-centre-route.tsx).
+[`intelligence-centre-route.tsx`](../../artifacts/bidbox-workbench/src/pages/intelligence-centre-route.tsx).
 Unit and static tests sit beside the deterministic engines, route and UI.
 
 ## Safety and authority invariants

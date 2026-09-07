@@ -18,6 +18,6 @@ export function privateResponse(
   next: NextFunction,
 ): void {
   setPrivateResponseHeaders(response);
-  response.vary("X-Valo-Organisation-Id");
+  response.vary("X-BidBox-Organisation-Id");
   next();
 }

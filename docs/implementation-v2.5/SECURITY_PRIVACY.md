@@ -16,18 +16,18 @@ Status: normative security/privacy target. This is not legal advice. Legal concl
 | ------------ | ----------------------------------------------------------------------------------------------------- | ---------------------------------------------------------------------------------------------- |
 | Restricted   | Tender/bid documents, BOQs, credentials, personnel IDs/CVs, signed packages, payment/provider secrets | Tenant scoped; encryption; no ordinary logs; narrow team; signed downloads; no shared training |
 | Confidential | Requirements, evidence excerpts, defects, drafts, capability facts, audit details                     | Tenant scoped; least privilege; redacted telemetry                                             |
-| Internal     | Operational queue metadata, non-sensitive configuration, aggregate service health                     | Valo staff scope; no client content                                                            |
+| Internal     | Operational queue metadata, non-sensitive configuration, aggregate service health                     | BidBox staff scope; no client content                                                          |
 | Public       | Approved marketing pages and explicitly published benchmark releases                                  | Publication approval and provenance required                                                   |
 
 ## Controller/processor responsibility map
 
-| Processing purpose                                                  | Provisional role                               | Required governance                                                                           |
-| ------------------------------------------------------------------- | ---------------------------------------------- | --------------------------------------------------------------------------------------------- |
-| Account, security, billing, abuse prevention, Valo legal records    | Valo as controller                             | Privacy notice, lawful-basis record, retention, rights route                                  |
-| Client tender/bid/evidence processing to deliver contracted service | Valo as processor; client normally controller  | DPA/instructions, confidentiality, subprocessor register, deletion/return, assistance clauses |
-| Independent integrity/security incident records                     | Valo may be controller for the limited purpose | Necessity, access restriction, minimisation, documented balancing/legal analysis              |
-| Optional benchmark/flagship dataset                                 | Separate controller-purpose analysis           | Specific informed opt-in/contract terms, withdrawal path, cohort safeguards; off by default   |
-| Partner-managed workspace                                           | Roles depend on ownership/instructions         | Written responsibility matrix among client, partner and Valo before activation                |
+| Processing purpose                                                  | Provisional role                                 | Required governance                                                                           |
+| ------------------------------------------------------------------- | ------------------------------------------------ | --------------------------------------------------------------------------------------------- |
+| Account, security, billing, abuse prevention, BidBox legal records  | BidBox as controller                             | Privacy notice, lawful-basis record, retention, rights route                                  |
+| Client tender/bid/evidence processing to deliver contracted service | BidBox as processor; client normally controller  | DPA/instructions, confidentiality, subprocessor register, deletion/return, assistance clauses |
+| Independent integrity/security incident records                     | BidBox may be controller for the limited purpose | Necessity, access restriction, minimisation, documented balancing/legal analysis              |
+| Optional benchmark/flagship dataset                                 | Separate controller-purpose analysis             | Specific informed opt-in/contract terms, withdrawal path, cohort safeguards; off by default   |
+| Partner-managed workspace                                           | Roles depend on ownership/instructions           | Written responsibility matrix among client, partner and BidBox before activation              |
 
 The actual role can vary by engagement and purpose; one blanket label is prohibited.
 
@@ -39,7 +39,7 @@ The actual role can vary by engagement and purpose; one blanket label is prohibi
 - Provide authenticated access, rectification, objection/restriction, portability/erasure and complaint request workflows with identity verification, due-date calculation and exception/legal-hold reasoning.
 - Conduct a DPIA before production use involving large-scale sensitive/commercial documents, AI-assisted profiling/classification, partner data sharing, benchmark publication, novel cross-border processing or other high risk.
 - Appoint/record a DPO and DCPMI/CAR obligations where the approved rule pack determines they apply.
-- Processor incidents notify the controller without undue delay; Valo's incident decision engine uses the effective NDPA/GAID rule pack and counsel-approved thresholds. Internal escalation target is immediate, not the external deadline.
+- Processor incidents notify the controller without undue delay; BidBox's incident decision engine uses the effective NDPA/GAID rule pack and counsel-approved thresholds. Internal escalation target is immediate, not the external deadline.
 - Cross-border transfer is off until destination, provider, categories, purpose, transfer ground/instrument, safeguards, onward transfer and retention have been approved. Tenant routing must enforce the decision.
 
 ## Threat model
@@ -63,7 +63,7 @@ The actual role can vary by engagement and purpose; one blanket label is prohibi
 
 ## Authentication and session controls
 
-MFA is required for Valo, partner admins and client owners/approvers; risk-based step-up applies to exports, role grants, break-glass, payment changes and sign-off. Sessions use secure/HttpOnly/SameSite cookies, CSRF protection where applicable, rotation, absolute/idle expiry and revocation on role/security change. API rate limits are identity+tenant+operation aware and do not leak resource existence.
+MFA is required for BidBox, partner admins and client owners/approvers; risk-based step-up applies to exports, role grants, break-glass, payment changes and sign-off. Sessions use secure/HttpOnly/SameSite cookies, CSRF protection where applicable, rotation, absolute/idle expiry and revocation on role/security change. API rate limits are identity+tenant+operation aware and do not leak resource existence.
 
 ## Cryptography and secrets
 

@@ -462,7 +462,7 @@ async function json(res: globalThis.Response): Promise<RetentionBody> {
 
 function headers(jsonBody = false): Record<string, string> {
   return {
-    "X-Valo-Organisation-Id": organisationId,
+    "X-BidBox-Organisation-Id": organisationId,
     ...(jsonBody ? { "Content-Type": "application/json" } : {}),
   };
 }

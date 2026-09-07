@@ -284,7 +284,7 @@ describe("DeliveryStudioTab", () => {
     ).toBeInTheDocument();
     expect(
       screen.getByText(
-        /Valo never uses credentials, accepts declarations, uploads files or clicks submit/i,
+        /BidBox never uses credentials, accepts declarations, uploads files or clicks submit/i,
       ),
     ).toBeInTheDocument();
     expect(getStudio).toHaveBeenCalledWith(
@@ -589,7 +589,7 @@ describe("DeliveryStudioTab", () => {
     );
     await waitFor(() => expect(mutate).toHaveBeenCalledTimes(1));
 
-    const manifestContent = `Valo Delivery Studio package manifest\nPackage ID: 22222222-2222-4222-8222-222222222222\nPackage version ID: 33333333-3333-4333-8333-333333333333\n\nFile: technical-response.pdf\nSize: 1200 bytes\nSHA-256: ${"e".repeat(64)}\nMapping: technical-response.pdf assigned to Technical response. ${rationale}\n`;
+    const manifestContent = `BidBox Delivery Studio package manifest\nPackage ID: 22222222-2222-4222-8222-222222222222\nPackage version ID: 33333333-3333-4333-8333-333333333333\n\nFile: technical-response.pdf\nSize: 1200 bytes\nSHA-256: ${"e".repeat(64)}\nMapping: technical-response.pdf assigned to Technical response. ${rationale}\n`;
     const request = mutate.mock.calls[0]![0];
     expect(request).toMatchObject({
       projectId: PROJECT_ID,
@@ -614,11 +614,11 @@ describe("DeliveryStudioTab", () => {
               versionId: "33333333-3333-4333-8333-333333333333",
               kind: "company_evidence",
               title:
-                "Valo Delivery Studio package manifest 33333333-3333-4333-8333-333333333333",
+                "BidBox Delivery Studio package manifest 33333333-3333-4333-8333-333333333333",
               content: manifestContent,
               authority: "authoritative",
               origin:
-                "valo://delivery-studio/packages/22222222-2222-4222-8222-222222222222/versions/33333333-3333-4333-8333-333333333333/manifest",
+                "bidbox://delivery-studio/packages/22222222-2222-4222-8222-222222222222/versions/33333333-3333-4333-8333-333333333333/manifest",
             },
           ],
           fields: [

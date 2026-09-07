@@ -34,7 +34,7 @@ const generatedZodType = readFileSync(
 );
 const uiContract = readFileSync(
   new URL(
-    "../../../../valo-workbench/src/components/intelligence/intelligence-contract.ts",
+    "../../../../bidbox-workbench/src/components/intelligence/intelligence-contract.ts",
     import.meta.url,
   ),
   "utf8",

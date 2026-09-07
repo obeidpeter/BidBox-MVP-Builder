@@ -76,7 +76,7 @@ export function OpportunityIntake({
     >
       <HumanAuthorityNotice title="Source confirmation">
         Imported fields are untrusted until an authorised person opens the
-        original notice and confirms the buyer, reference and deadline. Valo
+        original notice and confirms the buyer, reference and deadline. BidBox
         does not scrape or apply to external portals from this view.
       </HumanAuthorityNotice>
 

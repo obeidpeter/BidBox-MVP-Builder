@@ -43,7 +43,7 @@ function plan(status: EvidenceRenewalPlan["status"] = "planned") {
     },
     targetDate: "2026-09-01",
     internalReminder: {
-      channel: "valo_evidence_renewal_register",
+      channel: "bidbox_evidence_renewal_register",
       assignedOwnerUserId: OWNER_ID,
       dueAt: "2026-09-01T16:00:00.000Z",
       status:

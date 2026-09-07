@@ -18,7 +18,7 @@ pnpm --filter @workspace/db migration:bridge:legacy:evidence:test
 pnpm --filter @workspace/db migration:bridge:legacy:rehearse
 pnpm --filter @workspace/db test
 pnpm --filter @workspace/api-server test
-pnpm --filter @workspace/valo-workbench test
+pnpm --filter @workspace/bidbox-workbench test
 pnpm --filter @workspace/api-server prove:doctrine:offline
 pnpm --filter @workspace/api-server prove:injection:offline
 pnpm --filter @workspace/api-server eval:harness:offline

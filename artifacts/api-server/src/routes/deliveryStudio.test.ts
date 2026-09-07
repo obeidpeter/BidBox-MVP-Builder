@@ -14,7 +14,7 @@ import type { DeliveryStudioRouterOptions } from "./deliveryStudio";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_delivery_studio_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_delivery_studio_test";
 
 const { createDeliveryStudioRouter, parseDeliveryStudioAction } =
   await import("./deliveryStudio");

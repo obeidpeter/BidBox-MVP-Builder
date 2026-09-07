@@ -46,7 +46,7 @@ Free-text response/approval evidence is reduced in SQL to present/absent and exa
 
 ## Frontend exports
 
-`artifacts/valo-workbench/src/components/privacy-operations/index.ts` exports the runtime contract adapter, dashboard, and workflow panel. `artifacts/valo-workbench/src/pages/privacy-operations.tsx` default-exports the page mounted at `/privacy-operations`.
+`artifacts/bidbox-workbench/src/components/privacy-operations/index.ts` exports the runtime contract adapter, dashboard, and workflow panel. `artifacts/bidbox-workbench/src/pages/privacy-operations.tsx` default-exports the page mounted at `/privacy-operations`.
 
 The mounted `/privacy-operations` page uses the existing organisation-aware authenticated fetch client, keys both the dashboard and bounded assignee directory by organisation, checks direct membership and exact privacy permissions, verifies every server payload at runtime, and holds the active organisation during mutations. Operators select a server-authorised named assignee; no UUID is entered manually.
 

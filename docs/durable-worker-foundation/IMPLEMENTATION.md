@@ -1,6 +1,6 @@
 # Durable Worker and Outbox Foundation
 
-Valo now has a durable, tenant-scoped execution foundation over `processing_jobs`, `processing_runs`, `notification_events`, and `notification_attempts`.
+BidBox now has a durable, tenant-scoped execution foundation over `processing_jobs`, `processing_runs`, `notification_events`, and `notification_attempts`.
 
 ## Implemented
 

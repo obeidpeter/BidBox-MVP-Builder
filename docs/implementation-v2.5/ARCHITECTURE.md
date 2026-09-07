@@ -4,7 +4,7 @@ Status: target architecture. Observed implementation is recorded in `BASELINE_AU
 
 ## Decision summary
 
-Valo remains a TypeScript modular monolith with isolated durable workers, PostgreSQL, encrypted object storage, and provider adapters. The observed React/Express/Drizzle/OpenAPI stack is preserved. Module boundaries are strengthened in-place; microservices are not justified through v2.5.
+BidBox remains a TypeScript modular monolith with isolated durable workers, PostgreSQL, encrypted object storage, and provider adapters. The observed React/Express/Drizzle/OpenAPI stack is preserved. Module boundaries are strengthened in-place; microservices are not justified through v2.5.
 
 ## System context
 
@@ -12,9 +12,9 @@ Valo remains a TypeScript modular monolith with isolated durable workers, Postgr
 flowchart LR
   Client["Client and approver"]
   Partner["Consultancy partner"]
-  Staff["Valo analyst / QA / operations"]
-  Web["Valo responsive web application"]
-  API["Valo API modular monolith"]
+  Staff["BidBox analyst / QA / operations"]
+  Web["BidBox responsive web application"]
+  API["BidBox API modular monolith"]
   Worker["Durable workers"]
   DB[("PostgreSQL + RLS")]
   Store[("Encrypted object storage")]
@@ -116,7 +116,7 @@ sequenceDiagram
 
 ## Readiness/sign-off transaction
 
-The sign command locks or version-checks the package aggregate, recomputes all gates inside one database transaction, and refuses stale versions. It checks: tenant, role/assignment, entitlement, source versions, confirmed citations, valid evidence, grounded claims, unresolved placeholders, fatal/likely-fatal defects, BOQ exceptions, red-team result, client/Valo approvals, render success, human visual QA, manifest hashes and feature flags. Success creates an immutable signed package version and audit/outbox entry. No cached client readiness score is authoritative.
+The sign command locks or version-checks the package aggregate, recomputes all gates inside one database transaction, and refuses stale versions. It checks: tenant, role/assignment, entitlement, source versions, confirmed citations, valid evidence, grounded claims, unresolved placeholders, fatal/likely-fatal defects, BOQ exceptions, red-team result, client/BidBox approvals, render success, human visual QA, manifest hashes and feature flags. Success creates an immutable signed package version and audit/outbox entry. No cached client readiness score is authoritative.
 
 ## Tenancy and authorisation
 

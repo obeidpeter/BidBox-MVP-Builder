@@ -37,7 +37,7 @@ from them.
 - Overall and mandatory recall: at least 95%.
 - Citation correctness: at least 98%, with 100% citation evaluation coverage.
 - Fatal misses: zero; at least one seeded fatal case is required.
-- Precision: at least 95% as the fail-closed Valo default pending owner approval.
+- Precision: at least 95% as the fail-closed BidBox default pending owner approval.
 - Unsupported-claim rate: zero with full support-label coverage.
 - Correct abstention and safe failure: 100% on labelled negative cases.
 

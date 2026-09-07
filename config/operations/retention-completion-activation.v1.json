@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "manifestId": "valo-retention-completion-activation/v1",
+  "manifestId": "bidbox-retention-completion-activation/v1",
   "status": "preconditions_open_workflow_disabled",
   "workflow": "durable_two_phase_detach_reconcile_certify",
   "productionActivationGranted": false,

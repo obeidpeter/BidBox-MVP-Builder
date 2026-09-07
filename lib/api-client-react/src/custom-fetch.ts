@@ -410,12 +410,12 @@ export async function customFetch<T = unknown>(
   if (
     attachRequestContext &&
     _requestContextGetter &&
-    !headers.has("x-valo-organisation-id")
+    !headers.has("x-bidbox-organisation-id")
   ) {
     const context = await _requestContextGetter();
     const organisationId = context?.organisationId?.trim();
     if (organisationId) {
-      headers.set("x-valo-organisation-id", organisationId);
+      headers.set("x-bidbox-organisation-id", organisationId);
     }
   }
 

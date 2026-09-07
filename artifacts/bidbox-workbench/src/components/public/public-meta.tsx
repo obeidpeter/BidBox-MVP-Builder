@@ -42,7 +42,7 @@ export function PublicMeta({
   index?: boolean;
 }) {
   useEffect(() => {
-    const fullTitle = title === "Valo" ? title : `${title} | Valo`;
+    const fullTitle = title === "BidBox" ? title : `${title} | BidBox`;
     document.title = fullTitle;
     setMeta("description", description);
     setMeta("og:title", fullTitle, true);

@@ -23,7 +23,7 @@ This candidate establishes the source-controlled implementation contract and add
 
 - Added role-scoped client portal, partner workspace, operations console, evidence/readiness, billing/entitlement, notifications and security/audit views.
 - Added shared platform-state, access and role-home components; responsive navigation, skip link, mobile/offline/account states; canonical v2.5 role selection and feature-gated route guards.
-- Added organisation discovery/selection context. Role grants now derive from the selected membership; switching is blocked during writes, context-bound caches are cancelled/removed, and the request client sets or clears `X-Valo-Organisation-Id` explicitly.
+- Added organisation discovery/selection context. Role grants now derive from the selected membership; switching is blocked during writes, context-bound caches are cancelled/removed, and the request client sets or clears `X-BidBox-Organisation-Id` explicitly.
 - Personnel settings remain explicitly read-only because the mutation endpoint is retired. Unimplemented delivery/payment/partner capabilities are labelled unavailable or partial rather than simulated.
 
 ### Backend and data

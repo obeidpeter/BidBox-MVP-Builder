@@ -130,7 +130,7 @@ after(async () => {
 
 function headers(json = false): Record<string, string> {
   return {
-    "X-Valo-Organisation-Id": organisationId,
+    "X-BidBox-Organisation-Id": organisationId,
     ...(json ? { "Content-Type": "application/json" } : {}),
   };
 }
@@ -169,6 +169,15 @@ describe("global configuration endpoints", () => {
     assert.deepEqual(body.bandCutoffs, { medium: 15, high: 40, critical: 70 });
     assert.ok(body.firmName.length > 0);
     assert.ok(body.retentionDefaultDays > 0);
+  });
+
+  test("GET /config still resolves the tenant from the legacy X-Valo-Organisation-Id header", async () => {
+    const res = await fetch(`${baseUrl}/config`, {
+      headers: { "X-Valo-Organisation-Id": organisationId },
+    });
+    assert.equal(res.status, 200);
+    const body = (await res.json()) as ConfigBody;
+    assert.ok(body.firmName.length > 0);
   });
 
   test("PATCH /config rejects non-admins", async () => {
@@ -214,7 +223,7 @@ describe("global configuration endpoints", () => {
           cosmetic: 4,
         },
         bandCutoffs: { medium: 20, high: 50, critical: 80 },
-        firmName: "Valo Forensics LLP",
+        firmName: "BidBox Forensics LLP",
         retentionDefaultDays: 365,
       }),
     });
@@ -223,7 +232,7 @@ describe("global configuration endpoints", () => {
     assert.equal(body.severityWeights.fatal, 45);
     assert.equal(body.severityWeights.scoring_risk, 12);
     assert.deepEqual(body.bandCutoffs, { medium: 20, high: 50, critical: 80 });
-    assert.equal(body.firmName, "Valo Forensics LLP");
+    assert.equal(body.firmName, "BidBox Forensics LLP");
     assert.equal(body.retentionDefaultDays, 365);
     assert.equal(body.updatedBy, adminId);
 

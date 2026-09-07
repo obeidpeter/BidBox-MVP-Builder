@@ -489,7 +489,7 @@ function buildRehearsalManifestText(
   fileMappings: readonly RehearsalFileMappingForm[],
 ): string {
   const lines = [
-    "Valo Delivery Studio package manifest",
+    "BidBox Delivery Studio package manifest",
     `Package ID: ${deliveryPackage.id}`,
     `Package version ID: ${deliveryPackage.versionId}`,
   ];
@@ -994,12 +994,12 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
             sourceId: deliveryPackage.id,
             versionId: deliveryPackage.versionId,
             kind: "company_evidence",
-            title: `Valo Delivery Studio package manifest ${deliveryPackage.versionId}`,
+            title: `BidBox Delivery Studio package manifest ${deliveryPackage.versionId}`,
             content: manifestSourceContent,
             contentSha256: manifestSourceHash,
             capturedAt: reviewedAt,
             authority: "authoritative",
-            origin: `valo://delivery-studio/packages/${deliveryPackage.id}/versions/${deliveryPackage.versionId}/manifest`,
+            origin: `bidbox://delivery-studio/packages/${deliveryPackage.id}/versions/${deliveryPackage.versionId}/manifest`,
           },
         ],
         fields: normalizedMappings.map((mapping) => ({
@@ -1114,7 +1114,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
     return (
       <DataErrorPanel
         title="Delivery Studio could not be loaded"
-        description="Valo could not verify the response, review, package and rehearsal records. No readiness state has been inferred from the failed request."
+        description="BidBox could not verify the response, review, package and rehearsal records. No readiness state has been inferred from the failed request."
         onRetry={() => void studioQuery.refetch()}
       />
     );
@@ -1599,7 +1599,7 @@ export function DeliveryStudioTab({ projectId }: { projectId: string }) {
 
       <StageCard
         title="Submission rehearsal"
-        description="Inspect a frozen package against cited portal fields and manual declarations. Valo never uses credentials, accepts declarations, uploads files or clicks submit."
+        description="Inspect a frozen package against cited portal fields and manual declarations. BidBox never uses credentials, accepts declarations, uploads files or clicks submit."
         status={snapshot.submissionRehearsal.status}
         icon={ClipboardCheck}
         actions={

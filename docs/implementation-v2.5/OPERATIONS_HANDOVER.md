@@ -2,7 +2,7 @@
 
 ## Repository surfaces
 
-- Web: `artifacts/valo-workbench`
+- Web: `artifacts/bidbox-workbench`
 - API/workers target: `artifacts/api-server`
 - Schema target: `lib/db` (add versioned migrations; existing schema push is development/CI only)
 - Contract: `lib/api-spec/openapi.yaml` and generated clients/schemas
@@ -18,12 +18,12 @@ pnpm install --frozen-lockfile
 pnpm run typecheck
 pnpm --filter @workspace/db run push-force        # disposable CI/test DB only
 pnpm --filter @workspace/api-server test
-pnpm --filter @workspace/valo-workbench test
+pnpm --filter @workspace/bidbox-workbench test
 pnpm --filter @workspace/api-server prove:doctrine:offline
 pnpm --filter @workspace/api-server prove:injection:offline
 pnpm --filter @workspace/api-server eval:harness:offline
 pnpm --filter @workspace/api-server build
-pnpm --filter @workspace/valo-workbench build
+pnpm --filter @workspace/bidbox-workbench build
 ```
 
 When OpenAPI changes, regenerate with the existing codegen command and fail on unexpected generated drift. Live AI proofs require the approved deployment environment/secret mechanism and are not substituted by offline checks.

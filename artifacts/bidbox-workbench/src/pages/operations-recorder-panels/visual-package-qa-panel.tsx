@@ -30,7 +30,7 @@ export function VisualPackageQaPanel({
   return (
     <Panel
       title="5. Visual package checks"
-      description="Record layout results supplied by the operator. Valo checks only the values entered; it does not invent pages, signatures or cross-reference results."
+      description="Record layout results supplied by the operator. BidBox checks only the values entered; it does not invent pages, signatures or cross-reference results."
       allowed={permissions.packageGenerate}
       unavailableReason="Package generation permission is required."
       disabled={disabled || packageVersionsState !== "ready"}

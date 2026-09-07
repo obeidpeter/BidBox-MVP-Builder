@@ -24,7 +24,7 @@ function RoutedExperience() {
 
   useEffect(() => {
     if (surface !== "public") {
-      applyPrivateDocumentMetadata("Secure access | Valo");
+      applyPrivateDocumentMetadata("Secure access | BidBox");
     }
   }, [surface]);
 

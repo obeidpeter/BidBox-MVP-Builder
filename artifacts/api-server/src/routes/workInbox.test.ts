@@ -7,7 +7,7 @@ import type { WorkInboxSnapshot } from "../lib/workInbox/contracts";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_work_inbox_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_work_inbox_test";
 
 const { createWorkInboxRouter } = await import("./workInbox");
 
@@ -70,7 +70,10 @@ describe("work-inbox route", () => {
     const response = await fetch(`${origin}/api/work-inbox?limit=12`);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "private, no-store");
-    assert.match(response.headers.get("vary") ?? "", /X-Valo-Organisation-Id/u);
+    assert.match(
+      response.headers.get("vary") ?? "",
+      /X-BidBox-Organisation-Id/u,
+    );
     assert.equal(limits.at(-1), 12);
     const body = (await response.json()) as WorkInboxSnapshot;
     assert.equal(body.organisationId, ORGANISATION_ID);

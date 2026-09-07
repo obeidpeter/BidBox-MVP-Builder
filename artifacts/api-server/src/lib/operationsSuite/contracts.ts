@@ -1,5 +1,5 @@
 /**
- * Bounded contracts for Valo's pursuit operations suite.
+ * Bounded contracts for BidBox's pursuit operations suite.
  *
  * These records are deliberately coordination records. They never fetch an
  * opportunity, contact a client/issuer, verify a credential, submit a bid or

@@ -9,7 +9,7 @@ v1.0 and TRD v1.0 for the current AI overhaul. The requested Business Plan
 v1.2 and Product Roadmap v1.1 were unavailable; reconciliation against those
 versions is a release prerequisite.
 
-Valo may use AI to accelerate extraction and review, but AI is not a tender
+BidBox may use AI to accelerate extraction and review, but AI is not a tender
 authority, legal adviser, compliance signatory, evidence approver, defect
 closer, submission approver or award predictor. The deterministic application
 and named users remain authoritative.
@@ -144,7 +144,7 @@ authorised users. Ordinary users must never confuse AI text with approved fact.
 
 ### PR-AI-011 — Operations view
 
-An active direct Valo-internal membership with a named operations role and
+An active direct BidBox-internal membership with a named operations role and
 `evaluation:read` shall be required for the organisation-scoped view. Client,
 partner, auditor, restricted-platform-administrator and break-glass contexts
 shall be denied. The view shall show effective capability gates, prompt/schema

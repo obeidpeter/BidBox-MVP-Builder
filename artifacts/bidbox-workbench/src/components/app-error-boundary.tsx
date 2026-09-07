@@ -1,7 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { Link } from "wouter";
 import { Button } from "@/components/ui/button";
-import { ValoMark } from "@/components/valo-mark";
+import { BidBoxMark } from "@/components/bidbox-mark";
 
 type Props = { children: ReactNode };
 type State = { failed: boolean };
@@ -23,7 +23,7 @@ export class AppErrorBoundary extends Component<Props, State> {
     return (
       <main className="flex min-h-screen items-center justify-center bg-background p-5">
         <section className="w-full max-w-lg rounded-lg border border-border bg-card p-6 text-center">
-          <ValoMark className="mx-auto text-primary" />
+          <BidBoxMark className="mx-auto text-primary" />
           <p className="mt-6 text-xs font-semibold uppercase tracking-[0.12em] text-muted-foreground">
             Page error
           </p>
@@ -32,7 +32,7 @@ export class AppErrorBoundary extends Component<Props, State> {
           </h1>
           <p className="mt-3 text-sm leading-6 text-muted-foreground">
             This display error did not change your records. Reload the page, or
-            return to the Valo home page.
+            return to the BidBox home page.
           </p>
           <div className="mt-6 flex flex-col justify-center gap-2 sm:flex-row">
             <Button type="button" onClick={() => window.location.reload()}>

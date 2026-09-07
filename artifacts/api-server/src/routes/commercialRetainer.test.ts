@@ -12,7 +12,7 @@ import {
 } from "../lib/commercialRetainer/contracts";
 
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_test";
 
 const ORG = "11111111-1111-4111-8111-111111111111";
 const USER = "22222222-2222-4222-8222-222222222222";

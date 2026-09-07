@@ -387,7 +387,8 @@ export function FieldDraftPromotionReview({
         {prepared ? (
           <p className="text-sm font-medium">
             Recovering the previously prepared submission with its original
-            submission reference. Valo will verify a receipt before marking it.
+            submission reference. BidBox will verify a receipt before marking
+            it.
           </p>
         ) : null}
       </div>
@@ -401,7 +402,7 @@ export function FieldDraftPromotionReview({
       {targets.length === 0 && !busy && !reviewed ? (
         <p className="text-sm text-muted-foreground">
           No compatible existing work item is currently authorised for this
-          pursuit. Valo will not create or choose a target automatically.
+          pursuit. BidBox will not create or choose a target automatically.
         </p>
       ) : null}
 

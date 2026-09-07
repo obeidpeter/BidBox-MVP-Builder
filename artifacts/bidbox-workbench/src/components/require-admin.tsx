@@ -51,7 +51,7 @@ export default function RequireAdmin({
         <StatusPanel
           state="blocked"
           title="Access denied"
-          description="Only Valo operations administrators can open these settings. If you think this is wrong, contact Valo support."
+          description="Only BidBox operations administrators can open these settings. If you think this is wrong, contact BidBox support."
         />
       </div>
     );

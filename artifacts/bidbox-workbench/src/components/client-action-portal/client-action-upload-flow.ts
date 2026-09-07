@@ -154,7 +154,7 @@ function requestFailure(
   return new ClientActionUploadFlowError(
     phase === "leasing"
       ? "The upload permission result is unknown. Retry this same upload with the same file; do not start another upload."
-      : "The final result is unknown. Retry the same upload so Valo can return the existing receipt.",
+      : "The final result is unknown. Retry the same upload so BidBox can return the existing receipt.",
     phase,
     "same_operation",
     leaseMayExist,

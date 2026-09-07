@@ -158,7 +158,7 @@ function AddMembershipForm({
     event.preventDefault();
     const targetUserId = userId.trim();
     if (!UUID_PATTERN.test(targetUserId)) {
-      setFormError("Enter the user's full Valo user ID.");
+      setFormError("Enter the user's full BidBox user ID.");
       return;
     }
     if (!role || !allowedRoles.includes(role)) {
@@ -240,9 +240,10 @@ function AddMembershipForm({
               className="mt-1 text-sm leading-6 text-muted-foreground"
             >
               This form does not send an email invitation. The person must sign
-              in to Valo first, then you enter their Valo user ID. The server
-              checks that you can grant the selected role. You can add one role
-              or reactivate a membership here, but you cannot remove a role.
+              in to BidBox first, then you enter their BidBox user ID. The
+              server checks that you can grant the selected role. You can add
+              one role or reactivate a membership here, but you cannot remove a
+              role.
             </p>
           </div>
         </div>
@@ -263,7 +264,7 @@ function AddMembershipForm({
             >
               <legend className="sr-only">New organisation membership</legend>
               <div className="space-y-2 md:col-span-2">
-                <Label htmlFor="membership-user-id">Valo user ID</Label>
+                <Label htmlFor="membership-user-id">BidBox user ID</Label>
                 <Input
                   id="membership-user-id"
                   value={userId}
@@ -278,8 +279,8 @@ function AddMembershipForm({
                 />
                 <p className="text-xs text-muted-foreground">
                   Email addresses are not accepted here. Ask the person to sign
-                  in once, then obtain their Valo user ID through an authorised
-                  support channel.
+                  in once, then obtain their BidBox user ID through an
+                  authorised support channel.
                 </p>
               </div>
 

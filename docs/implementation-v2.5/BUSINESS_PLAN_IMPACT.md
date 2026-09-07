@@ -14,7 +14,7 @@ TRD v1.0 states alignment to Business Plan v1.2 and Product Roadmap v1.1, but on
 | Wedge                    | Retain Autopsy, but make secure onboarding, conflict/entitlement, cited review and server sign-off part of the product, not operating custom         |
 | Vault                    | Retain v0.5 positioning; extend to version, verification, approval, usage, retention and quarantine                                                  |
 | Capability Library       | Retain; implement fact-level evidence validity/restrictions and hard release blocking                                                                |
-| BOQ                      | Retain arithmetic/format-only posture; remove any implication Valo proposes rates; use exact decimal and current versioned tax/tender rules          |
+| BOQ                      | Retain arithmetic/format-only posture; remove any implication BidBox proposes rates; use exact decimal and current versioned tax/tender rules        |
 | Portal                   | Redesign as organisation/role-based, low-bandwidth and accessible; approved records/readiness remain governed                                        |
 | Partner channel          | Retain v2.5 direction behind flags; add ownership, segregation, co-sign and branding integrity controls                                              |
 | Defect report/benchmarks | Redesign: explicit consent alone is insufficient; add minimum cohorts, small-cell suppression, differencing, withdrawal and re-identification review |
@@ -43,7 +43,7 @@ Technical release does not satisfy these real-world gates. Owners must record ac
 
 - Five real Autopsies delivered within the agreed SLA.
 - Paid engagements, retainers, conversion and on-time delivery.
-- Valo-caused disqualification rate and quality incidents.
+- BidBox-caused disqualification rate and quality incidents.
 - Client/partner consent and support readiness.
 - Partner/channel/new-logo and revenue-mix criteria.
 - Replacement-cost crossover and margin/unit cost.

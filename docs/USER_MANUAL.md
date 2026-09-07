@@ -1,14 +1,14 @@
-# Valo Bid Autopsy Workbench — User Manual
+# BidBox Bid Autopsy Workbench — User Manual
 
 _A plain-language guide to the application: every surface, every screen, and the rules you will meet along the way._
 
-This manual describes the application as it is actually built today. Where a capability is deliberately switched off — and Valo switches things off on purpose until they are safe and commercially activated — the manual says so, because a greyed-out button with a reason is part of the design, not a bug.
+This manual describes the application as it is actually built today. Where a capability is deliberately switched off — and BidBox switches things off on purpose until they are safe and commercially activated — the manual says so, because a greyed-out button with a reason is part of the design, not a bug.
 
 ---
 
-## 1. What Valo is
+## 1. What BidBox is
 
-Valo is a workbench for **forensic tender review** in the Nigerian market. You give it a client's tender (what the government, agency, or operator asked for) and the client's bid (what they submitted or plan to submit). Valo helps a named human team find every requirement, check whether the bid answers each one, catch the defects that get bids disqualified — missing certificates, expired documents, arithmetic errors in the Bill of Quantities, formatting breaches — and produce a signed, professional report with an audit trail behind every finding.
+BidBox is a workbench for **forensic tender review** in the Nigerian market. You give it a client's tender (what the government, agency, or operator asked for) and the client's bid (what they submitted or plan to submit). BidBox helps a named human team find every requirement, check whether the bid answers each one, catch the defects that get bids disqualified — missing certificates, expired documents, arithmetic errors in the Bill of Quantities, formatting breaches — and produce a signed, professional report with an audit trail behind every finding.
 
 Five principles run through everything and explain most of the rules you will bump into:
 
@@ -16,7 +16,7 @@ Five principles run through everything and explain most of the rules you will bu
 2. **Everything that must be exactly right is ordinary tested code, not AI.** Arithmetic, tax reconciliation, risk scores, expiry dates, and workflow rules are deterministic — the same inputs always give the same answer. Money is never handled as floating-point numbers.
 3. **No claim without evidence, and absence is never clearance.** An empty list means "the endpoint returned no records", not "everything is fine" — the screens say this in so many words. A capability claim is unusable until evidence is linked and approved.
 4. **Tenant boundaries are absolute.** Every organisation's data is isolated at the database level. Your organisation choice scopes everything you see, and the server re-checks it on every request — the interface never has the final word on permissions.
-5. **Nothing external happens silently.** Valo never sends a message, executes a payment, submits a bid, scrapes a website, or deletes data on its own. Where such a capability exists in the interface, it records _intent and evidence_ and tells you explicitly that no external effect occurred.
+5. **Nothing external happens silently.** BidBox never sends a message, executes a payment, submits a bid, scrapes a website, or deletes data on its own. Where such a capability exists in the interface, it records _intent and evidence_ and tells you explicitly that no external effect occurred.
 
 If a button seems blocked, one of these principles is almost always the reason — section 21 is a cheat-sheet for exactly which rule you have hit.
 
@@ -32,11 +32,11 @@ The application is split into three strictly separated surfaces:
 | **Access**    | People signing in            | `/sign-in`, invitation acceptance, and the SSO return page, powered by the identity provider.        |
 | **Workspace** | Signed-in, provisioned users | Everything else. Requires a valid session, an organisation, and a role.                              |
 
-On any non-public page the browser tab is titled "Secure access | Valo" so workspace content never leaks into browser history or link previews.
+On any non-public page the browser tab is titled "Secure access | BidBox" so workspace content never leaks into browser history or link previews.
 
 ### The public site
 
-Visitors see a landing page pitched at Nigerian public-sector, oil-and-gas (NipeX/NCDMB) and donor-funded bid teams, with a permanent disclaimer that Valo does not guarantee any award. Supporting pages — Product, Solutions, How It Works, Security, About, Contact, Privacy, Terms — are read-only. The sample "defect register" on the landing page is labelled fictional.
+Visitors see a landing page pitched at Nigerian public-sector, oil-and-gas (NipeX/NCDMB) and donor-funded bid teams, with a permanent disclaimer that BidBox does not guarantee any award. Supporting pages — Product, Solutions, How It Works, Security, About, Contact, Privacy, Terms — are read-only. The sample "defect register" on the landing page is labelled fictional.
 
 The only thing an anonymous visitor can submit is the **Bid Autopsy request form** (`/request-bid-autopsy`): contact name, company, business email and telephone, tender category, bid stage, optional deadline, preferred contact method, and a privacy acknowledgement. The form takes **no documents** — deliberately. Scope, conflicts and NDA are handled by a human before any document changes hands. On success you get a request reference on screen; a retry of an unchanged submission safely reuses the same reference.
 
@@ -44,9 +44,9 @@ The only thing an anonymous visitor can submit is the **Bid Autopsy request form
 
 ## 3. Signing in and choosing your organisation
 
-1. **Sign in** at `/sign-in`. Valo is invitation-only: an administrator invites you, and you activate the invitation at `/accept-invitation`. Passwords, MFA, recovery and active sessions are managed by the identity provider (see your **Account** page later).
-2. **Organisation selection.** After sign-in Valo resolves which organisations you belong to. If you have exactly one, it is selected automatically. If you have several, a full-screen **"Select an organisation"** gate lists each one with its type (Client organisation / Valo operations / Consultancy partner), your roles in it, whether your access is a direct membership or a **partner relationship**, and any expiry date on your access.
-3. **Your role home.** Valo then lands you where your role works: internal staff land on the Command Centre; client roles land on the Client workspace (or Pursuits); partner roles land on the Partner workspace; auditors land on Evidence & readiness; restricted platform administrators land on Security & audit.
+1. **Sign in** at `/sign-in`. BidBox is invitation-only: an administrator invites you, and you activate the invitation at `/accept-invitation`. Passwords, MFA, recovery and active sessions are managed by the identity provider (see your **Account** page later).
+2. **Organisation selection.** After sign-in BidBox resolves which organisations you belong to. If you have exactly one, it is selected automatically. If you have several, a full-screen **"Select an organisation"** gate lists each one with its type (Client organisation / BidBox operations / Consultancy partner), your roles in it, whether your access is a direct membership or a **partner relationship**, and any expiry date on your access.
+3. **Your role home.** BidBox then lands you where your role works: internal staff land on the Command Centre; client roles land on the Client workspace (or Pursuits); partner roles land on the Partner workspace; auditors land on Evidence & readiness; restricted platform administrators land on Security & audit.
 
 **Switching organisations** later is done from the switcher in the header (or the mobile menu). Switching wipes every cached record from the previous organisation before anything new loads. Switching is temporarily refused while a write is in flight — finish or cancel the in-progress action first.
 
@@ -75,9 +75,9 @@ Items marked with an amber **"Pending"** chip are technically present but not co
 
 ## 5. Roles, permissions and access sources — the short version
 
-Valo has many precise roles; you only need the shape:
+BidBox has many precise roles; you only need the shape:
 
-- **Internal (Valo) roles** — analysts, quality advisers, operations administrators, and a deliberately restricted platform administrator. These see the Command Centre, operations consoles and administration surfaces.
+- **Internal (BidBox) roles** — analysts, quality advisers, operations administrators, and a deliberately restricted platform administrator. These see the Command Centre, operations consoles and administration surfaces.
 - **Client roles** — organisation owner, administrator, bid lead, contributor, reviewer/approver, auditor. These see their own pursuits, the client portal and client action room.
 - **Partner roles** — consultancy partner administrators and analyst/reviewers. These see the partner workspace and, through the organisation switcher, the client contexts their relationship grants.
 - **Auditors** — read-only roles that land on Evidence & readiness and can read audit surfaces.
@@ -156,7 +156,7 @@ A normalised library of Nigerian Standard Bidding Documents: code, category (Goo
 
 The decision-support console. It requires the full set of read permissions over the underlying sources — if you lack any, the page tells you and loads nothing.
 
-What you will find: pursuit-scoped evidence metrics, the current runtime level, restricted-mode and "production model execution is disabled" notices where applicable, a **review inbox** where a reviewer with `intelligence:review` claims an item and records a decision (both actions carry exact source-version hashes — if the source changed under you, the claim is refused as stale), and the **decision-support catalogue** of capabilities. The closing "decision contract" is worth reading once: suggestions may be wrong; open the named source; your identity stays on the decision; Valo does not approve evidence, waive findings, set prices, predict awards or submit bids.
+What you will find: pursuit-scoped evidence metrics, the current runtime level, restricted-mode and "production model execution is disabled" notices where applicable, a **review inbox** where a reviewer with `intelligence:review` claims an item and records a decision (both actions carry exact source-version hashes — if the source changed under you, the claim is refused as stale), and the **decision-support catalogue** of capabilities. The closing "decision contract" is worth reading once: suggestions may be wrong; open the named source; your identity stays on the decision; BidBox does not approve evidence, waive findings, set prices, predict awards or submit bids.
 
 ---
 

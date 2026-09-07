@@ -2,7 +2,7 @@
 
 Status: **deterministic evidence and review runtime connected; model runtime and production activation remain blocked**.
 
-This implementation retains the pure, typed control contracts for the next Valo
+This implementation retains the pure, typed control contracts for the next BidBox
 AI data plane and execution plane and adds four bounded foundations. A
 tenant-scoped, deterministic verified-span evidence layer and a named Review
 Inbox are connected to database-backed routes. Durable workflow and continuous
@@ -91,7 +91,7 @@ foundation and remain deployment gates:
    shadow, pilot and canary evidence; and
 6. named privacy, security, product, legal and operational acceptance.
 
-Until those gates pass, Valo exposes deterministic Level-0 Intelligence
+Until those gates pass, BidBox exposes deterministic Level-0 Intelligence
 projections, bounded verified-span lexical search and named review metadata.
 The workflow/evaluation stores remain disconnected from execution. No document
 content is authorised for production model processing by this work.

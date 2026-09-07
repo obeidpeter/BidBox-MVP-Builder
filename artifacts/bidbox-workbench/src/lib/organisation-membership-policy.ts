@@ -10,14 +10,14 @@ export const ORGANISATION_ROLE_LABELS: Record<OrganisationRole, string> = {
   bid_manager: "Bid manager",
   contributor: "Contributor",
   client_reviewer_approver: "Client reviewer / approver",
-  valo_operations_administrator: "Valo operations administrator",
+  valo_operations_administrator: "BidBox operations administrator",
   restricted_platform_administrator: "Restricted platform administrator",
   consultancy_partner_administrator: "Consultancy partner administrator",
   consultancy_partner_analyst_reviewer:
     "Consultancy partner analyst / reviewer",
   read_only_auditor: "Read-only auditor",
-  valo_analyst: "Valo analyst",
-  valo_quality_adviser: "Valo quality adviser",
+  valo_analyst: "BidBox analyst",
+  valo_quality_adviser: "BidBox quality adviser",
 };
 
 const CLIENT_ROLES: OrganisationRole[] = [
@@ -35,7 +35,7 @@ const PARTNER_ROLES: OrganisationRole[] = [
   "read_only_auditor",
 ];
 
-const VALO_ROLES: OrganisationRole[] = [
+const BIDBOX_ROLES: OrganisationRole[] = [
   "valo_operations_administrator",
   "restricted_platform_administrator",
   "valo_analyst",
@@ -69,10 +69,10 @@ export function delegableRoles(
   }
 
   if (actorRoles.includes("restricted_platform_administrator")) {
-    return VALO_ROLES;
+    return BIDBOX_ROLES;
   }
   if (actorRoles.includes("valo_operations_administrator")) {
-    return VALO_ROLES.filter(
+    return BIDBOX_ROLES.filter(
       (role) => role !== "restricted_platform_administrator",
     );
   }

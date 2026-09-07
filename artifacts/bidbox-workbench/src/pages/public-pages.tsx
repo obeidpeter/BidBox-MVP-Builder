@@ -107,13 +107,13 @@ export function ProductPage() {
     <PublicShell>
       <PublicMeta
         title="Product"
-        description="Explore Valo's tender workspace for documents, requirements linked to sources, evidence, bill of quantities checks, issues, reports and audit history."
+        description="Explore BidBox's tender workspace for documents, requirements linked to sources, evidence, bill of quantities checks, issues, reports and audit history."
         path="/product"
       />
       <PageIntro
         eyebrow="Product"
         title="One organised workspace for complex bids."
-        description="Valo keeps the bid record in one place and clearly separates AI suggestions, rule-based checks and human decisions."
+        description="BidBox keeps the bid record in one place and clearly separates AI suggestions, rule-based checks and human decisions."
       >
         <Button asChild variant="outline" className="min-h-11">
           <Link href="/how-it-works">See the workflow</Link>
@@ -157,8 +157,9 @@ export function ProductPage() {
               Calculations use fixed rules
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              Valo checks money with fixed calculation rules, not AI guesses. It
-              does not invent rates, pricing strategy or business assumptions.
+              BidBox checks money with fixed calculation rules, not AI guesses.
+              It does not invent rates, pricing strategy or business
+              assumptions.
             </p>
           </div>
           <div>
@@ -167,7 +168,7 @@ export function ProductPage() {
               Unavailable means unavailable
             </h2>
             <p className="mt-2 text-sm leading-6 text-muted-foreground">
-              If a service, permission or required safeguard is missing, Valo
+              If a service, permission or required safeguard is missing, BidBox
               says so. Sensitive actions stay disabled instead of appearing to
               work.
             </p>
@@ -206,7 +207,7 @@ export function SolutionsPage() {
     {
       icon: Building2,
       title: "Advisory and partner teams",
-      body: "Work with assigned client organisations while keeping each client's data, ownership and Valo's quality checks separate.",
+      body: "Work with assigned client organisations while keeping each client's data, ownership and BidBox's quality checks separate.",
       items: [
         "Assigned client workspaces",
         "Clear role limits",
@@ -220,7 +221,7 @@ export function SolutionsPage() {
     <PublicShell>
       <PublicMeta
         title="Solutions"
-        description="Valo supports bid, compliance and advisory teams with tender work linked to sources and named human review."
+        description="BidBox supports bid, compliance and advisory teams with tender work linked to sources and named human review."
         path="/solutions"
       />
       <PageIntro
@@ -263,11 +264,11 @@ export function HowItWorksPage() {
     ],
     [
       "Record documents safely",
-      "Valo records the document list and enforces file-size limits. Approved checks for a file's real type and contents, malware scanning, archive inspection and quarantine are not yet connected. Production document uploads stay off until those checks are approved and working.",
+      "BidBox records the document list and enforces file-size limits. Approved checks for a file's real type and contents, malware scanning, archive inspection and quarantine are not yet connected. Production document uploads stay off until those checks are approved and working.",
     ],
     [
       "Create draft requirements",
-      "Valo links every suggested requirement to its source and shows uncertainty. Instructions hidden inside a document cannot run tools or change the review.",
+      "BidBox links every suggested requirement to its source and shows uncertainty. Instructions hidden inside a document cannot run tools or change the review.",
     ],
     [
       "Review and assign",
@@ -283,7 +284,7 @@ export function HowItWorksPage() {
     ],
     [
       "Approve before download",
-      "Before a report is downloaded, Valo rechecks the required safeguards, reviewer assignment and approval. A must-fix issue cannot be overridden.",
+      "Before a report is downloaded, BidBox rechecks the required safeguards, reviewer assignment and approval. A must-fix issue cannot be overridden.",
     ],
     [
       "Keep the record",
@@ -295,13 +296,13 @@ export function HowItWorksPage() {
     <PublicShell>
       <PublicMeta
         title="How it works"
-        description="See how Valo moves from an approved client agreement to requirements linked to sources, evidence checks, human approval and an audit-ready report."
+        description="See how BidBox moves from an approved client agreement to requirements linked to sources, evidence checks, human approval and an audit-ready report."
         path="/how-it-works"
       />
       <PageIntro
         eyebrow="How it works"
         title="A clear path from first contact to final review."
-        description="Each step leaves a record for the next one. If approval, evidence or a required service is missing, Valo stops the action and explains why."
+        description="Each step leaves a record for the next one. If approval, evidence or a required service is missing, BidBox stops the action and explains why."
       />
       <section className="content-shell py-16 sm:py-20">
         <ol className="mx-auto max-w-4xl space-y-4">
@@ -336,11 +337,11 @@ export function SecurityPage() {
     ],
     [
       "People approve important actions",
-      "Roles control who can contribute, review, approve quality, administer or audit. Partner access does not grant permission to approve Valo quality decisions.",
+      "Roles control who can contribute, review, approve quality, administer or audit. Partner access does not grant permission to approve BidBox quality decisions.",
     ],
     [
-      "Documents cannot control Valo",
-      "Valo treats tender content as data, never as an instruction to the system, and enforces file-size limits. Approved checks for a file's real type and contents, malware scanning, archive inspection and quarantine are not yet connected to document uploads.",
+      "Documents cannot control BidBox",
+      "BidBox treats tender content as data, never as an instruction to the system, and enforces file-size limits. Approved checks for a file's real type and contents, malware scanning, archive inspection and quarantine are not yet connected to document uploads.",
     ],
     [
       "Audit records show known gaps",
@@ -352,7 +353,7 @@ export function SecurityPage() {
     ],
     [
       "Checks run again before download",
-      "When someone requests a report or data export, Valo rechecks that required services are ready, the evidence is current, a reviewer is assigned and no blocking issue is open.",
+      "When someone requests a report or data export, BidBox rechecks that required services are ready, the evidence is current, a reviewer is assigned and no blocking issue is open.",
     ],
   ] as const;
 
@@ -360,13 +361,13 @@ export function SecurityPage() {
     <PublicShell>
       <PublicMeta
         title="Security"
-        description="Learn how Valo separates organisation data, treats documents safely, approves AI services, records actions and keeps important decisions with people."
+        description="Learn how BidBox separates organisation data, treats documents safely, approves AI services, records actions and keeps important decisions with people."
         path="/security"
       />
       <PageIntro
         eyebrow="Security and trust"
         title="See the safeguards that protect each step."
-        description="Valo shows its security and record-protection checks as part of the work. This page describes product safeguards; it is not a certification or a promise that every deployment is approved."
+        description="BidBox shows its security and record-protection checks as part of the work. This page describes product safeguards; it is not a certification or a promise that every deployment is approved."
       />
       <section className="content-shell py-16 sm:py-20">
         <div className="grid gap-5 md:grid-cols-2 xl:grid-cols-3">
@@ -405,29 +406,29 @@ export function AboutPage() {
     <PublicShell>
       <PublicMeta
         title="About"
-        description="Valo is building a tender review workspace for Nigerian bid teams and other teams in regulated markets."
+        description="BidBox is building a tender review workspace for Nigerian bid teams and other teams in regulated markets."
         path="/about"
       />
       <PageIntro
-        eyebrow="About Valo"
+        eyebrow="About BidBox"
         title="Better tender work starts with a clear record."
-        description="Valo is being built in Abuja for teams working on Nigerian public-sector, energy and donor-funded tenders."
+        description="BidBox is being built in Abuja for teams working on Nigerian public-sector, energy and donor-funded tenders."
       />
       <section className="content-shell grid gap-10 py-16 sm:py-20 lg:grid-cols-2 lg:gap-16">
         <div>
           <h2 className="text-2xl font-semibold tracking-[-0.025em]">
-            Why Valo exists
+            Why BidBox exists
           </h2>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
             Capable bid teams can still lose track of requirements, evidence and
-            approvals across documents, messages and spreadsheets. Valo focuses
-            on these preventable problems.
+            approvals across documents, messages and spreadsheets. BidBox
+            focuses on these preventable problems.
           </p>
           <p className="mt-4 text-base leading-7 text-muted-foreground">
-            Valo combines AI-assisted extraction and explanation with rule-based
-            software and named human review. AI-assisted steps stay unavailable
-            until the AI service, privacy and model-evaluation approvals are in
-            place. A human reviewer makes the final decision.
+            BidBox combines AI-assisted extraction and explanation with
+            rule-based software and named human review. AI-assisted steps stay
+            unavailable until the AI service, privacy and model-evaluation
+            approvals are in place. A human reviewer makes the final decision.
           </p>
         </div>
         <div className="rounded-lg border border-border bg-card p-6">
@@ -464,13 +465,13 @@ export function ContactPage() {
     <PublicShell>
       <PublicMeta
         title="Contact"
-        description="Ask Valo about a Bid Autopsy without sending tender documents or sensitive commercial information through the public form."
+        description="Ask BidBox about a Bid Autopsy without sending tender documents or sensitive commercial information through the public form."
         path="/contact"
       />
       <PageIntro
         eyebrow="Contact"
         title="Start with a Bid Autopsy request."
-        description="The request form asks only for the business details Valo needs to contact you. Share tender files later, after the client agreement and secure document-sharing process are approved."
+        description="The request form asks only for the business details BidBox needs to contact you. Share tender files later, after the client agreement and secure document-sharing process are approved."
       />
       <section className="content-shell grid gap-6 py-16 sm:py-20 lg:grid-cols-[1fr_0.75fr]">
         <div className="rounded-lg border border-border bg-card p-6 sm:p-8">
@@ -488,11 +489,11 @@ export function ContactPage() {
           <h2 className="mt-5 font-semibold">Already invited?</h2>
           <p className="mt-2 text-sm leading-6 text-muted-foreground">
             Sign in with the email address or account that received the
-            invitation. Valo checks your organisation and role after it verifies
-            your identity.
+            invitation. BidBox checks your organisation and role after it
+            verifies your identity.
           </p>
           <Button asChild variant="outline" className="mt-6 min-h-11 w-full">
-            <Link href="/sign-in">Sign in to Valo</Link>
+            <Link href="/sign-in">Sign in to BidBox</Link>
           </Button>
         </aside>
       </section>
@@ -533,7 +534,7 @@ export function PrivacyPage() {
     <LegalPage
       kind="Privacy"
       title="Privacy notice"
-      description="How Valo handles public requests, account identity and information in a tender workspace."
+      description="How BidBox handles public requests, account identity and information in a tender workspace."
     >
       <p>
         <strong>Effective 10 August 2026.</strong> This notice describes how the
@@ -544,29 +545,29 @@ export function PrivacyPage() {
       <p>
         The Bid Autopsy request form records ordinary business contact details,
         a broad tender category and stage, an optional deadline, your preferred
-        contact method and confirmation that you read this notice. Valo uses
+        contact method and confirmation that you read this notice. BidBox uses
         this information to assess and answer the request. The form does not
         accept tender documents, sensitive commercial information or free-text
         bid details.
       </p>
       <p>
-        Form answers are stored in a separate Valo database for public requests
-        and are not sent to analytics. Technical request details help Valo
-        confirm that the form came from the official site, prevent abuse, limit
-        repeated attempts and avoid duplicate requests. Normal application logs
-        do not record the form answers.
+        Form answers are stored in a separate BidBox database for public
+        requests and are not sent to analytics. Technical request details help
+        BidBox confirm that the form came from the official site, prevent abuse,
+        limit repeated attempts and avoid duplicate requests. Normal application
+        logs do not record the form answers.
       </p>
       <h2>How long we keep public requests</h2>
       <p>
-        Valo keeps and deletes public requests under its approved public-request
-        policy. This notice does not state a fixed period because one has not
-        yet been approved for operations. Use a verified Valo contact to ask to
-        access, correct or delete a public request.
+        BidBox keeps and deletes public requests under its approved
+        public-request policy. This notice does not state a fixed period because
+        one has not yet been approved for operations. Use a verified BidBox
+        contact to ask to access, correct or delete a public request.
       </p>
       <h2>Accounts and access</h2>
       <p>
-        Valo uses an external sign-in service to verify identity, provide
-        multi-factor authentication and recover accounts. Valo stores only the
+        BidBox uses an external sign-in service to verify identity, provide
+        multi-factor authentication and recover accounts. BidBox stores only the
         identity and role details it needs to decide who can access each
         organisation and to create audit records.
       </p>
@@ -579,16 +580,16 @@ export function PrivacyPage() {
       </p>
       <h2>Audit, security and retention</h2>
       <p>
-        Valo may record approved actions in an audit trail. Decisions to keep,
+        BidBox may record approved actions in an audit trail. Decisions to keep,
         delete or place information on legal hold depend on the client agreement
         and applicable policy. A request is not complete until the system
         records the approved outcome.
       </p>
       <h2>Your choices</h2>
       <p>
-        Use your verified Valo contact or organisation administrator to ask for
-        access, correction, retention or deletion. A security-sensitive request
-        may require you to sign in again and may need further approval.
+        Use your verified BidBox contact or organisation administrator to ask
+        for access, correction, retention or deletion. A security-sensitive
+        request may require you to sign in again and may need further approval.
       </p>
     </LegalPage>
   );
@@ -599,7 +600,7 @@ export function TermsPage() {
     <LegalPage
       kind="Terms"
       title="Service terms notice"
-      description="Rules for using the Valo public site and its controlled tender workspace."
+      description="Rules for using the BidBox public site and its controlled tender workspace."
     >
       <p>
         <strong>Effective 9 August 2026.</strong> The agreement issued to each
@@ -614,7 +615,7 @@ export function TermsPage() {
       </p>
       <h2>Human responsibility</h2>
       <p>
-        Valo supports a human-reviewed process. It cannot guarantee a contract
+        BidBox supports a human-reviewed process. It cannot guarantee a contract
         award, an evaluator's decision or acceptance of a submission. Approved
         users remain responsible for conclusions, evidence, figures, approvals
         and submission.
@@ -625,7 +626,7 @@ export function TermsPage() {
         required readiness, security or service checks, upload malicious files,
         treat unreviewed AI output as authoritative, use AI output to change
         records or actions before a named person reviews it, fabricate evidence,
-        or use Valo to automate submission to a government portal.
+        or use BidBox to automate submission to a government portal.
       </p>
       <h2>Commercial and financial boundaries</h2>
       <p>
@@ -636,7 +637,7 @@ export function TermsPage() {
       <h2>Availability and change</h2>
       <p>
         A feature may be unavailable when a required permission, system, service
-        or security safeguard is not approved. Valo may change the service to
+        or security safeguard is not approved. BidBox may change the service to
         protect security, record integrity or legal obligations. The applicable
         agreement governs any material contract change.
       </p>
@@ -649,7 +650,7 @@ export function PublicNotFoundPage() {
     <PublicShell>
       <PublicMeta
         title="Page not found"
-        description="The requested Valo page could not be found."
+        description="The requested BidBox page could not be found."
         path={window.location.pathname}
         index={false}
       />

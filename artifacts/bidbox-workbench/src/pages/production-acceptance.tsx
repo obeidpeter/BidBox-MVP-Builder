@@ -143,7 +143,7 @@ export default function ProductionAcceptancePage() {
       <PageGatePanel
         state="blocked"
         title="Release-check access required"
-        description="You need direct membership, audit-read permission and an approved Valo operations, restricted platform or quality role. Partner access and emergency access are denied."
+        description="You need direct membership, audit-read permission and an approved BidBox operations, restricted platform or quality role. Partner access and emergency access are denied."
       />
     );
   }

@@ -92,32 +92,32 @@ const FIRST_WAVE_RLS_GUARD_ASSERTIONS = Object.freeze([
 export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
   pursuit_control_tower: Object.freeze({
     evidence: Object.freeze([
-      "artifacts/valo-workbench/src/pages/dashboard.tsx",
-      "artifacts/valo-workbench/src/components/pursuit-control-tower.tsx",
-      "artifacts/valo-workbench/src/lib/pursuit-control-tower.ts",
+      "artifacts/bidbox-workbench/src/pages/dashboard.tsx",
+      "artifacts/bidbox-workbench/src/components/pursuit-control-tower.tsx",
+      "artifacts/bidbox-workbench/src/lib/pursuit-control-tower.ts",
     ]),
     sourceAssertions: Object.freeze([
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/dashboard.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/dashboard.tsx",
         includes: "<PursuitControlTower",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/components/pursuit-control-tower.tsx",
+        path: "artifacts/bidbox-workbench/src/components/pursuit-control-tower.tsx",
         includes: "export function PursuitControlTower",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/lib/pursuit-control-tower.ts",
+        path: "artifacts/bidbox-workbench/src/lib/pursuit-control-tower.ts",
         includes: "export function buildPursuitControlTower",
       }),
     ]),
     guardAssertions: Object.freeze([
       ...CENTRAL_TENANT_GUARD_ASSERTIONS,
       Object.freeze({
-        path: "artifacts/valo-workbench/src/protected-routes.tsx",
+        path: "artifacts/bidbox-workbench/src/protected-routes.tsx",
         includes: '<Route path="/dashboard" component={RoleHome} />',
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/components/role-home.tsx",
+        path: "artifacts/bidbox-workbench/src/components/role-home.tsx",
         includes: "if (isInternalRole(roles)) return <Dashboard />;",
       }),
       Object.freeze({
@@ -136,9 +136,9 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/routes/tenderContext.ts",
       "artifacts/api-server/src/lib/intelligence/tenderContextDrizzleRepository.ts",
       "artifacts/api-server/src/routes/index.ts",
-      "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
-      "artifacts/valo-workbench/src/protected-routes.tsx",
-      "artifacts/valo-workbench/src/pages/project-details.tsx",
+      "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
+      "artifacts/bidbox-workbench/src/protected-routes.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-details.tsx",
     ]),
     sourceAssertions: Object.freeze([
       Object.freeze({
@@ -162,15 +162,15 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
         includes: "router.use(tenderContextRouter);",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
         includes: "export default function TenderContextRoute()",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/protected-routes.tsx",
+        path: "artifacts/bidbox-workbench/src/protected-routes.tsx",
         includes: '<Route path="/projects/:id/tender-context">',
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/project-details.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/project-details.tsx",
         includes: "`/projects/${id}/tender-context`",
       }),
     ]),
@@ -214,9 +214,9 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/lib/intelligence/tenderContext.ts",
       "artifacts/api-server/src/lib/intelligence/tenderContextContracts.ts",
       "artifacts/api-server/src/routes/index.ts",
-      "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
-      "artifacts/valo-workbench/src/protected-routes.tsx",
-      "artifacts/valo-workbench/src/pages/project-details.tsx",
+      "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
+      "artifacts/bidbox-workbench/src/protected-routes.tsx",
+      "artifacts/bidbox-workbench/src/pages/project-details.tsx",
     ]),
     sourceAssertions: Object.freeze([
       Object.freeze({
@@ -236,15 +236,15 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
         includes: "router.use(tenderContextRouter);",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/tender-context-route.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/tender-context-route.tsx",
         includes: "createTenderEligibilityPassport",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/protected-routes.tsx",
+        path: "artifacts/bidbox-workbench/src/protected-routes.tsx",
         includes: '<Route path="/projects/:id/tender-context">',
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/project-details.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/project-details.tsx",
         includes: "Open Tender Context &amp; Eligibility Passport",
       }),
     ]),
@@ -274,9 +274,9 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
       "artifacts/api-server/src/routes/addendumImpact.ts",
       "artifacts/api-server/src/lib/intelligence/addendumImpactService.ts",
       "artifacts/api-server/src/routes/index.ts",
-      "artifacts/valo-workbench/src/components/intelligence/addendum-impact-centre.tsx",
-      "artifacts/valo-workbench/src/components/intelligence/addendum-impact-contract.ts",
-      "artifacts/valo-workbench/src/pages/intelligence-centre-route.tsx",
+      "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-centre.tsx",
+      "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-contract.ts",
+      "artifacts/bidbox-workbench/src/pages/intelligence-centre-route.tsx",
     ]),
     sourceAssertions: Object.freeze([
       Object.freeze({
@@ -292,11 +292,11 @@ export const REQUIRED_CAPABILITY_CONTRACTS = Object.freeze({
         includes: "router.use(addendumImpactRouter);",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/components/intelligence/addendum-impact-contract.ts",
+        path: "artifacts/bidbox-workbench/src/components/intelligence/addendum-impact-contract.ts",
         includes: "REOPEN AFFECTED WORK",
       }),
       Object.freeze({
-        path: "artifacts/valo-workbench/src/pages/intelligence-centre-route.tsx",
+        path: "artifacts/bidbox-workbench/src/pages/intelligence-centre-route.tsx",
         includes: "<AddendumImpactCentre projectId={selectedProjectId} />",
       }),
     ]),
@@ -373,7 +373,7 @@ function assertWorkspacePath(path, label) {
 export function validateProductCapabilityRegistry(registry) {
   assertPlainObject(registry, "Capability registry");
   assert.equal(registry.schemaVersion, 1);
-  assert.equal(registry.registryId, "valo-product-capabilities/v1");
+  assert.equal(registry.registryId, "bidbox-product-capabilities/v1");
   assert.equal(
     registry.authority,
     "checked_in_source_and_runtime_gates_are_authoritative",

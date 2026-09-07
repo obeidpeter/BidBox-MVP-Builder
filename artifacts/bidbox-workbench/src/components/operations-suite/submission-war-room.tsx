@@ -102,7 +102,7 @@ export function SubmissionWarRoom({
       busy={state === "loading"}
     >
       <HumanAuthorityNotice title="Manual submission boundary">
-        Valo does not click Submit, send an email, hand over a package or
+        BidBox does not click Submit, send an email, hand over a package or
         certify delivery. An authorised operator performs that external action
         and records the resulting receipt against the frozen hash.
       </HumanAuthorityNotice>

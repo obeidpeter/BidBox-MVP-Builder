@@ -123,7 +123,9 @@ describe("access gating in Layout", () => {
     renderLayout();
 
     expect(screen.getByTestId("protected-child")).toBeInTheDocument();
-    expect(screen.getByRole("link", { name: "Valo home" })).toBeInTheDocument();
+    expect(
+      screen.getByRole("link", { name: "BidBox home" }),
+    ).toBeInTheDocument();
     expect(
       screen.queryByText(/you don't have organisation access yet/i),
     ).not.toBeInTheDocument();
@@ -150,7 +152,7 @@ describe("access gating in Layout", () => {
     ).toBeInTheDocument();
     expect(screen.getByText(userId)).toBeInTheDocument();
     expect(
-      screen.getByRole("button", { name: "Copy Valo user ID" }),
+      screen.getByRole("button", { name: "Copy BidBox user ID" }),
     ).toBeInTheDocument();
     expect(screen.queryByTestId("protected-child")).not.toBeInTheDocument();
   });
@@ -168,7 +170,9 @@ describe("access gating in Layout", () => {
     };
     renderLayout();
     expect(screen.getByText(/no role assigned yet/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/valo dashboard/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/bidbox dashboard/i),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("protected-child")).not.toBeInTheDocument();
   });
 
@@ -186,7 +190,9 @@ describe("access gating in Layout", () => {
     renderLayout();
     expect(screen.getByText(/account disabled/i)).toBeInTheDocument();
     expect(screen.getByLabelText(/status: blocked/i)).toBeInTheDocument();
-    expect(screen.queryByLabelText(/valo dashboard/i)).not.toBeInTheDocument();
+    expect(
+      screen.queryByLabelText(/bidbox dashboard/i),
+    ).not.toBeInTheDocument();
     expect(screen.queryByTestId("protected-child")).not.toBeInTheDocument();
   });
 
@@ -249,7 +255,7 @@ describe("access gating in Layout", () => {
       isLoading: false,
     };
     renderLayout();
-    expect(screen.getByLabelText(/valo dashboard/i)).toBeInTheDocument();
+    expect(screen.getByLabelText(/bidbox dashboard/i)).toBeInTheDocument();
     expect(screen.getByText(/^dashboard$/i)).toBeInTheDocument();
     expect(screen.getByText(/^pursuit workflows$/i)).toBeInTheDocument();
     expect(screen.getByText(/^claims$/i)).toBeInTheDocument();

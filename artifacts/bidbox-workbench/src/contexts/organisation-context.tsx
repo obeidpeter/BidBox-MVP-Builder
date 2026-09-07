@@ -57,7 +57,7 @@ interface OrganisationContextValue {
 const OrganisationContext = createContext<OrganisationContextValue | null>(
   null,
 );
-const SESSION_KEY_PREFIX = "valo:selected-organisation";
+const SESSION_KEY_PREFIX = "bidbox:selected-organisation";
 const QUERY_PREFIX = "organisation-access";
 let activeContextOrganisationId: string | null = null;
 

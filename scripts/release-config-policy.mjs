@@ -4,7 +4,7 @@ export const RELEASE_IDENTITY_SOURCE_CONFIG_PATHS = Object.freeze([
   ".replit",
   "artifacts/api-server/.replit-artifact/artifact.toml",
   "artifacts/mockup-sandbox/.replit-artifact/artifact.toml",
-  "artifacts/valo-workbench/.replit-artifact/artifact.toml",
+  "artifacts/bidbox-workbench/.replit-artifact/artifact.toml",
 ]);
 
 const releaseIdentityToken = /\bVALO_RELEASE_SHA256\b/u;

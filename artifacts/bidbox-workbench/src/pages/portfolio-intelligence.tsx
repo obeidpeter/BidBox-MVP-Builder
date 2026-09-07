@@ -297,7 +297,7 @@ export default function PortfolioIntelligence() {
       <div className="p-5 sm:p-8">
         <DataErrorPanel
           title="Portfolio intelligence could not be loaded"
-          description="Valo could not verify the current organisation portfolio. No missing, blocked or ready state has been inferred from the failed request."
+          description="BidBox could not verify the current organisation portfolio. No missing, blocked or ready state has been inferred from the failed request."
           onRetry={() => void portfolioQuery.refetch()}
         />
       </div>
@@ -599,8 +599,8 @@ export default function PortfolioIntelligence() {
                 "This portfolio is operational evidence, not a bid-success forecast or release approval."}
             </p>
             <p className="mt-1 leading-6">
-              Valo does not sign in to, upload to or submit through an external
-              procurement portal.
+              BidBox does not sign in to, upload to or submit through an
+              external procurement portal.
             </p>
           </div>
         </CardContent>

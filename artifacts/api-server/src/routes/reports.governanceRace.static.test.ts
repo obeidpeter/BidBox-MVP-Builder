@@ -55,11 +55,11 @@ test("report sign-off revalidates current direct grant inside the final transact
 test("sign-off authority and every supported membership mutation share one organisation lock", () => {
   assert.match(
     authoritySource,
-    /valo\.membership-administration:\$\{context\.organisationId\}/u,
+    /bidbox\.membership-administration:\$\{context\.organisationId\}/u,
   );
   assert.match(
     membershipWriterSource,
-    /valo\.membership-administration:\$\{organisationId\}/u,
+    /bidbox\.membership-administration:\$\{organisationId\}/u,
   );
 
   const grantStart = membershipWriterSource.indexOf(

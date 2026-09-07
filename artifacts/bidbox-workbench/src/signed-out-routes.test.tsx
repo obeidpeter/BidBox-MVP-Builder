@@ -167,7 +167,7 @@ describe("public routing", () => {
     faqSummary?.focus();
     expect(faqSummary).toHaveFocus();
 
-    expect(screen.getByRole("link", { name: "Valo home" })).toHaveClass(
+    expect(screen.getByRole("link", { name: "BidBox home" })).toHaveClass(
       "min-h-11",
       "min-w-11",
     );
@@ -438,7 +438,7 @@ describe("Bid Autopsy request", () => {
       screen.getByRole("button", { name: /request unavailable/i }),
     ).toBeDisabled();
     expect(
-      screen.getByRole("link", { name: /return to valo/i }),
+      screen.getByRole("link", { name: /return to bidbox/i }),
     ).toHaveAttribute("href", "https://valo-mvp-builder.replit.app/");
     fireEvent.change(screen.getByLabelText(/^company/i), {
       target: { value: "Edited company" },

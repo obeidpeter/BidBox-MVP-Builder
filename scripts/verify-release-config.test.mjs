@@ -19,7 +19,7 @@ test("release identity remains absent from every checked-in Replit deployment su
     ".replit",
     "artifacts/api-server/.replit-artifact/artifact.toml",
     "artifacts/mockup-sandbox/.replit-artifact/artifact.toml",
-    "artifacts/valo-workbench/.replit-artifact/artifact.toml",
+    "artifacts/bidbox-workbench/.replit-artifact/artifact.toml",
   ]);
   assert.doesNotThrow(() =>
     assertReleaseIdentityIsDeploymentOnly(cleanConfigurations()),

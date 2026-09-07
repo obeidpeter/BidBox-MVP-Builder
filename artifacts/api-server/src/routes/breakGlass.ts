@@ -26,7 +26,7 @@ import { writeAuditTx } from "../lib/audit";
 const router: IRouter = Router();
 const MAX_BREAK_GLASS_MINUTES = 60;
 
-async function hasActiveValoOperationsRole(userId: string): Promise<boolean> {
+async function hasActiveBidBoxOperationsRole(userId: string): Promise<boolean> {
   const now = new Date();
   const memberships = await db
     .select({
@@ -128,8 +128,8 @@ router.post("/break-glass/sessions", async (req: Request, res: Response) => {
     res.status(401).json({ error: "Unauthorized" });
     return;
   }
-  if (!(await hasActiveValoOperationsRole(user.id))) {
-    res.status(403).json({ error: "Valo operations role required" });
+  if (!(await hasActiveBidBoxOperationsRole(user.id))) {
+    res.status(403).json({ error: "BidBox operations role required" });
     return;
   }
   const body = (req.body ?? {}) as Record<string, unknown>;

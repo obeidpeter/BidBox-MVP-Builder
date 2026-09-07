@@ -11,12 +11,12 @@ import type {
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_test";
 
 const { createPublicBidAutopsyRouter, normalisePublicClientAddress } =
   await import("./public");
 
-const ORIGIN = "https://valo.example.test";
+const ORIGIN = "https://bidbox.example.test";
 const NOW = Date.parse("2026-08-10T12:00:00.000Z");
 const REQUEST_ID = "10000000-0000-4000-8000-000000000001";
 const IDEMPOTENCY_KEY = "20000000-0000-4000-8000-000000000002";
@@ -159,7 +159,7 @@ describe("public Bid Autopsy request route", () => {
       replayed: false,
       acceptedAt: "2026-08-10T12:00:00.000Z",
       nextStep:
-        "Valo will use your preferred contact method to confirm scope and the secure next step. Do not send tender files until that process is agreed.",
+        "BidBox will use your preferred contact method to confirm scope and the secure next step. Do not send tender files until that process is agreed.",
     });
     assert.deepEqual(seen, [
       {

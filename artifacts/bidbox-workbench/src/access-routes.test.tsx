@@ -26,11 +26,11 @@ describe("provider-backed access routes", () => {
     renderAt("/sign-in");
     expect(
       screen.getByRole("heading", {
-        name: "Sign in to your Valo workspace.",
+        name: "Sign in to your BidBox workspace.",
       }),
     ).toBeInTheDocument();
     expect(screen.getByText("Provider sign in")).toBeInTheDocument();
-    expect(screen.getByText(/valo is invitation-only/i)).toBeInTheDocument();
+    expect(screen.getByText(/bidbox is invitation-only/i)).toBeInTheDocument();
     expect(
       screen.getByText(/signing in does not give access by itself/i),
     ).toBeInTheDocument();
@@ -42,7 +42,7 @@ describe("provider-backed access routes", () => {
       screen.getByText("Provider invitation activation"),
     ).toBeInTheDocument();
     expect(
-      screen.getByRole("heading", { name: /accept your valo invitation/i }),
+      screen.getByRole("heading", { name: /accept your bidbox invitation/i }),
     ).toBeInTheDocument();
     expect(
       screen.getByText(/organisation membership and role/i),

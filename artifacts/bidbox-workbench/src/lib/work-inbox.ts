@@ -57,10 +57,10 @@ function text(value: unknown, max: number): string {
 function safeHref(value: unknown): string {
   const href = text(value, 256);
   if (href === "/commercial-retainer") return href;
-  const parsed = new URL(href, "https://valo.invalid");
+  const parsed = new URL(href, "https://bidbox.invalid");
   const projectId = parsed.searchParams.get("project");
   if (
-    parsed.origin !== "https://valo.invalid" ||
+    parsed.origin !== "https://bidbox.invalid" ||
     parsed.pathname !== "/pursuit-operations" ||
     parsed.searchParams.size !== 1 ||
     !projectId ||

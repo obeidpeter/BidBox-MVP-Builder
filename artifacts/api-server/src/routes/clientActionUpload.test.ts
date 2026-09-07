@@ -13,7 +13,7 @@ import {
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_client_upload_route_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_client_upload_route_test";
 
 const { createClientActionUploadRouter } = await import("./clientActionUpload");
 

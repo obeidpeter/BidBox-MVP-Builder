@@ -10,7 +10,7 @@ Release status: **unreleased and not deployed**. This document describes the cur
 - Added buyer-specific problem framing for Nigerian federal contractors, NipeX/NCDMB suppliers, donor-funded bidders, bid teams and consultancy partners.
 - Added a concrete Bid Autopsy deliverable, process, representative source-to-action sample, service progression, audience pathways, trust boundaries and expanded FAQ.
 - Kept public claims within the reviewed evidence boundary: no testimonials, customer statistics, turnaround promise, provider guarantee, award guarantee or fabricated proof.
-- Qualified Valo as designed for AI-assisted, human-verified work only where provider, privacy and evaluation gates are approved; named human review remains authoritative.
+- Qualified BidBox as designed for AI-assisted, human-verified work only where provider, privacy and evaluation gates are approved; named human review remains authoritative.
 
 ## Public request journey
 

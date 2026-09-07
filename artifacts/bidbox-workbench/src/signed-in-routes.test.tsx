@@ -486,7 +486,7 @@ describe("signed-in routing", () => {
     ).not.toBeInTheDocument();
   });
 
-  it("opens growth operations for a directly assigned Valo operations administrator", async () => {
+  it("opens growth operations for a directly assigned BidBox operations administrator", async () => {
     currentRole = "valo_operations_administrator";
     renderAt("/growth-operations");
     expect(

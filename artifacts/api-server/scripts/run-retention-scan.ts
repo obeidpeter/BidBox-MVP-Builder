@@ -116,7 +116,7 @@ async function main(): Promise<number> {
   const fullCycleComplete = successful && durableFullCycleComplete;
   console.log(
     JSON.stringify({
-      event: "valo.retention.discovery_scan",
+      event: "bidbox.retention.discovery_scan",
       cycleEvidenceIncompleteBefore: cycleIncompleteBefore,
       cycleEvidenceIncompleteAfter: cycleIncompleteAfter,
       cycleComplete: result.cycleComplete,
@@ -131,20 +131,20 @@ async function main(): Promise<number> {
       tenantFailures: result.tenantFailures,
       tenantPagesRemaining: result.tenantPagesRemaining,
       signals: {
-        "valo.retention.missing_conclusion_anchors":
+        "bidbox.retention.missing_conclusion_anchors":
           result.missingConclusionAnchors,
-        "valo.retention.tenant_failures": result.tenantFailures,
-        "valo.retention.cycle_complete": fullCycleComplete ? 1 : 0,
-        "valo.retention.scan_run_success": successful ? 1 : 0,
+        "bidbox.retention.tenant_failures": result.tenantFailures,
+        "bidbox.retention.cycle_complete": fullCycleComplete ? 1 : 0,
+        "bidbox.retention.scan_run_success": successful ? 1 : 0,
         ...(successful
           ? {
-              "valo.retention.scan_last_success_unixtime_seconds":
+              "bidbox.retention.scan_last_success_unixtime_seconds":
                 completedAtUnixSeconds,
             }
           : {}),
         ...(fullCycleComplete
           ? {
-              "valo.retention.scan_last_full_cycle_unixtime_seconds":
+              "bidbox.retention.scan_last_full_cycle_unixtime_seconds":
                 completedAtUnixSeconds,
             }
           : {}),
@@ -163,8 +163,8 @@ main()
     console.error(
       JSON.stringify({
         error: "RETENTION_SCAN_FAILED",
-        event: "valo.retention.discovery_scan_failed",
-        signals: { "valo.retention.scan_run_success": 0 },
+        event: "bidbox.retention.discovery_scan_failed",
+        signals: { "bidbox.retention.scan_run_success": 0 },
       }),
     );
     await pool.end().catch(() => {});

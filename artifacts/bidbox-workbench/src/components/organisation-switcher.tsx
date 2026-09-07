@@ -12,7 +12,7 @@ import { useOnlineStatus } from "@/hooks/use-online-status";
 
 function typeLabel(type: "client" | "valo" | "consultancy_partner"): string {
   if (type === "consultancy_partner") return "Consultancy partner";
-  return type === "valo" ? "Valo operations" : "Client organisation";
+  return type === "valo" ? "BidBox operations" : "Client organisation";
 }
 
 export function OrganisationSelectionGate() {

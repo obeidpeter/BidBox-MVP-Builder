@@ -52,7 +52,7 @@ export async function resolveCurrentDirectAuthority(
   await db.execute(sql`
     SELECT pg_advisory_xact_lock(
       hashtextextended(
-        ${`valo.membership-administration:${context.organisationId}`},
+        ${`bidbox.membership-administration:${context.organisationId}`},
         0
       )
     )

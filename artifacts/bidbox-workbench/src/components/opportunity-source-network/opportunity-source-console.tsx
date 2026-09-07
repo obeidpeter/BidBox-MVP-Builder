@@ -346,7 +346,7 @@ export function OpportunitySourceConsole(props: OpportunitySourceConsoleProps) {
       <PageHeader
         eyebrow="Official sources"
         title="Opportunity sources"
-        description="Record official source details, avoid duplicates and require a named person to confirm each opportunity. Valo never scrapes a source, qualifies an opportunity or starts a pursuit automatically."
+        description="Record official source details, avoid duplicates and require a named person to confirm each opportunity. BidBox never scrapes a source, qualifies an opportunity or starts a pursuit automatically."
         state={pendingCount ? "pending" : "active"}
       />
       <StatusPanel

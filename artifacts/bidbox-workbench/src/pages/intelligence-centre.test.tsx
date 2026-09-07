@@ -63,7 +63,7 @@ describe("Intelligence Centre", () => {
     expect(screen.getByText("Level 0")).toBeInTheDocument();
     expect(screen.getByText(/AI previews/i)).toBeInTheDocument();
     expect(
-      screen.getByText(/Valo does not approve evidence/i),
+      screen.getByText(/BidBox does not approve evidence/i),
     ).toBeInTheDocument();
   });
 

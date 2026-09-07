@@ -10,7 +10,7 @@ import { Link, useLocation } from "wouter";
 import { Menu, X } from "lucide-react";
 import { BidAutopsyCta } from "@/components/public/public-primary-cta";
 import { Button } from "@/components/ui/button";
-import { ValoMark } from "@/components/valo-mark";
+import { BidBoxMark } from "@/components/bidbox-mark";
 import { cn } from "@/lib/utils";
 
 const NAVIGATION = [
@@ -100,10 +100,10 @@ export function PublicShell({ children }: { children: ReactNode }) {
         <div className="content-shell flex min-h-16 items-center justify-between gap-4">
           <Link
             href="/"
-            aria-label="Valo home"
+            aria-label="BidBox home"
             className="inline-flex min-h-11 min-w-11 items-center rounded-lg text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ValoMark />
+            <BidBoxMark />
           </Link>
           <div className="hidden items-center gap-3 lg:flex">
             <PublicNavigation />
@@ -159,17 +159,17 @@ export function PublicShell({ children }: { children: ReactNode }) {
       <footer className="border-t border-sidebar-border bg-sidebar text-sidebar-foreground">
         <div className="content-shell grid gap-10 py-12 md:grid-cols-[1.35fr_1fr_1fr]">
           <div className="max-w-md space-y-4">
-            <ValoMark className="text-sidebar-primary" />
+            <BidBoxMark className="text-sidebar-primary" />
             <p className="text-sm leading-6 text-sidebar-foreground/70">
-              Valo helps Nigerian public-sector, oil-and-gas and donor-funded
+              BidBox helps Nigerian public-sector, oil-and-gas and donor-funded
               bid teams find problems before submission. AI-assisted steps run
               only after the required AI service, privacy and model-evaluation
               approvals. A named human reviewer makes the final decision.
             </p>
             <p className="text-xs leading-5 text-sidebar-foreground/60">
-              Valo supports review and correction. It cannot guarantee an award,
-              that an evaluator will accept the bid, or that every risk will be
-              found.
+              BidBox supports review and correction. It cannot guarantee an
+              award, that an evaluator will accept the bid, or that every risk
+              will be found.
             </p>
           </div>
           <div>
@@ -191,7 +191,7 @@ export function PublicShell({ children }: { children: ReactNode }) {
           </div>
           <div>
             <h2 className="text-sm font-semibold text-sidebar-foreground">
-              Valo
+              BidBox
             </h2>
             <ul className="mt-2 text-sm text-sidebar-foreground/65">
               <li>
@@ -239,7 +239,9 @@ export function PublicShell({ children }: { children: ReactNode }) {
         </div>
         <div className="border-t border-sidebar-border">
           <div className="content-shell flex flex-col gap-2 py-5 text-xs text-sidebar-foreground/55 sm:flex-row sm:items-center sm:justify-between">
-            <p>&copy; {new Date().getFullYear()} Valo. All rights reserved.</p>
+            <p>
+              &copy; {new Date().getFullYear()} BidBox. All rights reserved.
+            </p>
             <p>Built for Nigerian tenders. Human-reviewed. Actions recorded.</p>
           </div>
         </div>

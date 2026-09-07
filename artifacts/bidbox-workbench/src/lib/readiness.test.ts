@@ -21,8 +21,18 @@ function baseInput(overrides: Partial<ReadinessInput> = {}): ReadinessInput {
       riskBand: null,
     },
     documents: [
-      { type: "tender", redactionStatus: "included", sha256: "a", extractionStatus: "extracted" },
-      { type: "bid", redactionStatus: "included", sha256: "b", extractionStatus: "extracted" },
+      {
+        type: "tender",
+        redactionStatus: "included",
+        sha256: "a",
+        extractionStatus: "extracted",
+      },
+      {
+        type: "bid",
+        redactionStatus: "included",
+        sha256: "b",
+        extractionStatus: "extracted",
+      },
     ],
     requirements: [{ id: "r1", reviewStatus: "confirmed", isMandatory: true }],
     evidence: [{ requirementId: "r1", evidenceStatus: "present" }],
@@ -44,7 +54,9 @@ function check(input: ReadinessInput, id: string) {
 
 describe("payment gate", () => {
   it("passes when no payment is required", () => {
-    expect(paymentGatePasses({ status: "review", paymentStatus: "not_required" })).toBe(true);
+    expect(
+      paymentGatePasses({ status: "review", paymentStatus: "not_required" }),
+    ).toBe(true);
   });
 
   it("mirrors the server: confirmed status alone is NOT enough", () => {
@@ -123,7 +135,10 @@ describe("defect gate", () => {
 describe("summary", () => {
   it("is ready when no required check is blocked", () => {
     const input = baseInput({
-      project: { ...baseInput().project, physicalArchiveInstruction: "Return to client" },
+      project: {
+        ...baseInput().project,
+        physicalArchiveInstruction: "Return to client",
+      },
     });
     const summary = summarizeReadiness(computeReadinessChecks(input));
     expect(summary.ready).toBe(true);

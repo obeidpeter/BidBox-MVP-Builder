@@ -75,13 +75,13 @@ jobs:
             --expected-workflow-name "Release candidate" \
             --expected-workflow-path ".github/workflows/release-candidate.yml" \
             --expected-source-commit "$SOURCE_SHA" \
-            --output "$RUNNER_TEMP/valo-candidate-run-attestation.json"
+            --output "$RUNNER_TEMP/bidbox-candidate-run-attestation.json"
 
       - name: Download exact release candidate
         uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
         with:
-          name: valo-release-${{ inputs.source_sha }}
-          path: ${{ runner.temp }}/valo-release-candidate
+          name: bidbox-release-${{ inputs.source_sha }}
+          path: ${{ runner.temp }}/bidbox-release-candidate
           run-id: ${{ inputs.candidate_run_id }}
           github-token: ${{ secrets.GITHUB_TOKEN }}
 
@@ -94,9 +94,9 @@ jobs:
           SOURCE_SHA: ${{ inputs.source_sha }}
         run: >-
           node ./scripts/release-provenance.mjs verify-manifest
-          --root "$RUNNER_TEMP/valo-release-candidate"
+          --root "$RUNNER_TEMP/bidbox-release-candidate"
           --manifest release-evidence/release-manifest.json
-          --run-attestation "$RUNNER_TEMP/valo-candidate-run-attestation.json"
+          --run-attestation "$RUNNER_TEMP/bidbox-candidate-run-attestation.json"
           --expected-source-commit "$SOURCE_SHA"
 
       - name: Verify deployed liveness, readiness, and release identity
@@ -108,19 +108,19 @@ jobs:
           VALO_READINESS_AUTHORIZATION: ${{ secrets.VALO_READINESS_AUTHORIZATION }}
         run: |
           node ./scripts/release-provenance.mjs verify-deployment \
-            --root "$RUNNER_TEMP/valo-release-candidate" \
+            --root "$RUNNER_TEMP/bidbox-release-candidate" \
             --manifest release-evidence/release-manifest.json \
             --deployment-id "$DEPLOYMENT_ID" \
             --deployment-url "$DEPLOYMENT_URL" \
             --environment "$DEPLOYMENT_ENVIRONMENT" \
             --expected-source-commit "$SOURCE_SHA" \
-            --run-attestation "$RUNNER_TEMP/valo-candidate-run-attestation.json" \
+            --run-attestation "$RUNNER_TEMP/bidbox-candidate-run-attestation.json" \
             --output release-evidence/deployment-record.json
 
       - name: Upload deployment verification record
         uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
         with:
-          name: valo-deployment-verification-${{ github.run_id }}
-          path: ${{ runner.temp }}/valo-release-candidate/release-evidence/deployment-record.json
+          name: bidbox-deployment-verification-${{ github.run_id }}
+          path: ${{ runner.temp }}/bidbox-release-candidate/release-evidence/deployment-record.json
           if-no-files-found: error
           retention-days: 90

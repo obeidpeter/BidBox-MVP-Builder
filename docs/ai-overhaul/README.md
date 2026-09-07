@@ -1,8 +1,8 @@
-# Valo AI overhaul control pack
+# BidBox AI overhaul control pack
 
 Status: **not accepted for production; production AI remains disabled**.
 
-This pack is the implementation and assurance baseline for Valo's bounded AI
+This pack is the implementation and assurance baseline for BidBox's bounded AI
 assistance. It separates source code that exists in the working tree from
 controls that have been validated in a production-like environment and from
 future architecture that has not been built.

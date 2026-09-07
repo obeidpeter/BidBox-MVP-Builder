@@ -109,14 +109,14 @@ describe("production web route indexing", () => {
 
   it("indexes public deep links only on the approved production origin", async () => {
     const fixtureDirectory = await mkdtemp(
-      path.join(tmpdir(), "valo-web-app-"),
+      path.join(tmpdir(), "bidbox-web-app-"),
     );
     try {
       await mkdir(path.join(fixtureDirectory, "assets"));
       await writeFile(
         path.join(fixtureDirectory, "index.html"),
         `<!doctype html><html><head>
-          <title>Valo fixture</title>
+          <title>BidBox fixture</title>
           <meta name="description" content="fixture" />
           <meta name="robots" content="index, follow" />
           <link rel="canonical" href="https://valo-mvp-builder.replit.app/" />
@@ -160,7 +160,7 @@ describe("production web route indexing", () => {
           WEB_APP_CONTENT_SECURITY_POLICY,
         );
         const publicHtml = await publicResponse.text();
-        assert.match(publicHtml, /<title>Product \| Valo<\/title>/);
+        assert.match(publicHtml, /<title>Product \| BidBox<\/title>/);
         assert.match(publicHtml, /name="robots" content="noindex, nofollow"/);
         assert.doesNotMatch(publicHtml, /rel="canonical"/);
         assert.doesNotMatch(publicHtml, /property="og:url"/);
@@ -199,7 +199,7 @@ describe("production web route indexing", () => {
         const autopsyHtml = await autopsyResponse.text();
         assert.match(
           autopsyHtml,
-          /<title>Request a Bid Autopsy \| Valo<\/title>/,
+          /<title>Request a Bid Autopsy \| BidBox<\/title>/,
         );
         assert.match(
           autopsyHtml,
@@ -228,9 +228,9 @@ describe("production web route indexing", () => {
           ["/projects/example-sensitive-id", 200],
           ["/intelligence?project=example-sensitive-id", 200],
           ["/not-a-public-page", 404],
-          ["/%3Cscript%3Ewindow.__valo_xss_probe%3D1%3C%2Fscript%3E", 404],
+          ["/%3Cscript%3Ewindow.__bidbox_xss_probe%3D1%3C%2Fscript%3E", 404],
           [
-            "/projects/%22%3E%3Cscript%3Ewindow.__valo_xss_probe%3D1%3C%2Fscript%3E",
+            "/projects/%22%3E%3Cscript%3Ewindow.__bidbox_xss_probe%3D1%3C%2Fscript%3E",
             200,
           ],
         ] as const) {
@@ -246,7 +246,7 @@ describe("production web route indexing", () => {
           const privateHtml = await privateResponse.text();
           assert.doesNotMatch(privateHtml, /rel="canonical"/);
           assert.doesNotMatch(privateHtml, /property="og:url"/);
-          assert.doesNotMatch(privateHtml, /__valo_xss_probe|%3Cscript/i);
+          assert.doesNotMatch(privateHtml, /__bidbox_xss_probe|%3Cscript/i);
         }
 
         const assetResponse = await fetch(`${origin}/assets/app-fixture.js`);
@@ -261,7 +261,7 @@ describe("production web route indexing", () => {
         assert.deepEqual(await apiResponse.json(), { status: "ok" });
         const missingApiResponse = await fetch(`${origin}/api/not-found`);
         assert.equal(missingApiResponse.status, 404);
-        assert.doesNotMatch(await missingApiResponse.text(), /Valo fixture/);
+        assert.doesNotMatch(await missingApiResponse.text(), /BidBox fixture/);
       } finally {
         await new Promise<void>((resolve, reject) => {
           server.close((error) => (error ? reject(error) : resolve()));

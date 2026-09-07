@@ -184,7 +184,7 @@ after(async () => {
 function headers(): Record<string, string> {
   return {
     "Content-Type": "application/json",
-    "X-Valo-Organisation-Id": organisationId,
+    "X-BidBox-Organisation-Id": organisationId,
   };
 }
 

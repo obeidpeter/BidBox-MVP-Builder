@@ -23,7 +23,7 @@ const PAGE_WIDTH = 595.28;
 const PAGE_HEIGHT = 841.89;
 const MARGIN = 56;
 const CONTENT_WIDTH = PAGE_WIDTH - MARGIN * 2;
-const FOOTER_TEXT = "CONFIDENTIAL — Valo Bid Autopsy Report — Page ";
+const FOOTER_TEXT = "CONFIDENTIAL — BidBox Bid Autopsy Report — Page ";
 
 interface Fonts {
   regular: PDFFont;
@@ -47,7 +47,11 @@ class Layout {
   footerText: string;
   private pages: PDFPage[] = [];
 
-  constructor(doc: PDFDocument, fonts: Fonts, footerText: string = FOOTER_TEXT) {
+  constructor(
+    doc: PDFDocument,
+    fonts: Fonts,
+    footerText: string = FOOTER_TEXT,
+  ) {
     this.doc = doc;
     this.fonts = fonts;
     this.footerText = footerText;
@@ -67,7 +71,12 @@ class Layout {
     }
   }
 
-  private wrap(text: string, font: PDFFont, size: number, maxWidth: number): string[] {
+  private wrap(
+    text: string,
+    font: PDFFont,
+    size: number,
+    maxWidth: number,
+  ): string[] {
     const clean = (text ?? "").replace(/\r/g, "");
     const outLines: string[] = [];
     for (const rawLine of clean.split("\n")) {
@@ -85,7 +94,10 @@ class Layout {
           if (!line && font.widthOfTextAtSize(candidate, size) > maxWidth) {
             let chunk = "";
             for (const ch of word) {
-              if (font.widthOfTextAtSize(chunk + ch, size) > maxWidth && chunk) {
+              if (
+                font.widthOfTextAtSize(chunk + ch, size) > maxWidth &&
+                chunk
+              ) {
                 outLines.push(chunk);
                 chunk = ch;
               } else {
@@ -154,7 +166,8 @@ class Layout {
 
   table(headers: string[], rows: string[][], weights?: number[]) {
     const cols = headers.length;
-    const w = weights && weights.length === cols ? weights : headers.map(() => 1);
+    const w =
+      weights && weights.length === cols ? weights : headers.map(() => 1);
     const totalWeight = w.reduce((a, b) => a + b, 0);
     const colWidths = w.map((x) => (x / totalWeight) * CONTENT_WIDTH);
     const fontSize = 8.5;
@@ -165,7 +178,12 @@ class Layout {
     const drawRow = (cells: string[], isHeader: boolean) => {
       const font = isHeader ? this.fonts.bold : this.fonts.regular;
       const wrapped = cells.map((c, i) =>
-        this.wrap(c && c.length ? c : "—", font, fontSize, colWidths[i] - cellPadX * 2),
+        this.wrap(
+          c && c.length ? c : "—",
+          font,
+          fontSize,
+          colWidths[i] - cellPadX * 2,
+        ),
       );
       const rowLines = Math.max(...wrapped.map((lines) => lines.length));
       const rowHeight = rowLines * lineHeight + cellPadY * 2;
@@ -239,9 +257,10 @@ class Layout {
 }
 
 export async function buildReportPdf(data: ReportData): Promise<Buffer> {
-  const { project, client, requirements, evidence, defects, boqChecks, risk } = data;
+  const { project, client, requirements, evidence, defects, boqChecks, risk } =
+    data;
   const template = data.template ?? {
-    firmName: "VALO",
+    firmName: "BidBox",
     confidentialityLegend:
       "CONFIDENTIAL — Prepared for internal review. Not for external distribution.",
   };
@@ -254,11 +273,25 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
     bold: await doc.embedFont(StandardFonts.HelveticaBold),
     italic: await doc.embedFont(StandardFonts.HelveticaOblique),
   };
-  const L = new Layout(doc, fonts, `CONFIDENTIAL — ${template.firmName} Bid Autopsy Report — Page `);
+  const L = new Layout(
+    doc,
+    fonts,
+    `CONFIDENTIAL — ${template.firmName} Bid Autopsy Report — Page `,
+  );
 
   // Title block
-  L.text(template.firmName, { size: 22, font: fonts.bold, color: NAVY, after: 2 });
-  L.text("Bid Autopsy Report", { size: 17, font: fonts.bold, color: NAVY, after: 6 });
+  L.text(template.firmName, {
+    size: 22,
+    font: fonts.bold,
+    color: NAVY,
+    after: 2,
+  });
+  L.text("Bid Autopsy Report", {
+    size: 17,
+    font: fonts.bold,
+    color: NAVY,
+    after: 6,
+  });
   L.text(project.tenderTitle, { size: 10, font: fonts.bold, after: 4 });
   L.text(
     `Client: ${client?.name ?? "—"}   |   Version ${data.version}   |   Generated ${new Date().toLocaleString()}`,
@@ -281,7 +314,10 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
       ["Generated", new Date().toLocaleString()],
       ["Prepared by", data.generatedByName ?? "—"],
       ["Named reviewer", data.reviewerName ?? "—"],
-      ["Engine / prompt pack / model", `${ENGINE_VERSION} · ${PROMPT_PACK_VERSION} · ${MODEL_ID}`],
+      [
+        "Engine / prompt pack / model",
+        `${ENGINE_VERSION} · ${PROMPT_PACK_VERSION} · ${MODEL_ID}`,
+      ],
       ["Classification", "CONFIDENTIAL — internal review only"],
     ],
     [30, 70],
@@ -336,8 +372,12 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
     L.text(project.limitations);
   }
 
-  const confirmedReqs = requirements.filter((r) => r.reviewStatus !== "suggested");
-  const suggestedReqs = requirements.filter((r) => r.reviewStatus === "suggested");
+  const confirmedReqs = requirements.filter(
+    (r) => r.reviewStatus !== "suggested",
+  );
+  const suggestedReqs = requirements.filter(
+    (r) => r.reviewStatus === "suggested",
+  );
   const confirmedDefects = defects.filter((d) => !d.suggested);
   const suggestedDefects = defects.filter((d) => d.suggested);
 
@@ -345,15 +385,24 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
     r.text,
     r.category,
     r.isMandatory ? "Yes" : "No",
-    [r.sourceDocName, r.clauseRef, r.pageRef].filter(Boolean).join(" · ") || "—",
+    [r.sourceDocName, r.clauseRef, r.pageRef].filter(Boolean).join(" · ") ||
+      "—",
     r.reviewStatus,
   ];
-  const defectRow = (d: any) => [d.description, d.type, d.severity, d.status, d.remediation ?? "—"];
+  const defectRow = (d: any) => [
+    d.description,
+    d.type,
+    d.severity,
+    d.status,
+    d.remediation ?? "—",
+  ];
 
   // B. Requirement matrix
   L.heading("B. Requirement Matrix");
   if (confirmedReqs.length === 0) {
-    L.text("No reviewer-confirmed requirements recorded.", { font: fonts.italic });
+    L.text("No reviewer-confirmed requirements recorded.", {
+      font: fonts.italic,
+    });
   } else {
     L.table(
       ["Requirement", "Category", "Mandatory", "Source", "Status"],
@@ -362,7 +411,9 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
     );
   }
   if (suggestedReqs.length > 0) {
-    L.subheading("Suggested requirements — pending named-reviewer confirmation");
+    L.subheading(
+      "Suggested requirements — pending named-reviewer confirmation",
+    );
     L.text(
       `${suggestedReqs.length} AI-suggested requirement(s) below are not yet confirmed and do not contribute to the risk score.`,
       { font: fonts.italic, color: GREY },
@@ -375,7 +426,9 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
   }
 
   // Evidence trace
-  const reqTextById = new Map<string, string>(requirements.map((r: any) => [r.id, r.text]));
+  const reqTextById = new Map<string, string>(
+    requirements.map((r: any) => [r.id, r.text]),
+  );
   const confirmedEvidence = evidence.filter((e) => !e.suggested);
   const suggestedEvidence = evidence.filter((e) => e.suggested);
   const evidenceRow = (e: any) => [
@@ -432,7 +485,9 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
 
   // D. Disqualification-risk score
   L.heading("D. Disqualification-Risk Score");
-  L.text(`Score: ${risk.score} / 100    Band: ${risk.band.toUpperCase()}`, { font: fonts.bold });
+  L.text(`Score: ${risk.score} / 100    Band: ${risk.band.toUpperCase()}`, {
+    font: fonts.bold,
+  });
   if (risk.overrideBand) {
     L.text(
       `Named-reviewer override: ${risk.overrideBand.toUpperCase()} by ${risk.overrideBy ?? "—"}. Note: ${risk.overrideNote ?? "—"}`,
@@ -464,7 +519,13 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
   } else {
     L.table(
       ["Line", "Check", "Finding", "Severity", "Status"],
-      boqChecks.map((b) => [b.lineRef ?? "—", b.checkType, b.finding, b.severity, b.status]),
+      boqChecks.map((b) => [
+        b.lineRef ?? "—",
+        b.checkType,
+        b.finding,
+        b.severity,
+        b.status,
+      ]),
       [10, 18, 42, 15, 15],
     );
   }
@@ -477,7 +538,13 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
   } else {
     L.table(
       ["Defect", "Severity", "Owner", "Remediation", "Status"],
-      remediable.map((d) => [d.description, d.severity, d.owner ?? "—", d.remediation ?? "—", d.status]),
+      remediable.map((d) => [
+        d.description,
+        d.severity,
+        d.owner ?? "—",
+        d.remediation ?? "—",
+        d.status,
+      ]),
       [30, 13, 15, 30, 12],
     );
   }
@@ -509,12 +576,37 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
   L.table(
     ["Point", "Location / cross-reference", "Signed", "Sealed"],
     [
-      ["Form of Tender / Bid submission sheet", "Tender document — Form of Tender", CHECK, CHECK],
-      ["Price schedule / BOQ summary", "See § F. BOQ Verification Annex", CHECK, CHECK],
-      ["Declaration of eligibility & non-collusion", "Tender document — Declarations", CHECK, CHECK],
-      ["CAC & compliance certificate copies", "Certificate Vault artefacts", CHECK, CHECK],
+      [
+        "Form of Tender / Bid submission sheet",
+        "Tender document — Form of Tender",
+        CHECK,
+        CHECK,
+      ],
+      [
+        "Price schedule / BOQ summary",
+        "See § F. BOQ Verification Annex",
+        CHECK,
+        CHECK,
+      ],
+      [
+        "Declaration of eligibility & non-collusion",
+        "Tender document — Declarations",
+        CHECK,
+        CHECK,
+      ],
+      [
+        "CAC & compliance certificate copies",
+        "Certificate Vault artefacts",
+        CHECK,
+        CHECK,
+      ],
       ["Each page initialled by signatory", "Full package", CHECK, "—"],
-      ["Bid security / bank guarantee (if required)", "Tender document — Bid Security", CHECK, CHECK],
+      [
+        "Bid security / bank guarantee (if required)",
+        "Tender document — Bid Security",
+        CHECK,
+        CHECK,
+      ],
     ],
     [34, 34, 16, 16],
   );
@@ -526,16 +618,28 @@ export async function buildReportPdf(data: ReportData): Promise<Buffer> {
     { font: fonts.italic },
   );
   L.gap(8);
-  L.text("Reviewer name: ______________________________", { size: 11, after: 10 });
-  L.text("Attestation: ________________________________", { size: 11, after: 10 });
-  L.text("Date: _______________________________________", { size: 11, after: 10 });
+  L.text("Reviewer name: ______________________________", {
+    size: 11,
+    after: 10,
+  });
+  L.text("Attestation: ________________________________", {
+    size: 11,
+    after: 10,
+  });
+  L.text("Date: _______________________________________", {
+    size: 11,
+    after: 10,
+  });
 
   L.gap(12);
   L.text("Process Warranty", { font: fonts.bold, color: NAVY });
   L.text(PROCESS_WARRANTY, { font: fonts.italic });
-  L.text(`Engine: ${ENGINE_VERSION} · Prompt pack: ${PROMPT_PACK_VERSION} · Model: ${MODEL_ID}`, {
-    color: GREY,
-  });
+  L.text(
+    `Engine: ${ENGINE_VERSION} · Prompt pack: ${PROMPT_PACK_VERSION} · Model: ${MODEL_ID}`,
+    {
+      color: GREY,
+    },
+  );
 
   L.finalize();
   const bytes = await doc.save();

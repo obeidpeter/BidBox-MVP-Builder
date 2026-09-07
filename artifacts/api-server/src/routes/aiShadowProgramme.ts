@@ -65,7 +65,7 @@ function privateHeaders(
   next: NextFunction,
 ): void {
   response.setHeader("Cache-Control", "private, no-store");
-  response.vary("X-Valo-Organisation-Id");
+  response.vary("X-BidBox-Organisation-Id");
   next();
 }
 

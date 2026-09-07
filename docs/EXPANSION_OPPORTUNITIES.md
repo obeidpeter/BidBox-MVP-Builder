@@ -1,6 +1,6 @@
-# Valo — Expansion Opportunities
+# BidBox — Expansion Opportunities
 
-Audit of the codebase against the Valo Business Plan v1.1/v1.2, the Replit Build Brief, the Product Roadmap v1.0, and the TRD v1.0. Originally written July 2026 against the Gate 0 MVP; updated through the August 2026 third-wave source integration — to keep what is built separated from what remains operationally or externally blocked.
+Audit of the codebase against the BidBox Business Plan v1.1/v1.2, the Replit Build Brief, the Product Roadmap v1.0, and the TRD v1.0. Originally written July 2026 against the Gate 0 MVP; updated through the August 2026 third-wave source integration — to keep what is built separated from what remains operationally or externally blocked.
 
 ## Shipped
 

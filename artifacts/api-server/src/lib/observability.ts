@@ -8,7 +8,7 @@ const CORRELATION_ID = /^[A-Za-z0-9][A-Za-z0-9._:-]{0,79}$/u;
 const DURATION_BUCKETS = [25, 100, 500, 2_000, 10_000] as const;
 
 export const OPERATIONAL_SIGNAL_REGISTRY_VERSION =
-  "valo-operational-signals/v1" as const;
+  "bidbox-operational-signals/v1" as const;
 
 type ResponseClass = "1xx" | "2xx" | "3xx" | "4xx" | "5xx";
 type DeliveryState = "connected" | "disconnected";
@@ -247,20 +247,20 @@ export function operationalSignalBatch(
     ...Object.entries(snapshot.databasePool).map(
       ([state, value]): OperationalSignalPoint => ({
         labels: { state },
-        name: "valo.database.pool_connections",
+        name: "bidbox.database.pool_connections",
         type: "gauge",
         value,
       }),
     ),
     {
-      name: "valo.runtime.uptime_seconds",
+      name: "bidbox.runtime.uptime_seconds",
       type: "gauge",
       value: snapshot.runtime.uptimeSeconds,
     },
     ...(["starting", "accepting", "draining"] as const).map(
       (state): OperationalSignalPoint => ({
         labels: { state },
-        name: "valo.runtime.lifecycle",
+        name: "bidbox.runtime.lifecycle",
         type: "gauge",
         value: snapshot.runtime.lifecycle === state ? 1 : 0,
       }),
@@ -268,7 +268,7 @@ export function operationalSignalBatch(
     ...Object.entries(snapshot.delivery).map(
       ([channel, state]): OperationalSignalPoint => ({
         labels: { channel },
-        name: "valo.observability.delivery_connected",
+        name: "bidbox.observability.delivery_connected",
         type: "gauge",
         value: state === "connected" ? 1 : 0,
       }),

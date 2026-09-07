@@ -191,7 +191,7 @@ async function lockMembershipAdministrationBoundary(
   await tx.execute(sql`
     SELECT pg_advisory_xact_lock(
       pg_catalog.hashtextextended(
-        ${`valo.membership-administration:${organisationId}`},
+        ${`bidbox.membership-administration:${organisationId}`},
         0
       )
     )

@@ -838,7 +838,7 @@ export async function fetchGitHubCandidateRunAttestation({
     headers: {
       Accept: "application/vnd.github+json",
       Authorization: `Bearer ${token}`,
-      "User-Agent": "valo-release-provenance",
+      "User-Agent": "bidbox-release-provenance",
       "X-GitHub-Api-Version": "2022-11-28",
     },
     timeoutMillis,
@@ -878,7 +878,7 @@ async function probeJson({ url, releaseSha256, timeoutMillis, authorization }) {
     },
     assertResponse: (response) => {
       assert.equal(
-        response.headers.get("x-valo-release-sha256"),
+        response.headers.get("x-bidbox-release-sha256"),
         releaseSha256,
         "Deployment release identity mismatch",
       );

@@ -26,7 +26,7 @@ export function GrowthOfferCatalogue({
           <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
             Each offer version states what is included and excluded. This
             catalogue contains no quote or price. A named person must enter
-            terms, and a different person must approve them. Valo does not
+            terms, and a different person must approve them. BidBox does not
             calculate prices or take payment.
           </p>
         </div>
@@ -85,7 +85,7 @@ export function GrowthOfferCatalogue({
               </div>
               <div className="mt-auto rounded-md bg-muted p-3 text-xs leading-5 text-muted-foreground">
                 Price entered and approved by people · Payment handled outside
-                Valo
+                BidBox
               </div>
             </CardContent>
           </Card>
@@ -99,7 +99,7 @@ export function GrowthOfferCatalogue({
               Quote records are not available
             </CardTitle>
             <p className="mt-1 max-w-3xl text-sm leading-6 text-muted-foreground">
-              Valo has no connected quote store or approval record. You can
+              BidBox has no connected quote store or approval record. You can
               review offer scope here, but you cannot load, draft, save or
               approve quote terms.
             </p>
@@ -112,7 +112,7 @@ export function GrowthOfferCatalogue({
         <CardContent>
           <p className="text-xs leading-5 text-muted-foreground">
             This is not an empty quote queue. Pricing and payment stay outside
-            Valo until an approved, organisation-specific quote process is
+            BidBox until an approved, organisation-specific quote process is
             connected.
           </p>
         </CardContent>

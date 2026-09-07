@@ -1,7 +1,7 @@
 import { UserProfile } from "@clerk/clerk-react";
 import { useGetMe } from "@workspace/api-client-react";
 import { PageHeader } from "@/components/platform-states";
-import { ValoUserIdCard } from "@/components/valo-user-id-card";
+import { BidBoxUserIdCard } from "@/components/bidbox-user-id-card";
 import { useOrganisationAccess } from "@/contexts/organisation-context";
 import { platformRoleLabel } from "@/lib/platform-access";
 
@@ -39,7 +39,7 @@ export default function AccountPage() {
           </div>
         </dl>
       </section>
-      {meQuery.data?.id ? <ValoUserIdCard userId={meQuery.data.id} /> : null}
+      {meQuery.data?.id ? <BidBoxUserIdCard userId={meQuery.data.id} /> : null}
       <section
         aria-labelledby="identity-provider-heading"
         className="space-y-3"

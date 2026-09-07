@@ -11,7 +11,7 @@ import type {
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_evidence_renewal_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_evidence_renewal_test";
 
 const { createEvidenceRenewalRouter } = await import("./evidenceRenewal");
 
@@ -48,7 +48,7 @@ function plan(version = 1): EvidenceRenewalPlan {
     },
     targetDate: "2026-09-01",
     internalReminder: {
-      channel: "valo_evidence_renewal_register",
+      channel: "bidbox_evidence_renewal_register",
       assignedOwnerUserId: OWNER_ID,
       dueAt: "2026-09-01T16:00:00.000Z",
       status: version >= 3 ? "resolved" : "open",
@@ -157,7 +157,10 @@ describe("evidence-renewal route", () => {
     );
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "private, no-store");
-    assert.match(response.headers.get("vary") ?? "", /X-Valo-Organisation-Id/u);
+    assert.match(
+      response.headers.get("vary") ?? "",
+      /X-BidBox-Organisation-Id/u,
+    );
     const body = (await response.json()) as Record<string, unknown>;
     assert.equal(body.organisationId, ORGANISATION_ID);
     assert.equal(body.projectId, PROJECT_ID);

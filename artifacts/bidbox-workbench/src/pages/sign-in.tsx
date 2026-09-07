@@ -8,7 +8,7 @@ import {
 import { Link } from "wouter";
 import { ArrowLeft, Check, LockKeyhole } from "lucide-react";
 import { PublicMeta } from "@/components/public/public-meta";
-import { ValoMark } from "@/components/valo-mark";
+import { BidBoxMark } from "@/components/bidbox-mark";
 import { safePostAuthRedirect } from "@/lib/safe-redirect";
 
 function safeRedirectTarget(): string {
@@ -64,7 +64,7 @@ function AccessLayout({
             href="/"
             className="w-fit rounded-md text-[#74d6c4] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
           >
-            <ValoMark label="Valo" />
+            <BidBoxMark label="BidBox" />
           </Link>
           <div className="max-w-lg py-16">
             <p className="text-sm font-semibold uppercase tracking-[0.13em] text-[#74d6c4]">
@@ -78,9 +78,9 @@ function AccessLayout({
             </p>
             <ul className="mt-8 space-y-4 text-sm text-slate-200">
               {[
-                "Valo checks your organisation and role after you sign in",
+                "BidBox checks your organisation and role after you sign in",
                 "Your sign-in service handles multi-factor authentication and account recovery",
-                "Valo records protected actions under your signed-in identity",
+                "BidBox records protected actions under your signed-in identity",
               ].map((item) => (
                 <li key={item} className="flex items-start gap-3">
                   <Check
@@ -106,7 +106,7 @@ function AccessLayout({
           <div className="w-full max-w-md">
             <div className="mb-8 flex items-center justify-between lg:hidden">
               <Link href="/" className="rounded-md text-primary">
-                <ValoMark />
+                <BidBoxMark />
               </Link>
               <Link
                 href="/"
@@ -136,8 +136,8 @@ function AccessLayout({
               <ClerkLoaded>{children}</ClerkLoaded>
             </div>
             <p className="mt-5 text-center text-xs leading-5 text-muted-foreground">
-              Valo is invitation-only. Signing in does not give access by
-              itself. Valo must also confirm an active membership for your
+              BidBox is invitation-only. Signing in does not give access by
+              itself. BidBox must also confirm an active membership for your
               organisation.
             </p>
           </div>
@@ -150,12 +150,12 @@ function AccessLayout({
 export default function SignInPage() {
   return (
     <AccessLayout
-      title="Sign in to your Valo workspace."
-      description="Valo verifies who you are, which organisation you can enter and what your role allows."
+      title="Sign in to your BidBox workspace."
+      description="BidBox verifies who you are, which organisation you can enter and what your role allows."
     >
       <PublicMeta
         title="Sign in"
-        description="Sign in to an invitation-only Valo tender workspace."
+        description="Sign in to an invitation-only BidBox tender workspace."
         path="/sign-in"
         index={false}
       />
@@ -172,12 +172,12 @@ export default function SignInPage() {
 export function InvitationPage() {
   return (
     <AccessLayout
-      title="Accept your Valo invitation."
-      description="Use the email address or account that received the invitation. Valo checks your organisation membership and role before opening a workspace."
+      title="Accept your BidBox invitation."
+      description="Use the email address or account that received the invitation. BidBox checks your organisation membership and role before opening a workspace."
     >
       <PublicMeta
         title="Accept invitation"
-        description="Accept a Valo invitation and complete secure account verification."
+        description="Accept a BidBox invitation and complete secure account verification."
         path="/accept-invitation"
         index={false}
       />
@@ -195,11 +195,11 @@ export function AccessCallbackPage() {
   return (
     <AccessLayout
       title="Finishing sign-in."
-      description="Your sign-in service is sending you back to Valo. A workspace opens only after Valo verifies your session and active organisation membership."
+      description="Your sign-in service is sending you back to BidBox. A workspace opens only after BidBox verifies your session and active organisation membership."
     >
       <PublicMeta
         title="Finishing sign-in"
-        description="Finish returning securely to Valo after signing in."
+        description="Finish returning securely to BidBox after signing in."
         path="/sso-callback"
         index={false}
       />

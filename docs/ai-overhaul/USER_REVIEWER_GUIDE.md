@@ -2,7 +2,7 @@
 
 Status: **guide for bounded draft workflows; production AI is disabled**.
 
-## 1. What AI means in Valo
+## 1. What AI means in BidBox
 
 AI creates first-pass suggestions. It does not approve a requirement, prove
 evidence, establish a defect, sign a report, change project status or predict a
@@ -44,7 +44,7 @@ That does not prove page coordinates, OCR fidelity or legal meaning. A missing
 quote means the candidate should not persist, but a matching quote can still be
 misinterpreted.
 
-If selected source text exceeds the current safe bound, Valo fails rather than
+If selected source text exceeds the current safe bound, BidBox fails rather than
 silently reading only part of it. Narrow the document selection without
 omitting relevant sources, or use the manual workflow. Do not split a document
 in a way that hides cross-references.

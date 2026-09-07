@@ -18,7 +18,7 @@ export interface AdapterDescriptor {
   capabilities: string[];
   /**
    * Contract evidence used by the AI gateway before any client content leaves
-   * Valo. Absence is intentionally treated as unverified, never as a permissive
+   * BidBox. Absence is intentionally treated as unverified, never as a permissive
    * provider default.
    */
   dataGovernance?: ProviderDataGovernance;

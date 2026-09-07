@@ -1,8 +1,8 @@
 import { cn } from "@/lib/utils";
 
-export function ValoMark({
+export function BidBoxMark({
   className,
-  label = "Valo",
+  label = "BidBox",
 }: {
   className?: string;
   label?: string | null;

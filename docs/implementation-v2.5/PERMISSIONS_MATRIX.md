@@ -12,9 +12,9 @@ Permissions are server enforced, deny by default, tenant scoped and constrained 
 | CON  | Contributor                       | Assigned tasks, evidence and draft content                                         |
 | CAP  | Client reviewer/approver          | Independent review and client approval                                             |
 | AUD  | Read-only auditor                 | Time-bounded evidence/audit visibility, no mutation/export by default              |
-| VAN  | Valo analyst                      | Assigned engagements, extraction/evidence/remediation operations                   |
-| VQA  | Valo quality adviser              | Independent quality/fatal reclassification/package sign-off                        |
-| VOA  | Valo operations administrator     | Queues, provider reconciliation, tenant-neutral operations metadata                |
+| VAN  | BidBox analyst                    | Assigned engagements, extraction/evidence/remediation operations                   |
+| VQA  | BidBox quality adviser            | Independent quality/fatal reclassification/package sign-off                        |
+| VOA  | BidBox operations administrator   | Queues, provider reconciliation, tenant-neutral operations metadata                |
 | RPA  | Restricted platform administrator | Platform configuration with no standing client-content access                      |
 | PAD  | Partner administrator             | Partner team and delegated client workspaces                                       |
 | PAN  | Partner analyst/reviewer          | Partner-assigned engagement work, subject to co-sign policy                        |
@@ -38,7 +38,7 @@ Legend: `O` own organisation; `A` assigned engagement; `P` partner-managed clien
 | Run BOQ checks                  | -   | -   | A       | -   | review  | -      | A       | A       | -                | -                | -       | P       |
 | Waive non-fatal exception       | -   | -   | propose | -   | approve | -      | propose | approve | -                | -                | propose | propose |
 | Client approval                 | O   | -   | -       | -   | A       | -      | -       | -       | -                | -                | P\*     | -       |
-| Valo QA sign-off                | -   | -   | -       | -   | -       | -      | -       | A       | -                | -                | -       | P\*\*   |
+| BidBox QA sign-off              | -   | -   | -       | -   | -       | -      | -       | A       | -                | -                | -       | P\*\*   |
 | Export signed package           | O   | O   | A       | -   | A       | view   | A       | A       | -                | -                | P       | P       |
 | Billing/payment actions         | O   | O\* | view    | -   | -       | view\* | -       | -       | reconcile        | config           | P\*     | -       |
 | Retention/deletion request      | O   | O   | -       | -   | -       | view   | -       | -       | execute\*        | policy           | P\*     | -       |
@@ -46,7 +46,7 @@ Legend: `O` own organisation; `A` assigned engagement; `P` partner-managed clien
 | Manage provider/config/flags    | -   | -   | -       | -   | -       | -      | -       | -       | operate          | config           | -       | -       |
 | Access another tenant's content | -   | -   | -       | -   | -       | -      | -       | -       | break-glass only | break-glass only | -       | -       |
 
-`*` requires the applicable delegation/dual control. `**` partner QA cannot replace mandatory Valo co-sign where the product is Valo-branded.
+`*` requires the applicable delegation/dual control. `**` partner QA cannot replace mandatory BidBox co-sign where the product is BidBox-branded.
 
 ## Segregation rules
 

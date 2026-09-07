@@ -11,7 +11,7 @@ import type {
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_acceptance_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_acceptance_test";
 
 const { createProductionAcceptanceRouter } =
   await import("./productionAcceptance");
@@ -131,7 +131,10 @@ describe("production acceptance route factory", () => {
     const response = await fetch(`${origin}/api/production-acceptance`);
     assert.equal(response.status, 200);
     assert.equal(response.headers.get("cache-control"), "private, no-store");
-    assert.match(response.headers.get("vary") ?? "", /X-Valo-Organisation-Id/u);
+    assert.match(
+      response.headers.get("vary") ?? "",
+      /X-BidBox-Organisation-Id/u,
+    );
     const body = (await response.json()) as {
       recommendedDecision: string;
       deploymentAuthorized: boolean;

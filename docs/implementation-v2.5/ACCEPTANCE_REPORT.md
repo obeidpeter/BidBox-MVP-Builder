@@ -90,7 +90,7 @@ No authorised staging/production deployment, URL, version, migration or smoke re
 
 ## Commercial activation gates
 
-Five actual Autopsies/SLA, paid mandates, retainers, conversion, on-time delivery, Valo-caused disqualification, revenue/margin/unit cost, partner/channel and revenue-mix evidence remain pending real operations. Nothing in code or focused tests fabricates or satisfies them.
+Five actual Autopsies/SLA, paid mandates, retainers, conversion, on-time delivery, BidBox-caused disqualification, revenue/margin/unit cost, partner/channel and revenue-mix evidence remain pending real operations. Nothing in code or focused tests fabricates or satisfies them.
 
 ## Definition-of-Done reconciliation
 

@@ -16,7 +16,7 @@ The TRD and master prompt refer to Business Plan v1.2 and Product Roadmap v1.1, 
 
 ## Product thesis retained
 
-Valo is an evidence-led tender-readiness and bid-production control system. It reduces preventable disqualification; it does not guarantee award, predict evaluators, create prices, broker relationships, or submit to government portals. The interaction model must expose source, evidence, state, reason, owner, and next safe action. Deterministic server rules and named humans remain authoritative over model output.
+BidBox is an evidence-led tender-readiness and bid-production control system. It reduces preventable disqualification; it does not guarantee award, predict evaluators, create prices, broker relationships, or submit to government portals. The interaction model must expose source, evidence, state, reason, owner, and next safe action. Deterministic server rules and named humans remain authoritative over model output.
 
 ## Current capability boundary
 
@@ -40,7 +40,7 @@ Valo is an evidence-led tender-readiness and bid-production control system. It r
 
 ## Role-model gap
 
-The canonical backend has 12 organisation roles, including client reviewer/approver and Valo quality adviser. It has no dedicated finance role and no dedicated authorised-signatory role. Payment confirmation still uses specific founder/adviser confirmation fields, and named sign-off uses reviewer permissions plus signer records. The UI must not fabricate `finance`, `accounts`, `signatory`, or similar roles. Add those only through an approved backend role/permission/migration/API change with segregation tests, or express the responsibility as a time-bounded permission delegated to an existing canonical role.
+The canonical backend has 12 organisation roles, including client reviewer/approver and BidBox quality adviser. It has no dedicated finance role and no dedicated authorised-signatory role. Payment confirmation still uses specific founder/adviser confirmation fields, and named sign-off uses reviewer permissions plus signer records. The UI must not fabricate `finance`, `accounts`, `signatory`, or similar roles. Add those only through an approved backend role/permission/migration/API change with segregation tests, or express the responsibility as a time-bounded permission delegated to an existing canonical role.
 
 ## Scope decisions
 

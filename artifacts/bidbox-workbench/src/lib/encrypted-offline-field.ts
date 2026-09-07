@@ -755,7 +755,7 @@ async function withExclusiveDeviceLock<T>(
 ): Promise<T> {
   if (!globalThis.navigator?.locks) fail("unavailable");
   return navigator.locks.request(
-    "valo-encrypted-field-store-v1",
+    "bidbox-encrypted-field-store-v1",
     { mode: "exclusive" },
     operation,
   );

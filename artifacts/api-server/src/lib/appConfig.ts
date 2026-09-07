@@ -23,7 +23,7 @@ export const DEFAULT_APP_CONFIG = {
   severityWeights: DEFAULT_RISK_CONFIG.severityWeights,
   missingEvidenceWeight: DEFAULT_RISK_CONFIG.missingEvidenceWeight,
   bandCutoffs: DEFAULT_RISK_CONFIG.bandCutoffs,
-  firmName: "VALO",
+  firmName: "BidBox",
   confidentialityLegend:
     "CONFIDENTIAL — Prepared for internal review. Not for external distribution.",
   retentionDefaultDays: 14,
@@ -63,10 +63,19 @@ function toActiveConfig(row: AppConfigRow): ActiveConfig {
  * (fixed primary key + onConflictDoNothing), so concurrent first reads are safe.
  */
 export async function getActiveConfigRow(): Promise<AppConfigRow> {
-  const [existing] = await db.select().from(appConfig).where(eq(appConfig.id, APP_CONFIG_ID));
+  const [existing] = await db
+    .select()
+    .from(appConfig)
+    .where(eq(appConfig.id, APP_CONFIG_ID));
   if (existing) return existing;
-  await db.insert(appConfig).values({ id: APP_CONFIG_ID }).onConflictDoNothing();
-  const [row] = await db.select().from(appConfig).where(eq(appConfig.id, APP_CONFIG_ID));
+  await db
+    .insert(appConfig)
+    .values({ id: APP_CONFIG_ID })
+    .onConflictDoNothing();
+  const [row] = await db
+    .select()
+    .from(appConfig)
+    .where(eq(appConfig.id, APP_CONFIG_ID));
   return row;
 }
 

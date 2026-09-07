@@ -104,7 +104,7 @@ const OFFER: OfferCatalogueItem = {
 
 const LEAD: LeadInboxItem = {
   id: "lead-1",
-  organisationId: "valo-org",
+  organisationId: "bidbox-org",
   leadReference: "AUT-2026-0001",
   organisationLabel: "Example Engineering Limited",
   tenderCategory: "federal_public",

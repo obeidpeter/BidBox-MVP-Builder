@@ -6,7 +6,7 @@ import path from "node:path";
 const root = path.resolve(import.meta.dirname, "..");
 const publicDirectory = path.resolve(
   root,
-  "artifacts/valo-workbench/dist/public",
+  "artifacts/bidbox-workbench/dist/public",
 );
 const indexPath = path.join(publicDirectory, "index.html");
 const indexHtml = await readFile(indexPath, "utf8");

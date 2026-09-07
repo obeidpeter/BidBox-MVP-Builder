@@ -286,7 +286,7 @@ export function ClientActionWorkspace({
       <StatusPanel
         state="partial"
         title="Controlled actions only"
-        description="This workspace records acknowledgements and planned uploads. The named recipient can upload directly to approved storage after acknowledging an active request. Valo does not receive the file itself or send messages or packages."
+        description="This workspace records acknowledgements and planned uploads. The named recipient can upload directly to approved storage after acknowledging an active request. BidBox does not receive the file itself or send messages or packages."
       />
 
       {canCreateEvidenceRequest ? (

@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "registryId": "valo-product-capabilities/third-wave-v1",
+  "registryId": "bidbox-product-capabilities/third-wave-v1",
   "authority": "checked_in_source_runtime_gates_and_release_evidence_are_authoritative",
   "deterministicRuntimeLevel": 0,
   "productionModelExecutionGranted": false,
@@ -29,7 +29,7 @@
         "artifacts/api-server/src/lib/deliveryStudio/service.ts",
         "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
         "artifacts/api-server/src/routes/deliveryStudio.ts",
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "lib/api-spec/openapi.yaml",
         "docs/third-wave/IMPLEMENTATION.md"
       ],
@@ -51,7 +51,7 @@
           "includes": "delivery-studio"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
           "includes": "Response Studio"
         },
         {
@@ -87,7 +87,7 @@
         "artifacts/api-server/src/lib/deliveryStudio/service.ts",
         "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
         "artifacts/api-server/src/routes/deliveryStudio.ts",
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "lib/api-spec/openapi.yaml",
         "docs/third-wave/IMPLEMENTATION.md"
       ],
@@ -113,7 +113,7 @@
           "includes": "delivery-studio"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
           "includes": "Red-team review"
         },
         {
@@ -146,7 +146,7 @@
         "artifacts/api-server/src/lib/deliveryStudio/service.ts",
         "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
         "artifacts/api-server/src/routes/deliveryStudio.ts",
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "lib/api-spec/openapi.yaml",
         "docs/third-wave/IMPLEMENTATION.md"
       ],
@@ -168,7 +168,7 @@
           "includes": "delivery-studio"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
           "includes": "Package assembly"
         },
         {
@@ -200,7 +200,7 @@
         "artifacts/api-server/src/lib/deliveryStudio/service.ts",
         "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
         "artifacts/api-server/src/routes/deliveryStudio.ts",
-        "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+        "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
         "lib/api-spec/openapi.yaml",
         "docs/third-wave/IMPLEMENTATION.md"
       ],
@@ -222,7 +222,7 @@
           "includes": "delivery-studio"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/project-tabs/delivery-studio-tab.tsx",
           "includes": "Submission rehearsal"
         },
         {
@@ -253,7 +253,7 @@
         "artifacts/api-server/src/lib/deliveryStudio/service.ts",
         "artifacts/api-server/src/lib/deliveryStudio/drizzleRepository.ts",
         "artifacts/api-server/src/routes/deliveryStudio.ts",
-        "artifacts/valo-workbench/src/pages/portfolio-intelligence.tsx",
+        "artifacts/bidbox-workbench/src/pages/portfolio-intelligence.tsx",
         "lib/api-spec/openapi.yaml",
         "docs/third-wave/IMPLEMENTATION.md"
       ],
@@ -275,7 +275,7 @@
           "includes": "portfolio-intelligence"
         },
         {
-          "path": "artifacts/valo-workbench/src/pages/portfolio-intelligence.tsx",
+          "path": "artifacts/bidbox-workbench/src/pages/portfolio-intelligence.tsx",
           "includes": "Portfolio intelligence"
         },
         {

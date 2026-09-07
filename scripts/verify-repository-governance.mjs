@@ -190,7 +190,7 @@ const REQUIRED_WORKFLOW_ACTIONS = new Map([
 const REVIEWED_WORKFLOW_SHA256 = new Map([
   [
     ".github/workflows/ci.yml",
-    "fb2e57761b7b930212e408c6dadafd78fa03830c75421ca9d9c7b61da9f95ba6",
+    "686130cf5cc2603a1187f6ad6f02c64e790c7d4a6cff497cfe190a75ebc3c6ce",
   ],
   [
     ".github/workflows/codeql.yml",
@@ -202,11 +202,11 @@ const REVIEWED_WORKFLOW_SHA256 = new Map([
   ],
   [
     ".github/workflows/release-candidate.yml",
-    "ee50d2b0ff3b9e5cf3291836db14848b88402d448bef538cb2235b74c53c7042",
+    "4692b5bfdd1077afc82f62ad8302e0303992817ac2c3c01145e1c15bbea4c77e",
   ],
   [
     ".github/workflows/deployment-verification.yml",
-    "cb677e5c1d7ab6a19099b9da3b19dd911c31f1487acbfc0493a27d0449dfb7c8",
+    "7a9a2cd529a4075e93d214c47a43db672388e2758e4633edb0d39bd5e0922b52",
   ],
 ]);
 
@@ -461,7 +461,7 @@ export function validateReleaseWorkflowSecurity(candidate, deployment) {
   );
   assert.match(
     deployment,
-    /^\s*name: valo-release-\$\{\{ inputs\.source_sha \}\}\s*$/mu,
+    /^\s*name: bidbox-release-\$\{\{ inputs\.source_sha \}\}\s*$/mu,
     "Artifact download must select the exact source-bound candidate name",
   );
   assert.match(
@@ -471,7 +471,7 @@ export function validateReleaseWorkflowSecurity(candidate, deployment) {
   );
   assert.match(
     deployment,
-    /^\s*path: \$\{\{ runner\.temp \}\}\/valo-release-candidate\s*$/mu,
+    /^\s*path: \$\{\{ runner\.temp \}\}\/bidbox-release-candidate\s*$/mu,
     "Artifact download must not overwrite the trusted checkout",
   );
   assert.match(
@@ -485,21 +485,21 @@ export function validateReleaseWorkflowSecurity(candidate, deployment) {
     "Both manifest and deployment verification must consume the run attestation",
   );
   assert.equal(
-    deployment.match(/--root "\$RUNNER_TEMP\/valo-release-candidate"/gu)
+    deployment.match(/--root "\$RUNNER_TEMP\/bidbox-release-candidate"/gu)
       ?.length,
     2,
     "Both candidate verifications must run against the isolated artifact root",
   );
   assert.equal(
     deployment.match(
-      /--run-attestation "\$RUNNER_TEMP\/valo-candidate-run-attestation\.json"/gu,
+      /--run-attestation "\$RUNNER_TEMP\/bidbox-candidate-run-attestation\.json"/gu,
     )?.length,
     2,
     "The API-produced attestation must remain outside downloaded artifact storage",
   );
   assert.match(
     deployment,
-    /--output "\$RUNNER_TEMP\/valo-candidate-run-attestation\.json"/u,
+    /--output "\$RUNNER_TEMP\/bidbox-candidate-run-attestation\.json"/u,
     "Run attestation must be written outside downloaded artifact storage",
   );
   assert.ok(

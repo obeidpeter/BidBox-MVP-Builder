@@ -20,7 +20,7 @@ test("root developer checks expose bounded fast, database, and full lanes", asyn
   assert.match(packageJson.scripts["check:all"], /check:db/u);
   assert.match(
     packageJson.scripts["check:all"],
-    /@workspace\/valo-workbench test/u,
+    /@workspace\/bidbox-workbench test/u,
   );
   assert.match(packageJson.scripts["check:all"], /run build/u);
 });

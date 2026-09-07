@@ -620,8 +620,8 @@ export function IntelligenceReviewInbox({
             <div>
               <p>
                 Only a named, authorised reviewer may approve, reject or request
-                changes. Valo does not approve evidence, waive findings or make
-                the substantive bid decision.
+                changes. BidBox does not approve evidence, waive findings or
+                make the substantive bid decision.
               </p>
               {authorityNote ? (
                 <p className="mt-2 border-t border-primary/15 pt-2 text-xs text-muted-foreground">

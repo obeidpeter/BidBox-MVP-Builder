@@ -51,9 +51,9 @@ import {
   OrganisationSelectionGate,
   OrganisationSwitcher,
 } from "@/components/organisation-switcher";
-import { ValoMark } from "@/components/valo-mark";
+import { BidBoxMark } from "@/components/bidbox-mark";
 import { GlobalCommand } from "@/components/global-command";
-import { ValoUserIdCard } from "@/components/valo-user-id-card";
+import { BidBoxUserIdCard } from "@/components/bidbox-user-id-card";
 
 const ICONS: Record<string, LucideIcon> = {
   "/app": LayoutDashboard,
@@ -192,10 +192,10 @@ function IdentityOnlyLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex min-h-16 max-w-6xl items-center justify-between px-5 sm:px-8">
           <Link
             href="/"
-            aria-label="Valo home"
+            aria-label="BidBox home"
             className="rounded-md text-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
           >
-            <ValoMark />
+            <BidBoxMark />
           </Link>
           <UserButton
             afterSignOutUrl="/"
@@ -270,7 +270,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <StatusPanel
             state="blocked"
             title="Account disabled"
-            description="This account cannot open any organisation or pursuit workspace. Contact Valo support to review the account."
+            description="This account cannot open any organisation or pursuit workspace. Contact BidBox support to review the account."
           />
           <UserButton afterSignOutUrl="/" />
         </div>
@@ -311,7 +311,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             title="You don't have organisation access yet"
             description="Your sign-in worked, but this account is not linked to an active organisation membership. Ask an organisation administrator to add you."
           />
-          <ValoUserIdCard userId={user.id} />
+          <BidBoxUserIdCard userId={user.id} />
           <UserButton afterSignOutUrl="/" />
         </div>
       </div>
@@ -328,7 +328,7 @@ export default function Layout({ children }: { children: ReactNode }) {
             title="No role assigned yet"
             description="Your account belongs to this organisation, but it has no active role. Ask an organisation administrator to assign one."
           />
-          <ValoUserIdCard userId={user.id} />
+          <BidBoxUserIdCard userId={user.id} />
           <UserButton afterSignOutUrl="/" />
         </div>
       </div>
@@ -343,7 +343,7 @@ export default function Layout({ children }: { children: ReactNode }) {
           <StatusPanel
             state="blocked"
             title="This role isn't supported"
-            description="This version of Valo does not recognise the role returned by the server. No workspace was opened. Contact an administrator or support."
+            description="This version of BidBox does not recognise the role returned by the server. No workspace was opened. Contact an administrator or support."
           />
         </div>
       </div>
@@ -375,10 +375,10 @@ export default function Layout({ children }: { children: ReactNode }) {
           <div className="border-b border-sidebar-border p-5">
             <Link
               href="/app"
-              aria-label="Valo dashboard"
+              aria-label="BidBox dashboard"
               className="block w-fit rounded-md text-sidebar-primary focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-sidebar-ring"
             >
-              <ValoMark />
+              <BidBoxMark />
             </Link>
             <p className="mt-3 text-xs leading-5 text-sidebar-foreground/55">
               Tender review and evidence tracking

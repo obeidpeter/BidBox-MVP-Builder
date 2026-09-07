@@ -1,6 +1,6 @@
 {
   "schemaVersion": 1,
-  "manifestId": "valo-durable-worker-activation/v1",
+  "manifestId": "bidbox-durable-worker-activation/v1",
   "status": "preconditions_open_control_router_unmounted",
   "controlRouterMounted": false,
   "authority": "named_human_review_required_for_every_transition",

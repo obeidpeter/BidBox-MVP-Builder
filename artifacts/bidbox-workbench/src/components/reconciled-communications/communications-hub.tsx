@@ -308,7 +308,7 @@ function EventCard(props: {
         <p className="mt-4 flex items-start gap-2 rounded-lg border border-info bg-info/10 p-3 text-sm text-foreground">
           <Clock3 className="mt-0.5 size-4 shrink-0" aria-hidden="true" />
           Provider acceptance is not delivery. A trusted receipt must be
-          verified before Valo will show this as delivered.
+          verified before BidBox will show this as delivered.
         </p>
       ) : null}
       {props.event.status === "reconciliation_required" ? (
@@ -461,8 +461,8 @@ export function CommunicationsHub(props: {
             </h2>
             <p className="mt-1 text-xs leading-5">
               {props.snapshot.policy.providersConnected
-                ? "Valo checks provider health and approval after it records the planned attempt."
-                : "Attempts will be recorded as known not delivered. Valo will not simulate or claim an external send."}
+                ? "BidBox checks provider health and approval after it records the planned attempt."
+                : "Attempts will be recorded as known not delivered. BidBox will not simulate or claim an external send."}
             </p>
           </div>
         </div>
@@ -495,7 +495,7 @@ export function CommunicationsHub(props: {
             }`}
           >
             {props.referencesLoading
-              ? "Valo is loading the approved recipient and project choices."
+              ? "BidBox is loading the approved recipient and project choices."
               : "Manual participant IDs, consent records and project references are not accepted. Reload when the approved choices are available."}
           </p>
         </section>

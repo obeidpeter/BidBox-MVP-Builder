@@ -234,7 +234,7 @@ describe("organisation access context", () => {
       organisation("org-2", "Contoso Nigeria", ["client_reviewer_approver"]),
     ];
     sessionStorage.setItem(
-      "valo:selected-organisation:user-1%3Asession-1",
+      "bidbox:selected-organisation:user-1%3Asession-1",
       "org-1",
     );
     let releaseWorkflow: (() => void) | undefined;

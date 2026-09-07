@@ -5,7 +5,7 @@ Status: **source-level operations view exists; production monitoring is not oper
 ## 1. Current operations surface
 
 `GET /ai/operations` requires an active direct membership carrying one of the
-named Valo internal operations roles and `evaluation:read`. Client, partner,
+named BidBox internal operations roles and `evaluation:read`. Client, partner,
 read-only-auditor, restricted-platform-administrator and break-glass contexts
 are denied even if they otherwise carry a read permission. Its database queries
 filter `llm_runs` and `evaluation_runs` by the active organisation. The response

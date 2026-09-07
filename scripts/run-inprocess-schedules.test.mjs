@@ -140,8 +140,8 @@ test("delayed children retain only the runtime credential and a credential-free 
   const environment = {
     NODE_ENV: "production",
     REPLIT_DEPLOYMENT: "1",
-    DATABASE_URL: `postgresql://migration_owner:${ownerPassword}@database.example/valo?sslmode=require`,
-    VALO_RUNTIME_DATABASE_URL: `postgresql://valo_app_runtime:${runtimePassword}@database.example/valo?sslmode=require`,
+    DATABASE_URL: `postgresql://migration_owner:${ownerPassword}@database.example/bidbox?sslmode=require`,
+    VALO_RUNTIME_DATABASE_URL: `postgresql://valo_app_runtime:${runtimePassword}@database.example/bidbox?sslmode=require`,
   };
   let childEnvironment;
   const runCommand = createScheduledCommandRunner({
@@ -168,11 +168,11 @@ test("delayed children retain only the runtime credential and a credential-free 
   assert.equal(outcome.exitCode, 0);
   assert.equal(
     childEnvironment.DATABASE_URL,
-    "postgresql://database.example/valo?sslmode=require",
+    "postgresql://database.example/bidbox?sslmode=require",
   );
   assert.equal(
     childEnvironment.VALO_RUNTIME_DATABASE_URL,
-    `postgresql://valo_app_runtime:${runtimePassword}@database.example/valo?sslmode=require`,
+    `postgresql://valo_app_runtime:${runtimePassword}@database.example/bidbox?sslmode=require`,
   );
   assert.doesNotMatch(JSON.stringify(childEnvironment), /migration_owner/u);
   assert.doesNotMatch(

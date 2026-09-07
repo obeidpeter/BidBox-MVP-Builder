@@ -26,7 +26,9 @@ describe("API request organisation context", () => {
 
     await customFetch("/api/context-check", { responseType: "json" });
 
-    expect(observedHeaders.get("x-valo-organisation-id")).toBe("org-verified");
+    expect(observedHeaders.get("x-bidbox-organisation-id")).toBe(
+      "org-verified",
+    );
   });
 
   it("does not retain an organisation header after context is cleared", async () => {
@@ -45,7 +47,7 @@ describe("API request organisation context", () => {
 
     await customFetch("/api/context-check", { responseType: "json" });
 
-    expect(observedHeaders.has("x-valo-organisation-id")).toBe(false);
+    expect(observedHeaders.has("x-bidbox-organisation-id")).toBe(false);
   });
 
   it("does not disclose organisation context to an external URL", async () => {
@@ -66,6 +68,6 @@ describe("API request organisation context", () => {
       responseType: "json",
     });
 
-    expect(observedHeaders.has("x-valo-organisation-id")).toBe(false);
+    expect(observedHeaders.has("x-bidbox-organisation-id")).toBe(false);
   });
 });

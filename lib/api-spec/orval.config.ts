@@ -2,14 +2,14 @@ import { defineConfig, InputTransformerFn } from "orval";
 import path from "path";
 
 const canonicalRoot = path.resolve(__dirname, "..", "..");
-const configuredOutputRoot = process.env.VALO_CODEGEN_OUTPUT_ROOT?.trim();
+const configuredOutputRoot = process.env.BIDBOX_CODEGEN_OUTPUT_ROOT?.trim();
 const root = configuredOutputRoot
   ? path.resolve(configuredOutputRoot)
   : canonicalRoot;
 const apiClientReactSrc = path.resolve(root, "lib", "api-client-react", "src");
 const apiZodSrc = path.resolve(root, "lib", "api-zod", "src");
 const customFetchPath = configuredOutputRoot
-  ? process.env.VALO_CODEGEN_MUTATOR_PATH?.trim() ||
+  ? process.env.BIDBOX_CODEGEN_MUTATOR_PATH?.trim() ||
     path.resolve(root, "mutators", "custom-fetch.ts")
   : path.resolve(
       canonicalRoot,

@@ -88,7 +88,7 @@ const config: AppConfig = {
   },
   missingEvidenceWeight: 25,
   bandCutoffs: { medium: 25, high: 50, critical: 75 },
-  firmName: "Valo",
+  firmName: "BidBox",
   confidentialityLegend: "Confidential",
   retentionDefaultDays: 365,
   updatedAt: "2026-08-11T10:00:00.000Z",

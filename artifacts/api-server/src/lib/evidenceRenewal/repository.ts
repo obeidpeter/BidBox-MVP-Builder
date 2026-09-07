@@ -189,7 +189,7 @@ async function lockMembershipAuthority(
   await tx.execute(sql`
     SELECT pg_catalog.pg_advisory_xact_lock(
       pg_catalog.hashtextextended(
-        ${`valo.membership-administration:${organisationId}`},
+        ${`bidbox.membership-administration:${organisationId}`},
         0
       )
     )
@@ -881,7 +881,7 @@ async function materialisePlans(
         ),
       },
       internalReminder: {
-        channel: "valo_evidence_renewal_register",
+        channel: "bidbox_evidence_renewal_register",
         assignedOwnerUserId: plan.ownerUserId,
         dueAt: plan.reminderDueAt,
         status:

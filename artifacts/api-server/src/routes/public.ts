@@ -28,9 +28,9 @@ const MAXIMUM_FORM_AGE_MS = 24 * 60 * 60 * 1_000;
 const MAXIMUM_FUTURE_CLOCK_SKEW_MS = 5 * 60 * 1_000;
 const MINIMUM_RATE_LIMIT_SECRET_BYTES = 32;
 const DEVELOPMENT_RATE_LIMIT_SECRET =
-  "valo-development-only-public-lead-rate-limit-secret";
+  "bidbox-development-only-public-lead-rate-limit-secret";
 const NEXT_STEP =
-  "Valo will use your preferred contact method to confirm scope and the secure next step. Do not send tender files until that process is agreed.";
+  "BidBox will use your preferred contact method to confirm scope and the secure next step. Do not send tender files until that process is agreed.";
 
 function boundedPositiveInteger(
   value: string | undefined,

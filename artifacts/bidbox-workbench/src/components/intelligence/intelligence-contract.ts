@@ -238,7 +238,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Drafts questions linked to unclear, conflicting or unpriceable tender terms.",
       humanControl:
-        "An authorised tender lead decides whether and how to send a question; Valo never sends it.",
+        "An authorised tender lead decides whether and how to send a question; BidBox never sends it.",
       evidenceBasis:
         "Tender clauses, addenda, recorded conflicts and the confirmed clarification deadline.",
     },
@@ -262,7 +262,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Drafts obligations, milestones, notices and evidence tasks from a recorded award or contract.",
       humanControl:
-        "A contract or project manager accepts owners and dates; Valo never issues a notice or changes an external system.",
+        "A contract or project manager accepts owners and dates; BidBox never issues a notice or changes an external system.",
       evidenceBasis:
         "Client-confirmed outcome, signed contract or award source, approved submission and retained obligations.",
     },
@@ -286,7 +286,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Compares bid security terms with a verified instrument for amount, currency, beneficiary, wording, issuer and validity gaps.",
       humanControl:
-        "Authorised legal, commercial and treasury reviewers decide remediation; Valo never instructs a bank or represents validity.",
+        "Authorised legal, commercial and treasury reviewers decide remediation; BidBox never instructs a bank or represents validity.",
       evidenceBasis:
         "Tender clauses, prescribed forms and versioned issued instruments with named review.",
     },
@@ -310,7 +310,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Proposes which organisation owns each eligibility, technical, commercial and signing obligation without treating credentials as transferable.",
       humanControl:
-        "Authorised representatives accept each responsibility; Valo never binds a partner or edits consortium terms.",
+        "Authorised representatives accept each responsibility; BidBox never binds a partner or edits consortium terms.",
       evidenceBasis:
         "Reviewed tender obligations, signed partner instruments, entity-specific evidence and named acceptance.",
     },
@@ -322,7 +322,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Checks a locked package against approved portal fields, names, sizes and upload-order rules.",
       humanControl:
-        "An authorised operator runs the real submission; Valo never logs in, clicks submit or acknowledges declarations.",
+        "An authorised operator runs the real submission; BidBox never logs in, clicks submit or acknowledges declarations.",
       evidenceBasis:
         "Frozen package hashes, versioned portal rules, rehearsal receipts and operator review.",
     },
@@ -334,7 +334,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Models rules-based scenarios for payment timing, retention, mobilisation, tax, bonds, foreign exchange and price adjustments.",
       humanControl:
-        "Finance reviewers approve assumptions and decisions; Valo never selects a price, rate or financing commitment.",
+        "Finance reviewers approve assumptions and decisions; BidBox never selects a price, rate or financing commitment.",
       evidenceBasis:
         "Cited tender clauses, safe BOQ versions and explicitly reviewed scenario assumptions.",
     },
@@ -358,7 +358,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Suggests verified project and personnel facts that match the criteria while blocking unavailable people and unsupported claims.",
       humanControl:
-        "HR, project and bid owners confirm that facts are current, people are available and selections are correct. Valo never embellishes credentials.",
+        "HR, project and bid owners confirm that facts are current, people are available and selections are correct. BidBox never embellishes credentials.",
       evidenceBasis:
         "Reviewed criteria, current CV and project evidence, source quotes and owner confirmations.",
     },
@@ -370,7 +370,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Compares tender, bid, clarification, award and draft-contract clauses to show changed, missing or new obligations.",
       humanControl:
-        "Legal and commercial owners decide every issue; Valo never accepts terms or communicates a redline.",
+        "Legal and commercial owners decide every issue; BidBox never accepts terms or communicates a redline.",
       evidenceBasis:
         "Reviewed clauses from versioned documents at each contract stage.",
     },
@@ -394,7 +394,7 @@ export const INTELLIGENCE_CAPABILITY_CATALOG: readonly IntelligenceCapabilityDef
       description:
         "Flags restricted issues for separation of duties, contact channels, relationships and overrides. These flags are never allegations.",
       humanControl:
-        "Only authorised ethics or legal reviewers assess a signal; Valo makes no misconduct finding or external report.",
+        "Only authorised ethics or legal reviewers assess a signal; BidBox makes no misconduct finding or external report.",
       evidenceBasis:
         "Organisation-specific audit history, declared relationships and confidential review by named people.",
     },

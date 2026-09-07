@@ -79,8 +79,8 @@ test("accepts only fresh encrypted backup and restore evidence", () => {
     restoreDrillMaxAgeDays: 30,
     rpoHours: 4,
   });
-  assert.equal(result.signals["valo.backup.verification_failures"], 0);
-  assert.equal(result.signals["valo.backup.age_hours"], 1.5);
+  assert.equal(result.signals["bidbox.backup.verification_failures"], 0);
+  assert.equal(result.signals["bidbox.backup.age_hours"], 1.5);
   assert.throws(
     () =>
       verifyBackupEvidenceDocument(backupEvidence(), {
@@ -152,8 +152,8 @@ test("requires every retained tenant and an exact database-to-anchor head match"
     now: NOW,
   });
   assert.equal(result.tenantsVerified, 1);
-  assert.equal(result.signals["valo.audit.anchor_cycle_complete"], 1);
-  assert.equal(result.signals["valo.audit.anchor_failures"], 0);
+  assert.equal(result.signals["bidbox.audit.anchor_cycle_complete"], 1);
+  assert.equal(result.signals["bidbox.audit.anchor_failures"], 0);
 
   const mismatch = anchorEvidence();
   mismatch.records[0].databaseHead.hash = HASH_B;
@@ -231,7 +231,7 @@ test("requires every retained tenant and an exact database-to-anchor head match"
 });
 
 test("accepts a bounded regular evidence file only when independently pinned", async () => {
-  const directory = await mkdtemp(join(tmpdir(), "valo-ops-evidence-"));
+  const directory = await mkdtemp(join(tmpdir(), "bidbox-ops-evidence-"));
   try {
     const path = join(directory, "backup.json");
     const source = JSON.stringify(backupEvidence());

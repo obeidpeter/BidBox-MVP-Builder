@@ -110,7 +110,7 @@ describe("ClientActionWorkspace", () => {
       />,
     );
     expect(
-      screen.getByText(/Valo does not receive the file itself/i),
+      screen.getByText(/BidBox does not receive the file itself/i),
     ).toBeInTheDocument();
     fireEvent.click(
       screen.getByRole("button", { name: /acknowledge request/i }),

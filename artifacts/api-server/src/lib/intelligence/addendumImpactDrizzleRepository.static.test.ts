@@ -138,11 +138,11 @@ test("terminal review rows and items are append-only with exact-command replay",
 test("review and apply lock and recompute the exact current v2 plan in-transaction", () => {
   assert.match(
     repository,
-    /valo\.membership-administration:\$\{scope\.organisationId\}/u,
+    /bidbox\.membership-administration:\$\{scope\.organisationId\}/u,
   );
   assert.match(
     repository,
-    /valo\.document-snapshot-series:\$\{scope\.organisationId\}:\$\{projectId\}:\$\{sourceId\}/u,
+    /bidbox\.document-snapshot-series:\$\{scope\.organisationId\}:\$\{projectId\}:\$\{sourceId\}/u,
   );
   assert.match(repository, /loadCurrentAddendumImpactPlan\([\s\S]*true/u);
   assert.match(repository, /assertCurrentPlanIdentity/u);

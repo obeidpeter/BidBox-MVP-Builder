@@ -1,7 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { safePostAuthRedirect } from "./safe-redirect";
 
-const origin = "https://valo.example.test";
+const origin = "https://bidbox.example.test";
 
 describe("post-authentication redirects", () => {
   it("preserves a same-origin protected deep link", () => {

@@ -8,7 +8,7 @@ import type { TenderContextRouterOptions } from "./tenderContext";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_tender_context_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_tender_context_test";
 
 const { createTenderContextRouter } = await import("./tenderContext");
 const { parseTenderContextVersionDraft } =
@@ -165,7 +165,7 @@ describe("tender context route authority", () => {
       assert.equal(response.headers.get("cache-control"), "private, no-store");
       assert.match(
         response.headers.get("vary") ?? "",
-        /X-Valo-Organisation-Id/u,
+        /X-BidBox-Organisation-Id/u,
       );
     }
     assert.equal(calls.read, 2);

@@ -153,7 +153,7 @@ function IntelligenceCentreReady({
       id: "foundation",
       title: "Bid intelligence foundation",
       description:
-        "The evidence, intake, drafting, readiness and handoff capabilities already represented in Valo's pursuit workflow.",
+        "The evidence, intake, drafting, readiness and handoff capabilities already represented in BidBox's pursuit workflow.",
       cards: capabilityCards.filter(({ definition }) =>
         FOUNDATION_CAPABILITY_IDS.has(definition.id),
       ),
@@ -393,7 +393,7 @@ function IntelligenceCentreReady({
               </h2>
               <p className="mt-1 text-sm leading-6 text-muted-foreground">
                 Suggestions may be incomplete or wrong. Open the named source,
-                record your decision and keep the reviewer identity. Valo does
+                record your decision and keep the reviewer identity. BidBox does
                 not approve evidence, waive findings, set prices, predict awards
                 or submit bids.
               </p>
@@ -424,7 +424,7 @@ export default function IntelligenceCentre({
       <PageHeader
         eyebrow="Human-led bid intelligence"
         title="Bid insights"
-        description="Review evidence-based suggestions and drafts. Valo helps authorised reviewers find risk; people make and carry out every decision."
+        description="Review evidence-based suggestions and drafts. BidBox helps authorised reviewers find risk; people make and carry out every decision."
         state={state}
       />
 

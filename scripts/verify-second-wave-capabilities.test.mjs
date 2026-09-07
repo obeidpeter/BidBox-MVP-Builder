@@ -85,7 +85,7 @@ test("freezes the exact second-wave scope and truthful delivery states", () => {
 });
 
 test("verifies integrated source while keeping production and external evidence blocked", async () => {
-  const root = await mkdtemp(join(tmpdir(), "valo-second-wave-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-second-wave-"));
   try {
     const valid = registry();
     await copyEvidenceTree(root, valid);
@@ -131,7 +131,7 @@ test("verifies integrated source while keeping production and external evidence 
 });
 
 test("detects missing retention integration evidence", async () => {
-  const root = await mkdtemp(join(tmpdir(), "valo-second-wave-source-"));
+  const root = await mkdtemp(join(tmpdir(), "bidbox-second-wave-source-"));
   try {
     const valid = registry();
     await copyEvidenceTree(root, valid);

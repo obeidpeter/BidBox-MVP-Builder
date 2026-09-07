@@ -5,7 +5,7 @@ import type { AccessContext } from "../middlewares/tenancy";
 
 process.env.NODE_ENV = "test";
 process.env.DATABASE_URL ??=
-  "postgresql://valo_test:valo_test@127.0.0.1:1/valo_test";
+  "postgresql://bidbox_test:bidbox_test@127.0.0.1:1/bidbox_test";
 
 const { aiOperationsBudgetBlocker, canReadInternalAiOperations } =
   await import("./aiOperations");
@@ -29,7 +29,7 @@ function accessContext(
 }
 
 describe("AI operations authority", () => {
-  test("allows only direct Valo internal operations memberships", () => {
+  test("allows only direct BidBox internal operations memberships", () => {
     for (const role of [
       "valo_operations_administrator",
       "valo_analyst",

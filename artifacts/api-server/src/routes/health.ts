@@ -23,7 +23,7 @@ function publishReleaseIdentity(
 ): void {
   const value = releaseSha256?.();
   if (value && RELEASE_SHA256.test(value)) {
-    res.setHeader("X-Valo-Release-Sha256", value);
+    res.setHeader("X-BidBox-Release-Sha256", value);
   }
 }
 

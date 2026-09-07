@@ -53,7 +53,7 @@ assert.equal(
   signals.status,
   "source_registry_complete_deployment_mapping_required",
 );
-assert.equal(signals.registryVersion, "valo-operational-signals/v1");
+assert.equal(signals.registryVersion, "bidbox-operational-signals/v1");
 assert.equal(
   synthetic.status,
   "fixtures_ready_adapter_execution_and_delivery_receipts_required",
