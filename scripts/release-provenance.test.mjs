@@ -345,6 +345,7 @@ describe("deployed readiness evidence", () => {
     readinessStatus = "ready",
     oversizedReadiness = false,
   }) {
+    let fixtureOrigin;
     const server = createServer((request, response) => {
       onRequest(request);
       response.setHeader("Content-Type", "application/json");
@@ -353,7 +354,7 @@ describe("deployed readiness evidence", () => {
       if (allowedOrigin !== null) {
         response.setHeader(
           "Access-Control-Allow-Origin",
-          allowedOrigin ?? request.headers.origin ?? "missing-origin",
+          allowedOrigin ?? fixtureOrigin,
         );
       }
       if (corsCredentials !== null) {
@@ -407,8 +408,27 @@ describe("deployed readiness evidence", () => {
     await new Promise((resolve) => server.listen(0, "127.0.0.1", resolve));
     const address = server.address();
     assert(address && typeof address !== "string");
-    return `http://127.0.0.1:${address.port}`;
+    fixtureOrigin = `http://127.0.0.1:${address.port}`;
+    return fixtureOrigin;
   }
+
+  it("keeps fixture CORS fixed to its listener regardless of request Origin", async () => {
+    const { manifest } = await fixture();
+    const deploymentUrl = await serve({
+      releaseSha256: manifest.releaseSha256,
+    });
+    const response = await fetch(`${deploymentUrl}/api/readyz`, {
+      headers: { Origin: "https://untrusted.example.invalid" },
+    });
+    assert.equal(
+      response.headers.get("access-control-allow-origin"),
+      deploymentUrl,
+    );
+    assert.equal(
+      response.headers.get("access-control-allow-credentials"),
+      "true",
+    );
+  });
 
   it("binds successful liveness and readiness to the candidate digest", async () => {
     const { manifest } = await fixture();
@@ -550,6 +570,8 @@ describe("deployed readiness evidence", () => {
     });
     assert.equal(requests[0].authorization, "Bearer private-edge-fixture");
     assert.equal(requests[1].authorization, "Bearer private-edge-fixture");
+    assert.equal(requests[0].origin, deploymentUrl);
+    assert.equal(requests[1].origin, deploymentUrl);
     assert.deepEqual(requests[2], {
       path: "/api/__clerk/v1/environment",
       authorization: undefined,
