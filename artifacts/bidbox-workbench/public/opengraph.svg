@@ -1,10 +1,12 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1200" height="630" viewBox="0 0 1200 630" role="img" aria-labelledby="title description">
   <title id="title">BidBox — tender readiness grounded in evidence</title>
-  <desc id="description">A restrained navy BidBox brand card with a teal mark and evidence-led tender readiness message.</desc>
+  <desc id="description">A navy BidBox brand card with an ivory and teal stacked-box B monogram and evidence-led tender readiness message.</desc>
   <rect width="1200" height="630" fill="#0D1B2F"/>
-  <rect x="72" y="72" width="64" height="64" rx="12" fill="#F7F5F0"/>
-  <path d="M88 89L101 119H111L125 89H114L106 108L99 89H88Z" fill="#0D1B2F"/>
-  <path d="M115 85H128V98" fill="none" stroke="#2A9D8F" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <g transform="translate(72 72) scale(2)">
+    <rect x="0.5" y="0.5" width="31" height="31" rx="7.5" fill="#0D1B2F" stroke="#62C8B5" stroke-opacity="0.25"/>
+    <path fill-rule="evenodd" d="M8 6H18L23 10V12L18 16H8V6ZM11.5 9.5V12.5H16.8L19 11L16.8 9.5H11.5Z" fill="#F7F5F0"/>
+    <path fill-rule="evenodd" d="M8 17H19L24 21V23L19 27H8V17ZM11.5 20.5V23.5H17.8L20 22L17.8 20.5H11.5Z" fill="#62C8B5"/>
+  </g>
   <text x="154" y="116" fill="#F7F5F0" font-family="Arial, Helvetica, sans-serif" font-size="40" font-weight="700">BidBox</text>
   <line x1="72" y1="184" x2="1128" y2="184" stroke="#2E4059" stroke-width="2"/>
   <text x="72" y="284" fill="#62C8B5" font-family="Arial, Helvetica, sans-serif" font-size="24" font-weight="700" letter-spacing="2">TENDER READINESS</text>

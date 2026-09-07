@@ -13,6 +13,7 @@ import {
 } from "lucide-react";
 import { BidAutopsyCta } from "@/components/public/public-primary-cta";
 import { BidAutopsySample } from "@/components/public/bid-autopsy-sample";
+import { BidBoxSymbol } from "@/components/bidbox-mark";
 
 const complianceDefects = [
   "Missing or expired compliance documents",
@@ -502,12 +503,7 @@ export function LandingSections() {
           aria-hidden="true"
           className="public-dark-glow pointer-events-none absolute inset-0"
         />
-        <span
-          aria-hidden="true"
-          className="public-display pointer-events-none absolute -bottom-32 -left-8 text-[24rem] leading-none text-sidebar-primary/5"
-        >
-          V
-        </span>
+        <BidBoxSymbol className="pointer-events-none absolute -bottom-32 -left-8 size-96 opacity-5" />
         <div className="content-shell relative grid gap-14 py-20 sm:py-24 lg:grid-cols-[0.82fr_1.18fr] lg:gap-20 lg:py-32">
           <div>
             <span className="flex size-12 items-center justify-center rounded-full border border-sidebar-primary/25 bg-sidebar-accent text-sidebar-primary">

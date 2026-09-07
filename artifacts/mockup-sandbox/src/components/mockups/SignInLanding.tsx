@@ -112,17 +112,18 @@ function RegistrarSeal() {
         </text>
       </g>
 
-      <text
-        x="60"
-        y="58"
-        textAnchor="middle"
-        dominantBaseline="central"
-        className="font-serif"
-        fontSize="23"
-        fill="currentColor"
-      >
-        VW
-      </text>
+      <g transform="translate(44 37)">
+        <path
+          fillRule="evenodd"
+          d="M8 6H18L23 10V12L18 16H8V6ZM11.5 9.5V12.5H16.8L19 11L16.8 9.5H11.5Z"
+          fill="#F7F5F0"
+        />
+        <path
+          fillRule="evenodd"
+          d="M8 17H19L24 21V23L19 27H8V17ZM11.5 20.5V23.5H17.8L20 22L17.8 20.5H11.5Z"
+          fill="#62C8B5"
+        />
+      </g>
       <line
         x1="47"
         y1="70.5"
